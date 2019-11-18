@@ -1,15 +1,24 @@
 {
   "name": "whikloj/bagittools",
-  "version": "1.0.0-alpha",
+  "description": "A PHP library to manipulate and verify BagIt bags.",
+  "type": "library",
+  "version": "1.0.0-dev",
   "homepage": "https://github.com/whikloj/bagittools",
   "license": "MIT",
+  "authors": [
+    {
+      "name": "Jared Whiklo",
+      "email": "jwhiklo@gmail.com",
+      "role": "Developer"
+    }
+  ],
   "require": {
     "pear/archive_tar": "^1.4",
     "php": ">=5.6",
     "ext-curl": "*",
     "ext-zip": "*",
     "ext-iconv": "*",
-    "ext-mbstring": "*",
+    "ext-mbstring": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "~5.7",
@@ -19,7 +28,22 @@
   },
   "autoload": {
     "psr-4": {
-      "whikloj\\BagItTools": "src/"
+      "whikloj\\BagItTools\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "whikloj\\BagItTools\\Test\\": "tests/"
+    }
+  },
+  "scripts": {
+    "check": [
+      "./vendor/bin/phpcs --standard=PSR2 src tests",
+      "./vendor/bin/phpcpd --names *.php src"
+    ],
+    "test": [
+      "@check",
+      "./vendor/bin/phpunit"
+    ]
   }
 }

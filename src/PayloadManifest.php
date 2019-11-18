@@ -2,8 +2,8 @@
 
 namespace whikloj\BagItTools;
 
-
-class PayloadManifest extends Manifest {
+class PayloadManifest extends AbstractManifest
+{
 
   /**
    * PayloadManifest constructor.
@@ -15,10 +15,10 @@ class PayloadManifest extends Manifest {
    * @param bool $load
    *   Whether we are loading an existing file
    */
-  public function __construct(\whikloj\BagItTools\Bag $bag, $algorithm, $load = FALSE) {
-    parent::__construct($bag, $algorithm, $load);
-    $this->filename = "manifest-{$algorithm}.txt";
-  }
+    public function __construct(\whikloj\BagItTools\Bag $bag, $algorithm, $load = false)
+    {
+        parent::__construct($bag, $algorithm, "manifest-{$algorithm}.txt", $load);
+    }
 
 
   /**
@@ -27,12 +27,12 @@ class PayloadManifest extends Manifest {
    * @param string $path
    *   The path of the file.
    */
-  public function removeFile($path)
-  {
-    if (in_array($path, array_keys($this->hashes))) {
-      unset($this->hashes[$path]);
+    public function removeFile($path)
+    {
+        if (in_array($path, array_keys($this->hashes))) {
+            unset($this->hashes[$path]);
+        }
     }
-  }
 
   /**
    * Add a new file to the manifest.
@@ -40,23 +40,23 @@ class PayloadManifest extends Manifest {
    * @param string $path
    *   The path of the file.
    */
-  public function addFile($path)
-  {
-    if (!in_array($path, array_keys($this->hashes))) {
-      $this->hashes[$path] = $this->calculateHash($this->bag->makeAbsolute($path));
+    public function addFile($path)
+    {
+        if (!in_array($path, array_keys($this->hashes))) {
+            $this->hashes[$path] = $this->calculateHash($this->bag->makeAbsolute($path));
+        }
     }
-  }
 
   /**
    * {@inheritdoc}
    */
-  public function update()
-  {
-    $this->hashes = [];
-    $files = $this->getAllFiles($this->bag->makeAbsolute("data"));
-    foreach ($files as $file) {
-      $this->hashes[$this->bag->makeRelative($file)] = "";
+    public function update()
+    {
+        $this->hashes = [];
+        $files = $this->getAllFiles($this->bag->makeAbsolute("data"));
+        foreach ($files as $file) {
+            $this->hashes[$this->bag->makeRelative($file)] = "";
+        }
+        parent::update();
     }
-    parent::update();
-  }
 }
