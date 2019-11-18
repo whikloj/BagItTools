@@ -1,15 +1,13 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: whikloj
- * Date: 2019-11-17
- * Time: 13:58
- */
 
 namespace whikloj\BagItTools\Test;
 
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Base testing class for BagItTools.
+ * @package whikloj\BagItTools\Test
+ */
 class BagItTestFramework extends TestCase
 {
 
@@ -22,14 +20,14 @@ class BagItTestFramework extends TestCase
    * Location and hashes of the test image.
    */
     const TEST_IMAGE = [
-    'filename' => __DIR__ . DIRECTORY_SEPARATOR . "resources/images/scenic-landscape.jpg",
-    'checksums' => [
-      'md5' => 'f181491b485c45ecaefdc3393da4aea6',
-      'sha1' => '0cc9a4a7e02edf70650a5a8bb972224657bb48bb',
-      'sha256' => 'ac1b6ed49d381ccc9c1be3654d0964018e9a75954985d57d27146a221c16e8fd',
-      'sha512' => '1e56314a6f46c194b77e24309392c0039a7f0a7351a807924cc870fae26b81f77ab02db240ae382088ff0a46e821bbce1b' .
-        'b6bfbe158ae9245a22fcfee3be0bee',
-    ],
+        'filename' => __DIR__ . DIRECTORY_SEPARATOR . "resources/images/scenic-landscape.jpg",
+        'checksums' => [
+            'md5' => 'f181491b485c45ecaefdc3393da4aea6',
+            'sha1' => '0cc9a4a7e02edf70650a5a8bb972224657bb48bb',
+            'sha256' => 'ac1b6ed49d381ccc9c1be3654d0964018e9a75954985d57d27146a221c16e8fd',
+            'sha512' => '1e56314a6f46c194b77e24309392c0039a7f0a7351a807924cc870fae26b81f77ab02db240ae382088ff0a46e82' .
+                '1bbce1bb6bfbe158ae9245a22fcfee3be0bee',
+        ],
     ];
 
   /**

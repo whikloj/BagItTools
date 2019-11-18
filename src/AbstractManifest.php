@@ -2,6 +2,10 @@
 
 namespace whikloj\BagItTools;
 
+/**
+ * Abstract manifest class to hold common elements between Payload and Tag manifests.
+ * @package whikloj\BagItTools
+ */
 abstract class AbstractManifest
 {
 

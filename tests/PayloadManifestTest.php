@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: whikloj
- * Date: 2019-11-17
- * Time: 16:16
- */
 
 namespace whikloj\BagItTools\Test;
 
@@ -21,6 +15,7 @@ class PayloadManifestTest extends BagItTestFramework
   /**
    * Test creation of default payload manifest with construction.
    * @group PayloadManifest
+   * @covers ::__construct
    * @throws \whikloj\BagItTools\BagItException
    */
     public function testCreateManifest()
@@ -36,6 +31,7 @@ class PayloadManifestTest extends BagItTestFramework
   /**
    * Test adding a file to the manifest.
    * @group PayloadManifest
+   * @covers ::addFile
    * @throws \whikloj\BagItTools\BagItException
    */
     public function testAddFile()
@@ -50,13 +46,36 @@ class PayloadManifestTest extends BagItTestFramework
         $this->assertArrayHasKey('sha512', $manifests);
         $manifest = $manifests['sha512'];
         copy($source_file, $bag->getDataDirectory() . DIRECTORY_SEPARATOR . $destination);
-        $manifest->addFile("data/{$destination}");
+        $manifest->addFile($destination);
         $payloads = $manifest->getHashes();
         $this->assertArrayHasKey($expected_internal, $payloads);
         $this->assertEquals($checksum, $payloads[$expected_internal]);
     }
 
+    /**
+     * Test removing a file from the manifest.
+     * @group PayloadManifest
+     * @covers ::removeFile
+     * @throws \whikloj\BagItTools\BagItException
+     */
     public function testRemoveFile()
     {
+        $source_file = self::TEST_IMAGE['filename'];
+        $destination = "land.jpg";
+
+        $bag = new Bag($this->tmpdir, true);
+        $manifests = $bag->getPayloadManifests();
+        $this->assertArrayHasKey('sha512', $manifests);
+        $manifest = $manifests['sha512'];
+        copy($source_file, $bag->getDataDirectory() . DIRECTORY_SEPARATOR . $destination);
+        $manifest->addFile($destination);
+        $this->assertCount(1, $manifest->getHashes());
+
+        // Remove a file that doesn't exist
+        $manifest->removeFile("bob.jpg");
+        $this->assertCount(1, $manifest->getHashes());
+
+        $manifest->removeFile($destination);
+        $this->assertCount(0, $manifest->getHashes());
     }
 }

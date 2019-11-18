@@ -2,7 +2,6 @@
 
 namespace whikloj\BagItTools\Test;
 
-use Doctrine\Instantiator\Exception\InvalidArgumentException;
 use whikloj\BagItTools\Bag;
 
 /**
@@ -89,5 +88,65 @@ class BagItTest extends BagItTestFramework
         $source_file = self::TEST_IMAGE['filename'];
         $bag = new Bag($this->tmpdir, true);
         $bag->addFile($source_file, "data/../../../images/places/image.jpg");
+    }
+
+    /**
+     * Test removing a file from a bag.
+     * @group Bag
+     * @covers ::removeFile
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testRemoveFile()
+    {
+        $tmpdir = $this->prepareTestBagDirectory();
+        $bag = new Bag($tmpdir, false);
+        $this->assertFileExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'jekyll_and_hyde.txt');
+        $bag->removeFile('jekyll_and_hyde.txt');
+        $this->assertFileNotExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'jekyll_and_hyde.txt');
+        $this->deleteDirAndContents($tmpdir);
+    }
+
+    /**
+     * Ensure empty directories are removed as files are removed.
+     * @group Bag
+     * @covers ::removeFile
+     * @covers ::checkForEmptyDir
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testRemoveEmptyDirectories()
+    {
+        $tmpdir = $this->prepareTestBagDirectory();
+
+        $picturesDir = implode(DIRECTORY_SEPARATOR, [
+            $tmpdir,
+            'data',
+            'pictures',
+        ]);
+
+        $bag = new Bag($tmpdir, false);
+
+        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'background-with-flower-and-butterfl.jpg');
+        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'houses-of-parliament.jpg');
+        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'tower-bridge-at-night.jpg');
+
+        // Don't reference the correct path.
+        $bag->removeFile('houses-of-parliament.jpg');
+        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'houses-of-parliament.jpg');
+
+        // Reference with data/ prefix
+        $bag->removeFile('data/pictures/houses-of-parliament.jpg');
+        $this->assertFileNotExists($picturesDir . DIRECTORY_SEPARATOR . 'houses-of-parliament.jpg');
+
+        // Reference without data/ prefix
+        $bag->removeFile('pictures/tower-bridge-at-night.jpg');
+        $this->assertFileNotExists($picturesDir . DIRECTORY_SEPARATOR . 'tower-bridge-at-night.jpg');
+
+        $bag->removeFile('pictures/background-with-flower-and-butterfl.jpg');
+        $this->assertFileNotExists($picturesDir . DIRECTORY_SEPARATOR . 'background-with-flower-and-butterfl.jpg');
+
+        // All files are gone so directory data/pictures should have been removed.
+        $this->assertDirectoryNotExists($picturesDir);
+
+        $this->deleteDirAndContents($tmpdir);
     }
 }

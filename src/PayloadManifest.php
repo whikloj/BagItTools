@@ -2,6 +2,10 @@
 
 namespace whikloj\BagItTools;
 
+/**
+ * Payload Manifest class.
+ * @package whikloj\BagItTools'
+ */
 class PayloadManifest extends AbstractManifest
 {
 
@@ -29,6 +33,7 @@ class PayloadManifest extends AbstractManifest
    */
     public function removeFile($path)
     {
+        $path = BagUtils::baseInData($path);
         if (in_array($path, array_keys($this->hashes))) {
             unset($this->hashes[$path]);
         }
@@ -42,6 +47,7 @@ class PayloadManifest extends AbstractManifest
    */
     public function addFile($path)
     {
+        $path = BagUtils::baseInData($path);
         if (!in_array($path, array_keys($this->hashes))) {
             $this->hashes[$path] = $this->calculateHash($this->bag->makeAbsolute($path));
         }

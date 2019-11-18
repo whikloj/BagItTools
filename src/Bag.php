@@ -254,9 +254,7 @@ class Bag
     public function addFile($source, $dest)
     {
         if (file_exists($source)) {
-            if (substr($dest, 0, 5) !== 'data/') {
-                $dest = 'data/' . ltrim($dest, '/');
-            }
+            $dest = BagUtils::baseInData($dest);
             if ($this->pathInBagData($dest)) {
                 $fullDest = $this->makeAbsolute($dest);
                 $dirname = dirname($fullDest);
@@ -286,6 +284,7 @@ class Bag
    */
     public function removeFile($dest)
     {
+        $dest = BagUtils::baseInData($dest);
         if ($this->pathInBagData($dest)) {
             $fullPath = $this->makeAbsolute($dest);
             if (file_exists($fullPath) && is_file($fullPath)) {
@@ -551,7 +550,7 @@ class Bag
     {
         $this->tagManifests = [];
         $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-*.txt";
-        $files = self::findAllByPattern($pattern);
+        $files = BagUtils::findAllByPattern($pattern);
         if (count($files) > 0) {
             foreach ($files as $file) {
                 $hash = self::determineHashFromFilename($file);
@@ -592,7 +591,7 @@ class Bag
     private function removeTagManifests()
     {
         $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-*.txt";
-        $files = self::findAllByPattern($pattern);
+        $files = BagUtils::findAllByPattern($pattern);
         if (count($files) > 0) {
             foreach ($files as $file) {
                 if (file_exists($file)) {
@@ -612,7 +611,7 @@ class Bag
     private function loadPayloadManifests()
     {
         $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "manifest-*.txt";
-        $files = self::findAllByPattern($pattern);
+        $files = BagUtils::findAllByPattern($pattern);
         if (count($files) == 0) {
             $this->loadErrors[] = [
             'file' => 'manifest-ALG.txt',
@@ -771,7 +770,7 @@ class Bag
             $files = scandir($parentPath);
             $payload = array_filter($files, function ($o) {
                 // Don't count directory specifiers.
-                return ($o !== "." || $o !== "..");
+                return ($o !== "." && $o !== "..");
             });
             if (count($payload) == 0) {
                   rmdir($parentPath);
@@ -844,27 +843,6 @@ class Bag
     {
         return (in_array(strtolower($key), self::BAG_INFO_MUST_NOT_REPEAT) &&
         self::arrayKeyExistsNoCase($key, $this->bagInfoData));
-    }
-
-  /**
-   * Return all files that match the pattern, or an empty array.
-   *
-   * @param string $pattern
-   *   The pattern to search for.
-   *
-   * @return array
-   *   Array of matches.
-   *
-   * @throws \whikloj\BagItTools\BagItException
-   *   Error in matching pattern.
-   */
-    private static function findAllByPattern($pattern)
-    {
-        $matches=glob($pattern);
-        if ($matches === false) {
-            throw new BagItException("Error matching pattern {$pattern}");
-        }
-        return $matches;
     }
 
   /**

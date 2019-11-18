@@ -2,6 +2,10 @@
 
 namespace whikloj\BagItTools;
 
+/**
+ * Tag Manifest class.
+ * @package whikloj\BagItTools
+ */
 class TagManifest extends AbstractManifest
 {
 
