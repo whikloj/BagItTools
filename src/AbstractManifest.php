@@ -147,13 +147,13 @@ abstract class AbstractManifest
             $fp = fopen($fullPath, "rb");
             while (!feof($fp)) {
                 $line = fgets($fp);
+                $line = mb_convert_encoding($line, Bag::DEFAULT_FILE_ENCODING);
                 $line = trim($line);
                 if (empty($line)) {
                     continue;
                 }
-                list($hash, $path) = preg_split("~\s+~", $line);
-                if (isset($hash) && isset($path)) {
-                    $this->hashes[$path] = $hash;
+                if (preg_match("~^(\w+)\s+(.*)$~", $line, $matches)) {
+                    $this->hashes[$matches[2]] = $matches[1];
                 }
             }
             fclose($fp);
@@ -177,7 +177,9 @@ abstract class AbstractManifest
             throw new BagItException("Unable to write {$fullPath}");
         }
         foreach ($this->hashes as $path => $hash) {
-            fwrite($fp, "{$hash} {$path}\r\n");
+            $line = "{$hash} {$path}\r\n";
+            $line = mb_convert_encoding($line, $this->bag->getFileEncoding());
+            fwrite($fp, $line);
         }
         fclose($fp);
     }
@@ -221,7 +223,7 @@ abstract class AbstractManifest
     protected function getAllFiles($directory, $exclusions = [])
     {
         $paths = [$directory];
-        $files = [];
+        $found_files = [];
 
         while (count($paths) > 0) {
             $currentPath = array_shift($paths);
@@ -232,11 +234,11 @@ abstract class AbstractManifest
                     if (is_dir($fullPath) && !in_array($file, $exclusions)) {
                         $paths[] = $fullPath;
                     } elseif (is_file($fullPath)) {
-                        $files[] = $fullPath;
+                        $found_files[] = $fullPath;
                     }
                 }
             }
         }
-        return $files;
+        return $found_files;
     }
 }

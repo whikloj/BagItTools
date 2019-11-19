@@ -22,8 +22,7 @@ class BagInternalTest extends BagItTestFramework
     {
         $methodCall = $this->getReflectionMethod('\whikloj\BagItTools\Bag', 'makeRelative');
 
-        $tmp = $this->getTempName();
-        $bag = new Bag($tmp, true);
+        $bag = new Bag($this->tmpdir, true);
         $baseDir = $bag->getBagRoot();
 
         $valid_paths = [
@@ -51,8 +50,6 @@ class BagInternalTest extends BagItTestFramework
             $relative = $methodCall->invokeArgs($bag, [$fullpath]);
             $this->assertEquals('', $relative);
         }
-
-        $this->deleteDirAndContents($tmp);
     }
 
   /**
@@ -66,8 +63,7 @@ class BagInternalTest extends BagItTestFramework
     {
         $methodCall = $this->getReflectionMethod('\whikloj\BagItTools\Bag', 'pathInBagData');
 
-        $tmp = $this->getTempName();
-        $bag = new Bag($tmp, true);
+        $bag = new Bag($this->tmpdir, true);
 
         $valid_paths = [
         'data/image/someimage.jpg',
@@ -91,7 +87,44 @@ class BagInternalTest extends BagItTestFramework
             $relative = $methodCall->invokeArgs($bag, [$path]);
             $this->assertFalse($relative);
         }
+    }
 
-        $this->deleteDirAndContents($tmp);
+    /**
+     * Test the BagInfo text wrapping function.
+     * @group BagInternal
+     * @covers \whikloj\BagItTools\Bag::wrapBagInfoText
+     * @covers \whikloj\BagItTools\Bag::wrapAtLength
+     * @throws \ReflectionException
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testWrapBagInfo()
+    {
+        $test_matrix = [
+            "Source-Organization: Organization transferring the content." => [
+                "Source-Organization: Organization transferring the content.",
+            ],
+            "Contact-Name: Person at the source organization who is responsible for the content transfer." => [
+                "Contact-Name: Person at the source organization who is responsible for the",
+                "  content transfer.",
+            ],
+            "Bag-Size: The size or approximate size of the bag being transferred, followed by an abbreviation such" .
+            " as MB (megabytes), GB (gigabytes), or TB (terabytes): for example, 42600 MB, 42.6 GB, or .043 TB." .
+            " Compared to Payload-Oxum (described next), Bag-Size is intended for human consumption. This metadata" .
+            " element SHOULD NOT be repeated." => [
+                "Bag-Size: The size or approximate size of the bag being transferred, followed",
+                "  by an abbreviation such as MB (megabytes), GB (gigabytes), or TB (terabytes):",
+                "  for example, 42600 MB, 42.6 GB, or .043 TB. Compared to Payload-Oxum",
+                "  (described next), Bag-Size is intended for human consumption. This metadata",
+                "  element SHOULD NOT be repeated.",
+            ],
+        ];
+
+        $bag = new Bag($this->tmpdir, true);
+        $methodCall = $this->getReflectionMethod('\whikloj\BagItTools\Bag', 'wrapBagInfoText');
+
+        foreach ($test_matrix as $string => $expected) {
+            $output = $methodCall->invokeArgs($bag, [$string]);
+            $this->assertEquals($expected, $output);
+        }
     }
 }

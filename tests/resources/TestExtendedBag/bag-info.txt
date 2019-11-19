@@ -1,0 +1,4 @@
+Source-Organization: My, myself and I inc.
+Contact-Name: whikloj
+Contact-Phone: 123-456-7890
+Bagging-Date: 2019-11-18

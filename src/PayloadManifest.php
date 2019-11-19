@@ -24,35 +24,6 @@ class PayloadManifest extends AbstractManifest
         parent::__construct($bag, $algorithm, "manifest-{$algorithm}.txt", $load);
     }
 
-
-  /**
-   * Remove a file from the manifest.
-   *
-   * @param string $path
-   *   The path of the file.
-   */
-    public function removeFile($path)
-    {
-        $path = BagUtils::baseInData($path);
-        if (in_array($path, array_keys($this->hashes))) {
-            unset($this->hashes[$path]);
-        }
-    }
-
-  /**
-   * Add a new file to the manifest.
-   *
-   * @param string $path
-   *   The path of the file.
-   */
-    public function addFile($path)
-    {
-        $path = BagUtils::baseInData($path);
-        if (!in_array($path, array_keys($this->hashes))) {
-            $this->hashes[$path] = $this->calculateHash($this->bag->makeAbsolute($path));
-        }
-    }
-
   /**
    * {@inheritdoc}
    */
