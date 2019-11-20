@@ -1072,14 +1072,7 @@ class Bag
     private function clearTagManifests()
     {
         $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-*.txt";
-        $files = BagUtils::findAllByPattern($pattern);
-        if (count($files) > 0) {
-            foreach ($files as $file) {
-                if (file_exists($file)) {
-                    unlink($file);
-                }
-            }
-        }
+        $this->clearFilesOfPattern($pattern);
         unset($this->tagManifests);
     }
 
@@ -1157,7 +1150,7 @@ class Bag
             $this->payloadManifests = [self::DEFAULT_HASH_ALGORITHM => $manifest];
         }
         // Delete all manifest files, before we update the current manifests.
-        $this->clearManifests();
+        $this->clearPayloadManifests();
         $files = [];
         foreach ($this->payloadManifests as $manifest) {
             $manifest->update();
@@ -1172,17 +1165,10 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *    Errors with glob() pattern.
      */
-    private function clearManifests()
+    private function clearPayloadManifests()
     {
         $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "manifest-*.txt";
-        $files = BagUtils::findAllByPattern($pattern);
-        if (count($files) > 0) {
-            foreach ($files as $file) {
-                if (file_exists($file)) {
-                    unlink($file);
-                }
-            }
-        }
+        $this->clearFilesOfPattern($pattern);
     }
 
     /**
@@ -1324,6 +1310,26 @@ class Bag
             });
             if (count($payload) == 0) {
                 rmdir($parentPath);
+            }
+        }
+    }
+
+    /**
+     * Utility to remove files using a pattern.
+     *
+     * @param string $filePattern
+     *   The file pattern.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Problems deleting files.
+     */
+    private function clearFilesOfPattern($filePattern)
+    {
+        $files = BagUtils::findAllByPattern($filePattern);
+        if (count($files) > 0) {
+            foreach ($files as $file) {
+                if (file_exists($file)) {
+                    unlink($file);
+                }
             }
         }
     }
