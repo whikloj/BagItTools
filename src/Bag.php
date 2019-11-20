@@ -158,7 +158,8 @@ class Bag
     private $bagInfoData = [];
 
     /**
-     * Unique list of all Bag info tags stored in lower case.
+     * Unique array of all Bag info tags/values. Tags are stored once in lower case with an array of all instances
+     * of values. This index does not save order.
      *
      * @var array
      */
@@ -235,7 +236,7 @@ class Bag
             $this->updateTagManifests();
             $this->updateBagInfo();
         } else {
-            $this->removeTagManifests();
+            $this->clearTagManifests();
             $this->removeBagInfo();
         }
         $this->changed = false;
@@ -356,29 +357,107 @@ class Bag
      * @return bool
      *   Does the tag exist.
      */
-    public function hasBagInfoDataTag($tag)
+    public function hasBagInfoTag($tag)
     {
-        $tag = strtolower($tag);
-        $tag = trim($tag);
+        $tag = self::trimLower($tag);
         return array_key_exists($tag, $this->bagInfoTagIndex);
     }
 
     /**
-     * Find all instances of tag and return the values
+     * Find all instances of tag and return an array of values.
      *
      * @param $tag
      *   Bag info tag to locate
      * @return array
      *   Array of values for the tag.
      */
-    public function getBagInfoDataByTag($tag)
+    public function getBagInfoByTag($tag)
     {
-        $tag = strtolower($tag);
-        $tag = trim($tag);
-        if ($this->hasBagInfoDataTag($tag)) {
+        if ($this->hasBagInfoTag($tag)) {
+            $tag = self::trimLower($tag);
             return $this->bagInfoTagIndex[$tag];
         }
         return [];
+    }
+
+    /**
+     * Remove ALL instances of tag.
+     *
+     * @param string $tag
+     *   The tag to remove.
+     */
+    public function removeBagInfoTag($tag)
+    {
+        if ($this->hasBagInfoTag($tag)) {
+            $tag = self::trimLower($tag);
+            $newInfo = [];
+            foreach ($this->bagInfoData as $row) {
+                $rowTag = self::trimLower($row['tag']);
+                if ($rowTag !== $tag) {
+                    $newInfo[] = $row;
+                }
+            }
+            $this->bagInfoData = $newInfo;
+            $this->updateBagInfoIndex();
+        }
+    }
+
+    /**
+     * Removes a specific entry for a tag by the array index. This can be determined using the index in the array
+     * returned by getBagInfoByKey().
+     *
+     * @param string $tag
+     *   The tag to remove.
+     * @param int $index
+     *   The index of the value to remove.
+     */
+    public function removeBagInfoTagIndex($tag, $index)
+    {
+        if (is_int($index) && $index > -1) {
+            if ($this->hasBagInfoTag($tag)) {
+                $values = $this->getBagInfoByTag($tag);
+                if ($index < count($values)) {
+                    $tag = self::trimLower($tag);
+                    $newInfo = [];
+                    $tagCount = 0;
+                    foreach ($this->bagInfoData as $row) {
+                        $rowTag = self::trimLower($row['tag']);
+                        if ($rowTag !== $tag || $tagCount !== $index) {
+                            $newInfo[] = $row;
+                        }
+                        if ($rowTag == $tag) {
+                            $tagCount += 1;
+                        }
+                    }
+                    $this->bagInfoData = $newInfo;
+                    $this->updateBagInfoIndex();
+                }
+            }
+        }
+    }
+
+    /**
+     * Set the file encoding.
+     *
+     * @param string $encoding
+     *   The MIME name of the character set to encode with.
+     * @throws \whikloj\BagItTools\BagItException
+     *   If we don't support the requested character set.
+     */
+    public function setFileEncoding($encoding)
+    {
+        $encoding = self::trimLower($encoding);
+        if ($encoding == self::trimLower(self::DEFAULT_FILE_ENCODING)) {
+            // go back to default.
+            unset($this->currentFileEncoding);
+        } else {
+            $charset = BagUtils::getValidCharset($encoding);
+            if (is_null($charset)) {
+                throw new BagItException("Character set {$encoding} is not supported.");
+            } else {
+                $this->currentFileEncoding = $charset;
+            }
+        }
     }
 
     /**
@@ -393,6 +472,132 @@ class Bag
             return $this->currentFileEncoding;
         }
         return self::DEFAULT_FILE_ENCODING;
+    }
+
+    /**
+     * Get the currently active payload (and tag) manifests.
+     *
+     * @return array
+     *   Internal hash names for current manifests.
+     */
+    public function getAlgorithms()
+    {
+        return array_keys($this->payloadManifests);
+    }
+
+    /**
+     * Do we have this hash algorithm already?
+     *
+     * @param string $hashAlgorithm
+     *   The requested hash algorithms.
+     *
+     * @return bool Do we already have this payload manifest.
+     */
+    public function hasAlgorithm($hashAlgorithm)
+    {
+        $internal_name = $this->getHashName($hashAlgorithm);
+        if ($this->hashIsSupported($internal_name)) {
+            return $this->hasHash($internal_name);
+        }
+        return false;
+    }
+
+    /**
+     * The algorithm is supported.
+     *
+     * @param string $algorithm
+     *   The requested hash algorithm
+     * @return bool
+     *   Whether it is supported by our PHP.
+     */
+    public function algorithmIsSupported($algorithm)
+    {
+        $internal_name = $this->getHashName($algorithm);
+        return $this->hashIsSupported($internal_name);
+    }
+
+    /**
+     * Add a hash algorithm to the bag.
+     *
+     * @param string $algorithm
+     *   Algorithm to add.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Asking for an unsupported algorithm.
+     */
+    public function addAlgorithm($algorithm)
+    {
+        $internal_name = $this->getHashName($algorithm);
+        if ($this->hashIsSupported($internal_name)) {
+            if (!array_key_exists($internal_name, $this->payloadManifests)) {
+                $this->payloadManifests[$internal_name] = new PayloadManifest($this, $internal_name);
+            }
+            if ($this->isExtended) {
+                $this->ensureTagManifests();
+                if (!array_key_exists($internal_name, $this->tagManifests)) {
+                    $this->tagManifests[$internal_name] = new TagManifest($this, $internal_name);
+                }
+            }
+        } else {
+            throw new BagItException("Algorithm {$algorithm} is not supported.");
+        }
+    }
+
+    /**
+     * Remove a hash algorithm from the bag.
+     *
+     * @param string $algorithm
+     *   Algorithm to remove
+     * @throws \whikloj\BagItTools\BagItException
+     *   Trying to remove the last algorithm or asking for an unsupported algorithm.
+     */
+    public function removeAlgorithm($algorithm)
+    {
+        $internal_name = $this->getHashName($algorithm);
+        if ($this->hashIsSupported($internal_name)) {
+            if (array_key_exists($internal_name, $this->payloadManifests)) {
+                if (count($this->payloadManifests) == 1) {
+                    throw new BagItException("Cannot remove last payload algorithm, add one before removing this one");
+                }
+                $this->removePayloadManifest($internal_name);
+            }
+            if ($this->isExtended && isset($this->tagManifests) &&
+                array_key_exists($internal_name, $this->tagManifests)) {
+                if (count($this->tagManifests) == 1) {
+                    throw new BagItException("Cannot remove last tag algorithm, add one before removing this one");
+                }
+                $this->removeTagManifest($internal_name);
+            }
+        } else {
+            throw new BagItException("Algorithm {$algorithm} is not supported.");
+        }
+    }
+
+    /**
+     * Replaces any existing hash algorithms with the one requested.
+     *
+     * @param string $algorithm
+     *   Algorithm to use.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Asking for an unsupported algorithm.
+     */
+    public function setAlgorithm($algorithm)
+    {
+        $internal_name = $this->getHashName($algorithm);
+        if ($this->hashIsSupported($internal_name)) {
+            $this->removeAllPayloadManifests([$internal_name]);
+            if (count($this->payloadManifests) == 0) {
+                $this->payloadManifests[$internal_name] = new PayloadManifest($this, $internal_name);
+            }
+            $this->removeAllTagManifests([$internal_name]);
+            if ($this->isExtended) {
+                $this->ensureTagManifests();
+                if (count($this->tagManifests) == 0) {
+                    $this->tagManifests[$internal_name] = new TagManifest($this, $internal_name);
+                }
+            }
+        } else {
+            throw new BagItException("Algorithm {$algorithm} is not supported.");
+        }
     }
 
     /**
@@ -556,7 +761,7 @@ class Bag
                         ),
                     ];
                 }
-                $line = mb_convert_encoding($line, self::DEFAULT_FILE_ENCODING);
+                $line = $this->decodeText($line);
 
                 if (preg_match("~^([^:]+)\s*:\s+(.*)$~", $line, $matches)) {
                     // First line
@@ -586,14 +791,26 @@ class Bag
     }
 
     /**
+     * Return a trimmed and lowercase version of text.
+     * @param string $text
+     *   The original text.
+     * @return string
+     *   The lowercase trimmed text.
+     */
+    private static function trimLower($text)
+    {
+        $text = strtolower($text);
+        return trim($text);
+    }
+
+    /**
      * Generate a faster index of Bag-Info tags.
      */
     private function updateBagInfoIndex()
     {
         $tags = [];
         foreach ($this->bagInfoData as $row) {
-            $tagName = strtolower($row['tag']);
-            $tagName = trim($tagName);
+            $tagName = self::trimLower($row['tag']);
             if (!array_key_exists($tagName, $tags)) {
                 $tags[$tagName] = [];
             }
@@ -622,8 +839,8 @@ class Bag
             $value = $bag_info_datum['value'];
             $data = self::wrapBagInfoText("{$tag}: {$value}");
             foreach ($data as $line) {
-                $line = mb_convert_encoding($line, $this->getFileEncoding());
-                fwrite($fp, "{$line}\r\n");
+                $line = $this->encodeText($line);
+                fwrite($fp, $line . PHP_EOL);
             }
         }
         fclose($fp);
@@ -631,8 +848,6 @@ class Bag
 
     /**
      * Update the calculated bag-info fields
-     *
-     * @throws \whikloj\BagItTools\BagItException
      */
     private function updateCalculateBagInfoFields()
     {
@@ -671,7 +886,7 @@ class Bag
         if (file_exists($fullPath)) {
             unlink($fullPath);
         }
-        unset($this->bagInfoData);
+        $this->bagInfoData = [];
     }
 
     /**
@@ -777,22 +992,28 @@ class Bag
     }
 
     /**
+     * Utility to setup tag manifests.
+     */
+    private function ensureTagManifests()
+    {
+        if (!isset($this->tagManifests)) {
+            $this->tagManifests = [];
+        }
+    }
+
+    /**
      * Run update against the tag manifests.
      */
     private function updateTagManifests()
     {
         if ($this->isExtended) {
-            if (!isset($this->tagManifests)) {
-                $tagManifests = [];
-                if (is_array($this->payloadManifests)) {
-                    $hashes = array_keys($this->payloadManifests);
-                } else {
-                    $hashes = [self::DEFAULT_HASH_ALGORITHM];
-                }
-                foreach ($hashes as $hash) {
-                    $tagManifests[$hash] = new TagManifest($this, $hash);
-                }
-                $this->tagManifests = $tagManifests;
+            $this->clearTagManifests();
+            $this->ensureTagManifests();
+            $hashes = (is_array($this->payloadManifests) ? $this->payloadManifests :
+                [self::DEFAULT_HASH_ALGORITHM => ""]);
+            $hashes = array_diff_key($hashes, $this->tagManifests);
+            foreach (array_keys($hashes) as $hash) {
+                $this->tagManifests[$hash] = new TagManifest($this, $hash);
             }
             foreach ($this->tagManifests as $manifest) {
                 $manifest->update();
@@ -806,7 +1027,7 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *    Errors with glob() pattern.
      */
-    private function removeTagManifests()
+    private function clearTagManifests()
     {
         $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-*.txt";
         $files = BagUtils::findAllByPattern($pattern);
@@ -818,6 +1039,40 @@ class Bag
             }
         }
         unset($this->tagManifests);
+    }
+
+    /**
+     * Remove tag manifests.
+     *
+     * @param array $exclusions
+     *   Hash algorithm names of manifests to preserve.
+     */
+    private function removeAllTagManifests($exclusions = [])
+    {
+        if (isset($this->tagManifests)) {
+            foreach ($this->tagManifests as $hash => $manifest) {
+                if (in_array($hash, $exclusions)) {
+                    continue;
+                }
+                $this->removeTagManifest($hash);
+            }
+        }
+    }
+
+    /**
+     * Remove a single tag manifest.
+     *
+     * @param string $internal_name
+     *   The hash name to remove.
+     */
+    private function removeTagManifest($internal_name)
+    {
+        $manifest = $this->tagManifests[$internal_name];
+        $filename = $manifest->getFilename();
+        if (file_exists($filename)) {
+            unlink($this->makeAbsolute($filename));
+        }
+        unset($this->tagManifests[$internal_name]);
     }
 
     /**
@@ -857,14 +1112,67 @@ class Bag
     {
         if (!isset($this->payloadManifests)) {
             $manifest = new PayloadManifest($this, self::DEFAULT_HASH_ALGORITHM);
-            $this->payloadManifests = [$manifest];
+            $this->payloadManifests = [self::DEFAULT_HASH_ALGORITHM => $manifest];
         }
+        // Delete all manifest files, before we update the current manifests.
+        $this->clearManifests();
         $files = [];
         foreach ($this->payloadManifests as $manifest) {
             $manifest->update();
             $files = array_merge($files, array_keys($manifest->getHashes()));
         }
         $this->payloadFiles = $files;
+    }
+
+    /**
+     * Remove all manifest files.
+     *
+     * @throws \whikloj\BagItTools\BagItException
+     *    Errors with glob() pattern.
+     */
+    private function clearManifests()
+    {
+        $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "manifest-*.txt";
+        $files = BagUtils::findAllByPattern($pattern);
+        if (count($files) > 0) {
+            foreach ($files as $file) {
+                if (file_exists($file)) {
+                    unlink($file);
+                }
+            }
+        }
+    }
+
+    /**
+     * Remove payload manifests.
+     *
+     * @param array $exclusions
+     *   Hash algorithm names of manifests to preserve.
+     */
+    private function removeAllPayloadManifests($exclusions = [])
+    {
+        foreach ($this->payloadManifests as $hash => $manifest) {
+            if (in_array($hash, $exclusions)) {
+                continue;
+            }
+            $this->removePayloadManifest($hash);
+        }
+    }
+
+    /**
+     * Remove a single payload manifest.
+     *
+     * @param string $internal_name
+     *   The hash name to remove.
+     */
+    private function removePayloadManifest($internal_name)
+    {
+        $manifest = $this->payloadManifests[$internal_name];
+        $filename = $manifest->getFilename();
+        if (file_exists($filename)) {
+            unlink($this->makeAbsolute($filename));
+        }
+        unset($this->payloadManifests[$internal_name]);
     }
 
     /**
@@ -886,8 +1194,11 @@ class Bag
             if ($contents === false) {
                 throw new BagItException("Unable to read {$fullPath}");
             }
-            $contents = mb_convert_encoding($contents, self::DEFAULT_FILE_ENCODING);
-            $lines = preg_split("~[\r\n]+~", $contents, null, PREG_SPLIT_NO_EMPTY);
+            $contents = $this->decodeText($contents);
+            $lines = explode(PHP_EOL, $contents);
+            //$lines = preg_split("~[\r\n]+~", $contents, null, PREG_SPLIT_NO_EMPTY);
+            // remove blank lines.
+            $lines = array_filter($lines);
             if (count($lines) !== 2) {
                 $this->bagErrors[] = [
                     'file' => 'bagit.txt',
@@ -937,13 +1248,14 @@ class Bag
         $version = $this->getVersion();
 
         $output = sprintf(
-            "BagIt-Version: %d.%d\n" .
-            "Tag-File-Character-Encoding: %s\n",
+            "BagIt-Version: %d.%d" . PHP_EOL .
+            "Tag-File-Character-Encoding: %s" . PHP_EOL,
             $version['major'],
             $version['minor'],
             $this->getFileEncoding()
         );
 
+        // We don't use encodeText because this must always be UTF-8.
         $output = mb_convert_encoding($output, self::DEFAULT_FILE_ENCODING);
 
         file_put_contents(
@@ -990,8 +1302,8 @@ class Bag
     /**
      * Normalize a PHP hash algorithm to a BagIt specification name. Used to alter the incoming $item.
      *
-     * @param string $item The hash algorithm name.
-     * @author Jared Whiklo <jwhiklo@gmail.com>
+     * @param string $item
+     *   The hash algorithm name.
      */
     private static function normalizeHashAlgorithmName(&$item)
     {
@@ -1001,14 +1313,58 @@ class Bag
     /**
      * Check if the algorithm PHP has is allowed by the specification.
      *
-     * @param string $item A hash algorithm name.
+     * @param string $item
+     *   A hash algorithm name.
      *
-     * @return bool True if allowed by the specification.
-     * @author Jared Whiklo <jwhiklo@gmail.com>
+     * @return bool
+     *   True if allowed by the specification.
      */
     private static function filterPhpHashAlgorithms($item)
     {
         return in_array($item, array_values(self::HASH_ALGORITHMS));
+    }
+
+    /**
+     * Return the BagIt sanitized algorithm name.
+     * @param string $algorithm
+     *   A algorithm name
+     * @return string|null
+     *   The sanitized version of algorithm or null if invalid.
+     */
+    private function getHashName($algorithm)
+    {
+        $algorithm = self::trimLower($algorithm);
+        $algorithm = preg_replace("/[^a-z0-9]/", "", $algorithm);
+        if (in_array($algorithm, array_keys(self::HASH_ALGORITHMS))) {
+            return $algorithm;
+        }
+        return "";
+    }
+
+    /**
+     * Do we have a payload manifest with this internal hash name. Internal use only to avoid getHashName()
+     *
+     * @param string $internal_name
+     *   Internal name from getHashName.
+     * @return bool
+     *   Already have this algorithm.
+     */
+    private function hasHash($internal_name)
+    {
+        return (in_array($internal_name, array_keys($this->manifest)));
+    }
+
+    /**
+     * Is the internal named hash supported by our PHP. Internal use only to avoid getHashName()
+     *
+     * @param string $internal_name
+     *   Output of getHashName
+     * @return bool
+     *   Do we support the algorithm
+     */
+    private function hashIsSupported($internal_name)
+    {
+        return ($internal_name != null && in_array($internal_name, $this->validHashAlgorithms));
     }
 
     /**
@@ -1056,6 +1412,31 @@ class Bag
             return $matches[1];
         }
         return null;
+    }
+
+    /**
+     * Utility function to convert text to UTF-8
+     * @param string $text
+     *   The source text.
+     * @return string
+     *   The converted text.
+     */
+    private function decodeText($text)
+    {
+        return mb_convert_encoding($text, self::DEFAULT_FILE_ENCODING);
+    }
+
+    /**
+     * Utility function to convert text back to the encoding for the file.
+     *
+     * @param string $text
+     *   The source text.
+     * @return string
+     *   The converted text.
+     */
+    private function encodeText($text)
+    {
+        return mb_convert_encoding($text, $this->getFileEncoding());
     }
 
     /**

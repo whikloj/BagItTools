@@ -177,7 +177,7 @@ abstract class AbstractManifest
             throw new BagItException("Unable to write {$fullPath}");
         }
         foreach ($this->hashes as $path => $hash) {
-            $line = "{$hash} {$path}\r\n";
+            $line = "{$hash} {$path}" . PHP_EOL;
             $line = mb_convert_encoding($line, $this->bag->getFileEncoding());
             fwrite($fp, $line);
         }

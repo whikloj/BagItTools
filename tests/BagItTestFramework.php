@@ -3,6 +3,7 @@
 namespace whikloj\BagItTools\Test;
 
 use PHPUnit\Framework\TestCase;
+use whikloj\BagItTools\Bag;
 
 /**
  * Base testing class for BagItTools.
@@ -212,5 +213,55 @@ class BagItTestFramework extends TestCase
         $methodCall = $class->getMethod($method);
         $methodCall->setAccessible(true);
         return $methodCall;
+    }
+
+    /**
+     * Assert the encoding in the bagit.txt is X and the version is 1.0
+     * @param \whikloj\BagItTools\Bag $bag
+     *   The bag.
+     * @param string $version_string
+     *   The BagIt version.
+     */
+    protected function assertBagItFileVersion(Bag $bag, $version_string)
+    {
+        $this->assertBagItVersionEncoding($bag, $version_string, null);
+    }
+
+    /**
+     * Assert the encoding in the bagit.txt is X and the version is 1.0
+     * @param \whikloj\BagItTools\Bag $bag
+     *   The bag.
+     * @param string $encoding
+     *   The file encoding.
+     */
+    protected function assertBagItFileEncoding(Bag $bag, $encoding)
+    {
+        $this->assertBagItVersionEncoding($bag, null, $encoding);
+    }
+
+    /**
+     * Assert the version and encoding in the actual bagit.txt on disk
+     * @param \whikloj\BagItTools\Bag $bag
+     *   The bag.
+     * @param string|null $version_string
+     *   The version string or null to use the default.
+     * @param string|null $encoding
+     *   The encoding string or null to use the default.
+     */
+    protected function assertBagItVersionEncoding(Bag $bag, $version_string = null, $encoding = null)
+    {
+        $default_version = "1.0";
+        $default_encoding = "UTF-8";
+        $template = "BagIt-Version: %s". PHP_EOL . "Tag-File-Character-Encoding: %s" . PHP_EOL;
+
+        $use_version = is_null($version_string) ? $default_version : $version_string;
+        $use_encoding = is_null($encoding) ? $default_encoding : $encoding;
+
+        $expected = sprintf($template, $use_version, $use_encoding);
+
+        $bagit_file = $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bagit.txt';
+        $this->assertFileExists($bagit_file);
+        $contents = file_get_contents($bagit_file);
+        $this->assertEquals($expected, $contents);
     }
 }

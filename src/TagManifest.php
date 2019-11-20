@@ -19,7 +19,7 @@ class TagManifest extends AbstractManifest
    * @param bool $load
    *   Whether we are loading an existing file
    */
-    public function __construct(\whikloj\BagItTools\Bag $bag, $algorithm, $load = false)
+    public function __construct(\whikloj\BagItTools\Bag $bag, $algorithm, bool $load = false)
     {
         parent::__construct($bag, $algorithm, "tagmanifest-{$algorithm}.txt", $load);
     }
