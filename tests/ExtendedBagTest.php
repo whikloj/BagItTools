@@ -3,6 +3,7 @@
 namespace whikloj\BagItTools\Test;
 
 use whikloj\BagItTools\Bag;
+use whikloj\BagItTools\BagItException;
 
 /**
  * Test of various classes for extended bag functions..
@@ -50,6 +51,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::loadBagInfo
      * @covers ::updateBagInfo
      * @covers ::calculateOxum
+     * @covers ::updateCalculateBagInfoFields
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testLoadExtendedBag()
@@ -86,6 +88,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @group Extended
      * @covers ::hasBagInfoTag
      * @covers ::getBagInfoByTag
+     * @covers ::bagInfoTagExists
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetBagInfoByKey()
@@ -109,6 +112,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::hasBagInfoTag
      * @covers ::getBagInfoByTag
      * @covers ::removeBagInfoTag
+     * @covers ::bagInfoTagExists
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testRemoveBagInfoByTag()
@@ -130,6 +134,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::hasBagInfoTag
      * @covers ::getBagInfoByTag
      * @covers ::removeBagInfoTag
+     * @covers ::bagInfoTagExists
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testRemoveBagInfoByTagIndex()
@@ -165,6 +170,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::clearTagManifests
      * @covers ::removeAlgorithm
      * @covers ::getAlgorithms
+     * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetHashesCommon()
     {
@@ -273,5 +279,55 @@ class ExtendedBagTest extends BagItTestFramework
         // And the new one does
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-md5.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-md5.txt');
+    }
+
+    /**
+     * Test setting a bag info tag.
+     * @group Extended
+     * @covers ::setBagInfoTag
+     * @covers ::bagInfoTagExists
+     */
+    public function testSetBagInfoElement()
+    {
+        $bag = new Bag($this->tmpdir, true);
+        $bag->setExtended(true);
+        $bag->setBagInfoTag('Contact-NAME', 'Monty Hall');
+        $this->assertCount(1, $bag->getBagInfoData());
+        $this->assertTrue($bag->hasBagInfoTag('contact-name'));
+        $tags = $bag->getBagInfoByTag('CONTACT-NAME');
+        $this->assertArrayEquals(['Monty Hall'], $tags);
+        $baginfo = $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt';
+        $this->assertFileNotExists($baginfo);
+        $bag->update();
+        $this->assertFileExists($baginfo);
+        $expected = 'Contact-NAME: Monty Hall' . PHP_EOL . 'Payload-Oxum: 0.0' . PHP_EOL . 'Bagging-Date: ' .
+            date('Y-m-d', time()) . PHP_EOL;
+        $this->assertEquals($expected, file_get_contents($baginfo));
+
+        $bag->setBagInfoTag('contact-nAME', 'Bob Barker');
+        $tags = $bag->getBagInfoByTag('CONTACT-NAME');
+        $this->assertArrayEquals(['Monty Hall', 'Bob Barker'], $tags);
+
+        $bag->update();
+        $expected = 'Contact-NAME: Monty Hall' . PHP_EOL . 'contact-nAME: Bob Barker' . PHP_EOL . 'Payload-Oxum: 0.0' .
+            PHP_EOL . 'Bagging-Date: ' . date('Y-m-d', time()) . PHP_EOL;
+        $this->assertEquals($expected, file_get_contents($baginfo));
+    }
+
+    /**
+     * Test the exception when trying to set a generated field.
+     * @group Extended
+     * @covers ::setBagInfoTag
+     * @expectedException  \whikloj\BagItTools\BagItException
+     */
+    public function testSetGeneratedField()
+    {
+        $bag = new Bag($this->tmpdir, true);
+        $bag->setExtended(true);
+        $bag->setBagInfoTag('Source-organization', 'Planet Earth');
+        // Doesn't match due to underscore instead of hyphen.
+        $bag->setBagInfoTag('PAYLOAD_OXUM', '123456.12');
+        // Now we explode.
+        $bag->setBagInfoTag('payload-oxum', '123');
     }
 }

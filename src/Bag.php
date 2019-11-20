@@ -24,22 +24,22 @@ class Bag
     /**
      * The default bagit version.
      */
-    const DEFAULT_BAGIT_VERSION = array(
+    const DEFAULT_BAGIT_VERSION = [
         'major' => 1,
         'minor' => 0,
-    );
+    ];
 
     /**
      * Bag-info fields that MUST not be repeated (in lowercase).
      */
-    const BAG_INFO_MUST_NOT_REPEAT = array(
-        'payload-oxum'
-    );
+    const BAG_INFO_MUST_NOT_REPEAT = [
+        'payload-oxum',
+    ];
 
     /**
      * Reserved element names for Bag-info fields.
      */
-    const BAG_INFO_RESERVED_ELEMENTS = array(
+    const BAG_INFO_RESERVED_ELEMENTS = [
         'source-organization',
         'organization-address',
         'contact-name',
@@ -54,7 +54,15 @@ class Bag
         'bag-count',
         'internal-sender-identifier',
         'internal-sender-description',
-    );
+    ];
+
+    /**
+     * Fields you can't set because we generate them on $bag->update().
+     */
+    const BAG_INFO_GENERATED_ELEMENTS = [
+        'payload-oxum',
+        'bagging-date',
+    ];
 
     /**
      * Array of BagIt approved names of hash algorithms to the PHP names of
@@ -360,7 +368,7 @@ class Bag
     public function hasBagInfoTag($tag)
     {
         $tag = self::trimLower($tag);
-        return array_key_exists($tag, $this->bagInfoTagIndex);
+        return $this->bagInfoTagExists($tag);
     }
 
     /**
@@ -373,8 +381,8 @@ class Bag
      */
     public function getBagInfoByTag($tag)
     {
-        if ($this->hasBagInfoTag($tag)) {
-            $tag = self::trimLower($tag);
+        $tag = self::trimLower($tag);
+        if ($this->bagInfoTagExists($tag)) {
             return $this->bagInfoTagIndex[$tag];
         }
         return [];
@@ -388,8 +396,8 @@ class Bag
      */
     public function removeBagInfoTag($tag)
     {
-        if ($this->hasBagInfoTag($tag)) {
-            $tag = self::trimLower($tag);
+        $tag = self::trimLower($tag);
+        if ($this->bagInfoTagExists($tag)) {
             $newInfo = [];
             foreach ($this->bagInfoData as $row) {
                 $rowTag = self::trimLower($row['tag']);
@@ -414,10 +422,10 @@ class Bag
     public function removeBagInfoTagIndex($tag, $index)
     {
         if (is_int($index) && $index > -1) {
-            if ($this->hasBagInfoTag($tag)) {
+            $tag = self::trimLower($tag);
+            if ($this->bagInfoTagExists($tag)) {
                 $values = $this->getBagInfoByTag($tag);
                 if ($index < count($values)) {
-                    $tag = self::trimLower($tag);
                     $newInfo = [];
                     $tagCount = 0;
                     foreach ($this->bagInfoData as $row) {
@@ -434,6 +442,32 @@ class Bag
                 }
             }
         }
+    }
+
+    /**
+     * Add tag and value to bag-info.
+     *
+     * @param string $tag
+     *   The tag to add.
+     * @param string $value
+     *   The value to add.
+     * @throws \whikloj\BagItTools\BagItException
+     *   When you try to set an auto-generated tag value.
+     */
+    public function setBagInfoTag($tag, $value)
+    {
+        $internal_tag = self::trimLower($tag);
+        if (in_array($internal_tag, self::BAG_INFO_GENERATED_ELEMENTS)) {
+            throw new BagItException("Field {$tag} is auto-generated and cannot be manually set.");
+        }
+        if (!$this->bagInfoTagExists($internal_tag)) {
+            $this->bagInfoTagIndex[$internal_tag] = [];
+        }
+        $this->bagInfoTagIndex[$internal_tag][] = $value;
+        $this->bagInfoData[] = [
+            'tag' => trim($tag),
+            'value' => trim($value),
+        ];
     }
 
     /**
@@ -820,6 +854,19 @@ class Bag
     }
 
     /**
+     * Internal case insensitive search of bag info.
+     *
+     * @param string $internal_tag
+     *   Trimmed and lowercase tag.
+     * @return bool
+     *   Does it exist in the index.
+     */
+    private function bagInfoTagExists($internal_tag)
+    {
+        return array_key_exists($internal_tag, $this->bagInfoTagIndex);
+    }
+
+    /**
      * Write the contents of the bag-info array to disk.
      *
      * @throws \whikloj\BagItTools\BagItException
@@ -853,15 +900,10 @@ class Bag
     {
         $newInfo = [];
         foreach ($this->bagInfoData as $row) {
-            switch (strtolower($row['tag'])) {
-                case 'payload-oxum':
-                case 'bagging-date':
-                    continue;
-                    break;
-                default:
-                    $newInfo[] = $row;
-                    break;
+            if (in_array(self::trimLower($row['tag']), self::BAG_INFO_GENERATED_ELEMENTS)) {
+                continue;
             }
+            $newInfo[] = $row;
         }
         $oxum = $this->calculateOxum();
         if (!is_null($oxum)) {
