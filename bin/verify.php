@@ -1,4 +1,4 @@
-#!/usr/bin/php -q
+#!/usr/local/bin/php -q
 <?php
 
 use whikloj\BagItTools\Bag;
@@ -19,14 +19,14 @@ if ($argc == 1) {
     }
     $bag = new Bag($full_path, false);
     $valid = $bag->validate();
+    $warnings = $bag->getWarnings();
+    foreach ($warnings as $warning) {
+        $line = sprintf("WARNING: %s -- in file: %s" . PHP_EOL, $warning['message'], $warning['file']);
+        fwrite(STDERR, $line);
+    }
     if ($valid) {
         exit(0);
     } else {
-        $warnings = $bag->getWarnings();
-        foreach ($warnings as $warning) {
-            $line = sprintf("WARNING: %s -- in file: %s" . PHP_EOL, $warning['message'], $warning['file']);
-            fwrite(STDERR, $line);
-        }
         exit(1);
     }
 }

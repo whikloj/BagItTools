@@ -22,7 +22,7 @@ class BagTest extends BagItTestFramework
     public function testConstructNewBag()
     {
         $this->assertFileNotExists($this->tmpdir);
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $this->assertFileExists($this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt");
         $this->assertTrue(is_file($this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt"));
         $this->assertFileExists($this->tmpdir . DIRECTORY_SEPARATOR . "data");
@@ -42,7 +42,7 @@ class BagTest extends BagItTestFramework
     public function testOpenBag()
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $bag = new Bag($this->tmpdir, false);
+        $bag = Bag::load($this->tmpdir);
         $this->assertCount(0, $bag->getErrors());
         $this->assertArrayHasKey('sha256', $bag->getPayloadManifests());
         $this->assertFalse($bag->isExtended());
@@ -56,7 +56,7 @@ class BagTest extends BagItTestFramework
     public function testAddFile()
     {
         $source_file = self::TEST_IMAGE['filename'];
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $bag->addFile($source_file, "some/image.txt");
         $this->assertDirectoryExists($bag->getDataDirectory() .
         DIRECTORY_SEPARATOR . 'some');
@@ -73,7 +73,7 @@ class BagTest extends BagItTestFramework
     public function testAddFileNoSource()
     {
         $source_file = "some/fake/image.txt";
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $bag->addFile($source_file, "some/image.txt");
     }
 
@@ -86,7 +86,7 @@ class BagTest extends BagItTestFramework
     public function testAddFileInvalidDestination()
     {
         $source_file = self::TEST_IMAGE['filename'];
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $bag->addFile($source_file, "data/../../../images/places/image.jpg");
     }
 
@@ -98,7 +98,7 @@ class BagTest extends BagItTestFramework
     public function testRemoveFile()
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $bag = new Bag($this->tmpdir, false);
+        $bag = Bag::load($this->tmpdir);
         $this->assertFileExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'jekyll_and_hyde.txt');
         $bag->removeFile('jekyll_and_hyde.txt');
         $this->assertFileNotExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'jekyll_and_hyde.txt');
@@ -120,7 +120,7 @@ class BagTest extends BagItTestFramework
             'pictures',
         ]);
 
-        $bag = new Bag($this->tmpdir, false);
+        $bag = Bag::load($this->tmpdir);
 
         $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'background-with-flower-and-butterfl.jpg');
         $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'tower-bridge-at-night.jpg');
@@ -151,7 +151,7 @@ class BagTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareBasicTestBag();
 
-        $bag = new Bag($this->tmpdir, false);
+        $bag = Bag::load($this->tmpdir);
         // Directory doesn't exist.
         $this->assertDirectoryNotExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'empty');
         // Add files.
@@ -177,7 +177,7 @@ class BagTest extends BagItTestFramework
     public function testUpdateOnDisk()
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $manifest = $bag->getPayloadManifests()['sha512'];
         // File doesn't exist.
         $this->assertArrayNotHasKey('data/land.jpg', $manifest->getHashes());
@@ -215,7 +215,7 @@ class BagTest extends BagItTestFramework
      */
     public function testSetFileEncodingSuccess()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $this->assertEquals('UTF-8', $bag->getFileEncoding());
 
         $bag->setFileEncoding('ISO-8859-1');
@@ -244,7 +244,7 @@ class BagTest extends BagItTestFramework
      */
     public function testSetFileEncodingFailure()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $this->assertEquals('UTF-8', $bag->getFileEncoding());
 
         $bag->setFileEncoding('gb2312');
@@ -266,7 +266,7 @@ class BagTest extends BagItTestFramework
      */
     public function testGetHashesNames()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
         // Set one
         $bag->addAlgorithm('sha1');
@@ -293,7 +293,7 @@ class BagTest extends BagItTestFramework
      */
     public function testGetHashesCommon()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
         // Set one
         $bag->addAlgorithm('SHA1');
@@ -327,7 +327,7 @@ class BagTest extends BagItTestFramework
      */
     public function testRemoveLastHash()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
         $bag->removeAlgorithm('SHA-512');
     }
@@ -340,7 +340,7 @@ class BagTest extends BagItTestFramework
      */
     public function testIsSupportedHash()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $this->assertTrue($bag->algorithmIsSupported('sha-1'));
         $this->assertFalse($bag->algorithmIsSupported('bob'));
     }
@@ -354,7 +354,7 @@ class BagTest extends BagItTestFramework
      */
     public function testSetAlgorithm()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $bag->addAlgorithm('sha1');
         $bag->addAlgorithm('SHA3-256');
         $this->assertArrayEquals(['sha512', 'sha1', 'sha3256'], $bag->getAlgorithms());
@@ -371,7 +371,26 @@ class BagTest extends BagItTestFramework
      */
     public function testUseReservedFilename()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $bag->addFile(self::TEST_TEXT['filename'], 'data/some/directory/com1');
     }
+
+    /**
+     * Test writing a file to an absolute location outside data
+     * @group Bag
+     * @covers ::addFile
+     * @expectedExceptionCode  \whikloj\BagItTools\BagItException
+     */
+    public function testAddFileAbsolutePath()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->addFile(self::TEST_TEXT['filename'], '/var/cache/etc');
+    }
+
+    public function testWarningOnMd5()
+    {
+        $bag = Bag::create($this->tmpdir);
+
+    }
+
 }

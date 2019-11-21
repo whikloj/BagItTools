@@ -20,7 +20,7 @@ class PayloadManifestTest extends BagItTestFramework
    */
     public function testCreateManifest()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $manifests = $bag->getPayloadManifests();
         $this->assertArrayHasKey('sha512', $manifests);
         $manifest = $manifests['sha512'];

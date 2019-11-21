@@ -103,6 +103,10 @@ class Bag
         'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9',
     ];
 
+    const WINDOWS_PATH_CHARACTERS = [
+        '<', '>', ':', '"', '/', '|', '?', '*',
+    ];
+
     /**
      * Array of current bag version with keys 'major' and 'minor'.
      *
@@ -217,7 +221,7 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *   Problems accessing a file.
      */
-    public function __construct($rootPath, $new = true)
+    private function __construct($rootPath, $new = true)
     {
         // Define valid hash algorithms our PHP supports.
         $this->validHashAlgorithms = array_filter(
@@ -236,6 +240,36 @@ class Bag
         } else {
             $this->loadBag();
         }
+    }
+
+    /**
+     * Static function to create a new Bag
+     *
+     * @param string $rootPath
+     *   Path to the new bag, must not exist
+     * @return \whikloj\BagItTools\Bag
+     *   The bag.
+     * @throws \whikloj\BagItTools\BagItException
+     *   If we can't create the directory.
+     */
+    public static function create($rootPath)
+    {
+        return new Bag($rootPath, true);
+    }
+
+    /**
+     * Static constructor to load an existing bag.
+     *
+     * @param string $rootPath
+     *   Path to the existing bag.
+     * @return \whikloj\BagItTools\Bag
+     *   The bag.
+     * @throws \whikloj\BagItTools\BagItException
+     *   If we can't read files in the bag.
+     */
+    public static function load($rootPath)
+    {
+        return new Bag($rootPath, false);
     }
 
     /**
@@ -312,7 +346,10 @@ class Bag
                 throw new BagItException("The filename requested is reserved on Windows OSes.");
             } else {
                 $fullDest = $this->makeAbsolute($dest);
+                $fullDest = strtolower($fullDest);
+                $fullDest = \Normalizer::normalize($fullDest);
                 $dirname = dirname($fullDest);
+
                 if (substr($this->makeRelative($dirname), 0, 5) == "data/") {
                     // Create any missing missing directories inside data.
                     if (!file_exists($dirname)) {
@@ -811,6 +848,13 @@ class Bag
      */
     private function loadBag()
     {
+        $root = $this->getBagRoot();
+        if ($root[0] !== DIRECTORY_SEPARATOR) {
+            $root = getcwd() . DIRECTORY_SEPARATOR . $root;
+        }
+        if (!file_exists($root)) {
+            throw new BagItException("Path {$root} does not exist, could not load Bag.");
+        }
         $this->bagErrors = [];
         $this->bagWarnings = [];
         // Reset these or we end up with double manifests in a validate() situation.
@@ -1668,6 +1712,21 @@ class Bag
     private function compareVersion($version)
     {
         return version_compare($version, $this->getVersionString());
+    }
+
+    /**
+     * Paths for new and existing files should not have these conditions.
+     *
+     * @param string $path
+     *   The relative path from an existing bag file or as a destination for a new file.
+     * @return bool
+     *   True if invalid characters/character sequences exist.
+     */
+    public static function invalidPathCharacters($path)
+    {
+        $path = urldecode($path);
+        return ($path[0] === DIRECTORY_SEPARATOR || strpos($path, "~") !== false ||
+            substr($path, 0, 3) == "../");
     }
 
     /**

@@ -22,7 +22,7 @@ class BagInternalTest extends BagItTestFramework
     {
         $methodCall = $this->getReflectionMethod('\whikloj\BagItTools\Bag', 'makeRelative');
 
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $baseDir = $bag->getBagRoot();
 
         $valid_paths = [
@@ -63,7 +63,7 @@ class BagInternalTest extends BagItTestFramework
     {
         $methodCall = $this->getReflectionMethod('\whikloj\BagItTools\Bag', 'pathInBagData');
 
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
 
         $valid_paths = [
         'data/image/someimage.jpg',
@@ -119,7 +119,7 @@ class BagInternalTest extends BagItTestFramework
             ],
         ];
 
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $methodCall = $this->getReflectionMethod('\whikloj\BagItTools\Bag', 'wrapBagInfoText');
 
         foreach ($test_matrix as $string => $expected) {
@@ -137,7 +137,7 @@ class BagInternalTest extends BagItTestFramework
      */
     public function testVersionCompare()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $method = $this->getReflectionMethod('\whikloj\BagItTools\Bag', 'compareVersion');
 
         // Current version is 1.0

@@ -23,7 +23,7 @@ class ExtendedBagTest extends BagItTestFramework
     public function testNoTagManifest()
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $bag = new Bag($this->tmpdir, false);
+        $bag = Bag::load($this->tmpdir);
         $this->assertFalse($bag->isExtended());
         $payloads = array_keys($bag->getPayloadManifests());
         $hash = reset($payloads);
@@ -57,7 +57,7 @@ class ExtendedBagTest extends BagItTestFramework
     public function testLoadExtendedBag()
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
-        $bag = new Bag($this->tmpdir, false);
+        $bag = Bag::load($this->tmpdir);
         $this->assertTrue($bag->isExtended());
         $payloads = $bag->getPayloadManifests();
         $tags = $bag->getTagManifests();
@@ -94,7 +94,7 @@ class ExtendedBagTest extends BagItTestFramework
     public function testGetBagInfoByKey()
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
-        $bag = new Bag($this->tmpdir, false);
+        $bag = Bag::load($this->tmpdir);
         $this->assertTrue($bag->isExtended());
         $this->assertCount(7, $bag->getBagInfoData());
         $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));
@@ -118,7 +118,7 @@ class ExtendedBagTest extends BagItTestFramework
     public function testRemoveBagInfoByTag()
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
-        $bag = new Bag($this->tmpdir, false);
+        $bag = Bag::load($this->tmpdir);
         $this->assertTrue($bag->isExtended());
         $this->assertCount(7, $bag->getBagInfoData());
         $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));
@@ -149,7 +149,7 @@ class ExtendedBagTest extends BagItTestFramework
             'Cris Carter',
         ];
         $this->tmpdir = $this->prepareExtendedTestBag();
-        $bag = new Bag($this->tmpdir, false);
+        $bag = Bag::load($this->tmpdir);
         $this->assertTrue($bag->isExtended());
         $this->assertCount(7, $bag->getBagInfoData());
         $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));
@@ -174,7 +174,7 @@ class ExtendedBagTest extends BagItTestFramework
      */
     public function testGetHashesCommon()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
         $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt');
 
@@ -240,7 +240,7 @@ class ExtendedBagTest extends BagItTestFramework
      */
     public function testSetAlgorithm()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
         $bag->addAlgorithm('sha1');
         $bag->addAlgorithm('SHA3-256');
@@ -289,7 +289,7 @@ class ExtendedBagTest extends BagItTestFramework
      */
     public function testSetBagInfoElement()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
         $bag->setBagInfoTag('Contact-NAME', 'Monty Hall');
         $this->assertCount(1, $bag->getBagInfoData());
@@ -322,7 +322,7 @@ class ExtendedBagTest extends BagItTestFramework
      */
     public function testSetGeneratedField()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
         $bag->setBagInfoTag('Source-organization', 'Planet Earth');
         // Doesn't match due to underscore instead of hyphen.
@@ -340,11 +340,11 @@ class ExtendedBagTest extends BagItTestFramework
      */
     public function testInvalidBagInfov1()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
             'invalid-leading-spaces.txt', $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt');
         touch($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-md5.txt');
-        $testbag = new Bag($this->tmpdir, false);
+        $testbag = Bag::load($this->tmpdir);
         $this->assertCount(2, $testbag->getErrors());
     }
 
@@ -357,7 +357,7 @@ class ExtendedBagTest extends BagItTestFramework
      */
     public function testInvalidBagInfov097()
     {
-        $bag = new Bag($this->tmpdir, true);
+        $bag = Bag::create($this->tmpdir);
         copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
             'invalid-leading-spaces.txt', $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt');
         file_put_contents(
@@ -365,7 +365,7 @@ class ExtendedBagTest extends BagItTestFramework
             "BagIt-Version: 0.97" . PHP_EOL . "Tag-File-Character-Encoding: UTF-8" . PHP_EOL
         );
         touch($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-md5.txt');
-        $testbag = new Bag($this->tmpdir, false);
+        $testbag = Bag::load($this->tmpdir);
         $this->assertCount(0, $testbag->getErrors());
     }
 }
