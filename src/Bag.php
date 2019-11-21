@@ -30,10 +30,20 @@ class Bag
     ];
 
     /**
-     * Bag-info fields that MUST not be repeated (in lowercase).
+     * Bag-info fields that MUST not be repeated.
      */
     const BAG_INFO_MUST_NOT_REPEAT = [
         'payload-oxum',
+    ];
+
+    /**
+     * Bag-info fields that SHOULD NOT be repeated.
+     */
+    const BAG_INFO_SHOULD_NOT_REPEAT = [
+        'bagging-date',
+        'bag-size',
+        'bag-group-identifer',
+        'bag-count',
     ];
 
     /**
@@ -75,6 +85,7 @@ class Bag
     const HASH_ALGORITHMS = array(
         'md5' => 'md5',
         'sha1' => 'sha1',
+        'sha224' => 'sha224',
         'sha256' => 'sha256',
         'sha384' => 'sha384',
         'sha512' => 'sha512',
@@ -152,6 +163,13 @@ class Bag
     private $bagErrors;
 
     /**
+     * Warnings when validating a bag.
+     *
+     * @var array
+     */
+    private $bagWarnings;
+
+    /**
      * Have we changed the bag and not written it to disk?
      *
      * @var boolean
@@ -215,15 +233,30 @@ class Bag
     /**
      * Validate the bag as it appears on disk.
      *
+     * @return boolean
+     *   True if valid
      * @throws \whikloj\BagItTools\BagItException
      *   Problems writing to disk.
      */
     public function validate()
     {
         if ($this->changed) {
+            // If we have changed stuff we need to write it.
             $this->update();
+            // Reload the bag from disk.
+            $this->loadBag();
         }
-        // TODO: Need to validate.
+        $manifests = array_values($this->payloadManifests);
+        if ($this->isExtended) {
+            // merge in the tag manifests so we can do them all at once.
+            $manifests = array_merge($manifests, array_values($this->tagManifests));
+        }
+        foreach ($manifests as $manifest) {
+            $manifest->validate();
+            $this->bagErrors = array_merge($this->bagErrors, $manifest->getErrors());
+            $this->bagWarnings = array_merge($this->bagWarnings, $manifest->getWarnings());
+        }
+        return (count($this->bagErrors) == 0);
     }
 
     /**
@@ -407,6 +440,7 @@ class Bag
             }
             $this->bagInfoData = $newInfo;
             $this->updateBagInfoIndex();
+            $this->changed = true;
         }
     }
 
@@ -439,6 +473,7 @@ class Bag
                     }
                     $this->bagInfoData = $newInfo;
                     $this->updateBagInfoIndex();
+                    $this->changed = true;
                 }
             }
         }
@@ -468,6 +503,7 @@ class Bag
             'tag' => trim($tag),
             'value' => trim($value),
         ];
+        $this->changed = true;
     }
 
     /**
@@ -481,16 +517,17 @@ class Bag
     public function setFileEncoding($encoding)
     {
         $encoding = self::trimLower($encoding);
-        if ($encoding == self::trimLower(self::DEFAULT_FILE_ENCODING)) {
-            // go back to default.
-            unset($this->currentFileEncoding);
+        $charset = BagUtils::getValidCharset($encoding);
+        if (is_null($charset)) {
+            throw new BagItException("Character set {$encoding} is not supported.");
         } else {
-            $charset = BagUtils::getValidCharset($encoding);
-            if (is_null($charset)) {
-                throw new BagItException("Character set {$encoding} is not supported.");
+            if ($encoding == self::trimLower(self::DEFAULT_FILE_ENCODING)) {
+                // go back to default.
+                unset($this->currentFileEncoding);
             } else {
                 $this->currentFileEncoding = $charset;
             }
+            $this->changed = true;
         }
     }
 
@@ -571,6 +608,7 @@ class Bag
                     $this->tagManifests[$internal_name] = new TagManifest($this, $internal_name);
                 }
             }
+            $this->changed = true;
         } else {
             throw new BagItException("Algorithm {$algorithm} is not supported.");
         }
@@ -601,6 +639,7 @@ class Bag
                 }
                 $this->removeTagManifest($internal_name);
             }
+            $this->changed = true;
         } else {
             throw new BagItException("Algorithm {$algorithm} is not supported.");
         }
@@ -629,13 +668,14 @@ class Bag
                     $this->tagManifests[$internal_name] = new TagManifest($this, $internal_name);
                 }
             }
+            $this->changed = true;
         } else {
             throw new BagItException("Algorithm {$algorithm} is not supported.");
         }
     }
 
     /**
-     * Get the current version or default if not specified.
+     * Get the current version array or default if not specified.
      *
      * @return array
      *   Current version.
@@ -646,6 +686,18 @@ class Bag
             return $this->currentVersion;
         }
         return self::DEFAULT_BAGIT_VERSION;
+    }
+
+    /**
+     * Get current version as string.
+     *
+     * @return string
+     *   Current version in M.N format.
+     */
+    public function getVersionString()
+    {
+        $version = $this->getVersion();
+        return $version['major'] . "." . $version['minor'];
     }
 
     /**
@@ -705,6 +757,17 @@ class Bag
     }
 
     /**
+     * Get any warnings related to the bag.
+     *
+     * @return array
+     *   The warnings.
+     */
+    public function getWarnings()
+    {
+        return $this->bagWarnings;
+    }
+
+    /**
      * Get the payload manifests as an associative array with hash algorithm as key.
      *
      * @return array
@@ -718,12 +781,12 @@ class Bag
     /**
      * Get the tag manifests as an associative array with hash algorithm as key.
      *
-     * @return array
-     *   hash algorithm => Tag manifests
+     * @return array|null
+     *   hash algorithm => Tag manifests or null if not an extended bag.
      */
     public function getTagManifests()
     {
-        return $this->tagManifests;
+        return (isset($this->tagManifests) ? $this->tagManifests : null);
     }
 
     /*
@@ -739,6 +802,10 @@ class Bag
     private function loadBag()
     {
         $this->bagErrors = [];
+        $this->bagWarnings = [];
+        // Reset these or we end up with double manifests in a validate() situation.
+        $this->payloadManifests = [];
+        unset($this->tagManifests);
         $this->loadBagIt();
         $this->loadPayloadManifests();
         $bagInfo = $this->loadBagInfo();
@@ -772,48 +839,53 @@ class Bag
      */
     private function loadBagInfo()
     {
-        $fullPath = $this->makeAbsolute("bag-info.txt");
+        $info_file = 'bag-info.txt';
+        $fullPath = $this->makeAbsolute($info_file);
         if (file_exists($fullPath)) {
             $fp = fopen($fullPath, 'rb');
             if ($fp === false) {
-                throw new BagItException("Unable to access bag-info.txt");
+                throw new BagItException("Unable to access {$info_file}");
             }
             $bagData = [];
+            $lineCount = 0;
             while (!feof($fp)) {
                 $line = fgets($fp);
-                $line = trim($line);
+                $lineCount += 1;
                 if ($line == "") {
                     continue;
                 }
-                if (!mb_check_encoding($line, $this->getFileEncoding())) {
-                    $this->bagErrors[] = [
-                        'file' => 'bag-info.txt',
-                        'message' => sprintf(
-                            "Expected encoding %s, found %s",
-                            $this->getFileEncoding(),
-                            mb_detect_encoding($line)
-                        ),
-                    ];
-                }
                 $line = $this->decodeText($line);
 
-                if (preg_match("~^([^:]+)\s*:\s+(.*)$~", $line, $matches)) {
+                if (preg_match("~^(\s+)?([^:]+?)(\s+)?:\s+(.*)$~", $line, $matches)) {
                     // First line
-                    $current_tag = $matches[1];
-                    if ($this->nonRepeatableBagInfoFieldExists($current_tag)) {
-                        $this->bagErrors[] = [
-                            'file' => 'bag-info.txt',
-                            'message' => "Tag {$current_tag} MUST not be repeated.",
-                        ];
+                    $current_tag = $matches[2];
+                    if ($this->mustNotRepeatBagInfoExists($current_tag)) {
+                        $this->addBagError(
+                            $info_file,
+                            "Tag {$current_tag} MUST not be repeated. (Line {$lineCount})"
+                        );
+                    } elseif ($this->shouldNotRepeatBagInfoExists($current_tag)) {
+                        $this->addBagWarning(
+                            $info_file,
+                            "Tag {$current_tag} SHOULD NOT be repeated. (Line {$lineCount})"
+                        );
+                    }
+                    if (($this->compareVersion('1.0') <=0) && (!empty($matches[1]) || !empty($matches[3]))) {
+                        $this->addBagError(
+                            $info_file,
+                            "Labels cannot begin or end with a whitespace. (Line {$lineCount})"
+                        );
                     }
                     $bagData[] = [
                         'tag' => $current_tag,
-                        'value' => trim($matches[2]),
+                        'value' => trim($matches[4]),
                     ];
                 } elseif (!empty($line) && ($line[0] == " " || $line[0] == "\t")) {
                     if (count($bagData) > 0) {
-                        $bagData[count($bagData)]['value'] .= " " . trim($line);
+                        $bagData[count($bagData)-1]['value'] .= " " . trim($line);
                     }
+                } elseif (!empty($line)) {
+                    $this->addBagError($info_file, "Invalid tag.");
                 }
             }
             fclose($fp);
@@ -1019,10 +1091,10 @@ class Bag
             foreach ($files as $file) {
                 $hash = self::determineHashFromFilename($file);
                 if (isset($tagManifests[$hash])) {
-                    $this->bagErrors[] = [
-                        'file' => $this->makeRelative($file),
-                        'message' => "More than one tag manifest for hash ({$hash}) found.",
-                    ];
+                    $this->addBagError(
+                        $this->makeRelative($file),
+                        "More than one tag manifest for hash ({$hash}) found."
+                    );
                 } else {
                     $tagManifests[$hash] = new TagManifest($this, $hash, true);
                 }
@@ -1119,24 +1191,33 @@ class Bag
     private function loadPayloadManifests()
     {
         $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "manifest-*.txt";
-        $files = BagUtils::findAllByPattern($pattern);
-        if (count($files) == 0) {
-            $this->bagErrors[] = [
-                'file' => 'manifest-ALG.txt',
-                'message' => 'No payload manifest files found.',
-            ];
+        $manifests = BagUtils::findAllByPattern($pattern);
+        if (count($manifests) == 0) {
+            $this->addBagError('manifest-ALG.txt', 'No payload manifest files found.');
         } else {
-            foreach ($files as $file) {
-                $hash = self::determineHashFromFilename($file);
-                if (isset($this->payloadManifests[$hash])) {
-                    $this->bagErrors[] = [
-                        'file' => $this->makeRelative($file),
-                        'message' => "More than one payload manifest for hash ({$hash}) found.",
-                    ];
+            $files = [];
+            foreach ($manifests as $manifest) {
+                $hash = self::determineHashFromFilename($manifest);
+                $relative_filename = $this->makeRelative($manifest);
+                if (!is_null($hash) && !in_array($hash, array_keys(self::HASH_ALGORITHMS))) {
+                    throw new BagItException("We do not support the algorithm {$hash}");
+                } elseif (is_null($hash)) {
+                    $this->addBagError(
+                        $relative_filename,
+                        "Payload manifest MUST have a name in the form of manifest-ALG.txt"
+                    );
+                } elseif (isset($this->payloadManifests[$hash])) {
+                    $this->addBagError(
+                        $relative_filename,
+                        "More than one payload manifest for hash ({$hash}) found."
+                    );
                 } else {
-                    $this->payloadManifests[$hash] = new PayloadManifest($this, $hash, true);
+                    $temp = new PayloadManifest($this, $hash, true);
+                    $this->payloadManifests[$hash] = $temp;
+                    $files = array_merge($files, array_keys($temp->getHashes()));
                 }
             }
+            $this->payloadFiles = $files;
         }
     }
 
@@ -1227,11 +1308,14 @@ class Bag
             //$lines = preg_split("~[\r\n]+~", $contents, null, PREG_SPLIT_NO_EMPTY);
             // remove blank lines.
             $lines = array_filter($lines);
+            array_walk($lines, function (&$item) {
+                $item = trim($item);
+            });
             if (count($lines) !== 2) {
                 $this->bagErrors[] = [
                     'file' => 'bagit.txt',
                     'message' => sprintf(
-                        "File should contain exactly 2 lines found %b",
+                        "File MUST contain exactly 2 lines, found %b",
                         count($lines)
                     ),
                 ];
@@ -1332,6 +1416,36 @@ class Bag
                 }
             }
         }
+    }
+
+    /**
+     * Utility function to add bag error.
+     * @param string $filename
+     *   The file the error was detected in.
+     * @param $message
+     *   The message.
+     */
+    private function addBagError($filename, $message)
+    {
+        $this->bagErrors[] = [
+            'file' => $filename,
+            'message' => $message
+        ];
+    }
+
+    /**
+     * Utility function to add bag error.
+     * @param string $filename
+     *   The file the error was detected in.
+     * @param $message
+     *   The message.
+     */
+    private function addBagWarning($filename, $message)
+    {
+        $this->bagErrors[] = [
+            'file' => $filename,
+            'message' => $message
+        ];
     }
 
     /**
@@ -1440,9 +1554,23 @@ class Bag
      * @return boolean
      *   True if the key is non-repeatable and already in the
      */
-    private function nonRepeatableBagInfoFieldExists($key)
+    private function mustNotRepeatBagInfoExists($key)
     {
         return (in_array(strtolower($key), self::BAG_INFO_MUST_NOT_REPEAT) &&
+            self::arrayKeyExistsNoCase($key, 'tag', $this->bagInfoData));
+    }
+
+    /**
+     * Check that the key is not non-repeatable and already in the bagInfo.
+     *
+     * @param string $key The key being added.
+     *
+     * @return boolean
+     *   True if the key is non-repeatable and already in the
+     */
+    private function shouldNotRepeatBagInfoExists($key)
+    {
+        return (in_array(strtolower($key), self::BAG_INFO_SHOULD_NOT_REPEAT) &&
             self::arrayKeyExistsNoCase($key, 'tag', $this->bagInfoData));
     }
 
@@ -1456,7 +1584,7 @@ class Bag
     private static function determineHashFromFilename($filepath)
     {
         $filename = basename($filepath);
-        if (preg_match('~\-(\w+)\.txt$~', $filename, $matches)) {
+        if (preg_match('~\-([a-z0-9]+)\.txt$~', $filename, $matches)) {
             return $matches[1];
         }
         return null;
@@ -1469,9 +1597,9 @@ class Bag
      * @return string
      *   The converted text.
      */
-    private function decodeText($text)
+    public function decodeText($text)
     {
-        return mb_convert_encoding($text, self::DEFAULT_FILE_ENCODING);
+        return mb_convert_encoding($text, self::DEFAULT_FILE_ENCODING, $this->getFileEncoding());
     }
 
     /**
@@ -1482,9 +1610,9 @@ class Bag
      * @return string
      *   The converted text.
      */
-    private function encodeText($text)
+    public function encodeText($text)
     {
-        return mb_convert_encoding($text, $this->getFileEncoding());
+        return mb_convert_encoding($text, $this->getFileEncoding(), self::DEFAULT_FILE_ENCODING);
     }
 
     /**
@@ -1502,6 +1630,20 @@ class Bag
         $external = self::getAbsolute($external);
         $relative = $this->makeRelative($external);
         return ($relative !== "" && substr($relative, 0, 5) === "data/");
+    }
+
+    /**
+     * Compare the provided version against the current one.
+     *
+     *
+     * @param string $version
+     *   The version to compare against.
+     * @return int
+     *   returns -1 $version < current, 0  $version == current, and 1 $version > current.
+     */
+    private function compareVersion($version)
+    {
+        return version_compare($version, $this->getVersionString());
     }
 
     /**

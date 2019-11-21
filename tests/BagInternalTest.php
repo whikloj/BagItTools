@@ -127,4 +127,22 @@ class BagInternalTest extends BagItTestFramework
             $this->assertEquals($expected, $output);
         }
     }
+
+    /**
+     * Test internal version comparison.
+     * @group Internal
+     * @covers \whikloj\BagItTools\Bag::compareVersion
+     * @throws \ReflectionException
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testVersionCompare()
+    {
+        $bag = new Bag($this->tmpdir, true);
+        $method = $this->getReflectionMethod('\whikloj\BagItTools\Bag', 'compareVersion');
+
+        // Current version is 1.0
+        $this->assertEquals(-1, $method->invokeArgs($bag, ['0.97']));
+        $this->assertEquals(0, $method->invokeArgs($bag, ['1.0']));
+        $this->assertEquals(1, $method->invokeArgs($bag, ['1.1']));
+    }
 }

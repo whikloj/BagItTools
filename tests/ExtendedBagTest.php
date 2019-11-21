@@ -330,4 +330,42 @@ class ExtendedBagTest extends BagItTestFramework
         // Now we explode.
         $bag->setBagInfoTag('payload-oxum', '123');
     }
+
+    /**
+     * Test that for a v1.0 bag you CAN'T have spaces at the start or end of a tag.
+     * @group Extended
+     * @covers ::loadBagInfo
+     * @covers ::compareVersion
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testInvalidBagInfov1()
+    {
+        $bag = new Bag($this->tmpdir, true);
+        copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
+            'invalid-leading-spaces.txt', $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt');
+        touch($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-md5.txt');
+        $testbag = new Bag($this->tmpdir, false);
+        $this->assertCount(2, $testbag->getErrors());
+    }
+
+    /**
+     * Test that for a v0.97 bag you CAN have spaces at the start or end of a tag.
+     * @group Extended
+     * @covers ::loadBagInfo
+     * @covers ::compareVersion
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testInvalidBagInfov097()
+    {
+        $bag = new Bag($this->tmpdir, true);
+        copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
+            'invalid-leading-spaces.txt', $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt');
+        file_put_contents(
+            $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bagit.txt',
+            "BagIt-Version: 0.97" . PHP_EOL . "Tag-File-Character-Encoding: UTF-8" . PHP_EOL
+        );
+        touch($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-md5.txt');
+        $testbag = new Bag($this->tmpdir, false);
+        $this->assertCount(0, $testbag->getErrors());
+    }
 }

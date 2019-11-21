@@ -36,4 +36,21 @@ class PayloadManifest extends AbstractManifest
         }
         parent::update();
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validate()
+    {
+        parent::validate();
+        $onDisk = $this->getAllFiles($this->bag->makeAbsolute("data"));
+        // 1.0 Spec says each manifest MUST list every file in the data/ directory.
+        array_walk($onDisk, function (&$item) {
+            $item = $this->bag->makeRelative($item);
+        });
+        $onDisk = array_diff($onDisk, array_keys($this->hashes));
+        if (count($onDisk) > 0) {
+            $this->addError("There are files on disk not listed in this manifest file.");
+        }
+    }
 }

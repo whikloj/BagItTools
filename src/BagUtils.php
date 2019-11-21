@@ -13,6 +13,7 @@ class BagUtils
      * Valid character set MIME names from IANA.
      */
     private const CHARACTER_SETS = [
+        "utf-8" => "UTF-8",
         "us-ascii" => "US-ASCII",
         "iso-8859-1" => "ISO-8859-1",
         "iso-8859-2" => "ISO-8859-2",
