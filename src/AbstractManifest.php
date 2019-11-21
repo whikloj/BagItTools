@@ -31,6 +31,13 @@ abstract class AbstractManifest
     protected $hashes = [];
 
     /**
+     * Array of the same paths as in $hashes but normalized for case and characters to check for duplication.
+     *
+     * @var array
+     */
+    protected $normalizedPaths = [];
+
+    /**
      * The filename for this manifest.
      *
      * @var string
@@ -59,13 +66,15 @@ abstract class AbstractManifest
     protected $manifestWarnings = [];
 
     /**
-     * Errors generated while loading.
+     * Errors/Warnings generated while loading.
      * Because of the path key in the hash array if there are multiple entries for a path we need to track it during
      * load but present it at validate().
      *
      * @var array
+     *   Array of arrays with keys 'error' and 'warning'
+     * @see \whikloj\BagItTools\AbstractManifest::resetLoadIssues()
      */
-    protected $loadErrors = [];
+    protected $loadIssues;
 
     /**
      * Manifest constructor.
@@ -151,8 +160,9 @@ abstract class AbstractManifest
      */
     public function validate()
     {
-        $this->manifestWarnings = [];
-        $this->manifestErrors = [] + $this->loadErrors;
+        $this->manifestWarnings = [] + $this->loadIssues['warning'];
+        $this->manifestErrors = [] + $this->loadIssues['error'];
+        $this->addWarning("This manifest was made with MD5, you should use setAlgorithm('sha512') to upgrade your bag.");
         foreach ($this->hashes as $path => $hash) {
             $fullPath = $this->bag->makeAbsolute($path);
             $fullPath = $this->cleanUpAbsPath($fullPath);
@@ -198,7 +208,7 @@ abstract class AbstractManifest
     protected function loadFile()
     {
         $this->hashes = [];
-        $this->loadErrors = [];
+        $this->resetLoadIssues();
         $fullPath = $this->bag->makeAbsolute($this->filename);
         if (file_exists($fullPath)) {
             $fp = fopen($fullPath, "rb");
@@ -210,11 +220,22 @@ abstract class AbstractManifest
                     continue;
                 }
                 if (preg_match("~^(\w+)\s+\*?(.*)$~", $line, $matches)) {
-                    $path = $this->cleanUpRelPath($matches[2]);
+                    $hash = $matches[1];
+                    $originalPath = $matches[2];
+                    if (substr($originalPath, 0, 2) == "./") {
+                        $this->addLoadWarning("Paths should not use relative paths, this will be resolved for validation");
+                    }
+                    $path = $this->cleanUpRelPath($originalPath);
+                    // Normalized path in lowercase (for matching)
+                    $lowerNormalized = $this->normalizePath($path);
                     if (array_key_exists($path, $this->hashes)) {
-                        $this->addLoadError("Path {$matches[2]} appears more than once in manifest.");
+                        $this->addLoadError("Path {$originalPath} appears more than once in manifest.");
+                    } elseif ($this->matchNormalizedList($lowerNormalized)) {
+                        $this->addLoadWarning("Path {$originalPath} matches another file when normalized for case and " .
+                        "characters.");
                     } else {
-                        $this->hashes[$path] = $matches[1];
+                        $this->hashes[$path] = $hash;
+                        $this->addToNormalizedList($lowerNormalized);
                     }
                 }
             }
@@ -338,6 +359,52 @@ abstract class AbstractManifest
      */
 
     /**
+     * Add a path to the list of normalized paths.
+     *
+     * @param string $path
+     *   The normalized path.
+     */
+    private function addToNormalizedList($path)
+    {
+        $this->normalizedPaths[] = $path;
+    }
+
+    /**
+     * Compare a path against a list of normalized paths and look for matches.
+     *
+     * @param string $path
+     *   The normalized path to look for.
+     * @return bool
+     *   True if there is a match.
+     */
+    private function matchNormalizedList($path)
+    {
+        return (in_array($this->normalizePath($path), $this->normalizedPaths));
+    }
+
+    /**
+     * Normalize a path for character representation and case.
+     *
+     * @param string $path
+     *   The path.
+     * @param bool $toLower
+     *   Whether to also lowercase the string.
+     * @return string
+     *   The normalized path.
+     */
+    private function normalizePath($path, $toLower = true)
+    {
+        $path = urldecode($path);
+        if ($toLower) {
+            $path = strtolower($path);
+        }
+        if (!\Normalizer::isNormalized($path)) {
+            $path = \Normalizer::normalize($path);
+        }
+        return $path;
+    }
+
+    /**
      * Clean up file paths to remove extraneous period, double period and slashes
      *
      * @param string $filepath
@@ -374,9 +441,34 @@ abstract class AbstractManifest
      */
     private function addLoadError($message)
     {
-        $this->loadErrors[] = [
+        $this->loadIssues['error'][] = [
             'file' => $this->filename,
             'message' => $message,
+        ];
+    }
+
+    /**
+     * Add a load warning using the current filename. This is only erased on a new load.
+     *
+     * @param string $message
+     *   The error text.
+     */
+    private function addLoadWarning($message)
+    {
+        $this->loadIssues['warning'][] = [
+            'file' => $this->filename,
+            'message' => $message,
+        ];
+    }
+
+    /**
+     * Utility to reset the load issues construct.
+     */
+    private function resetLoadIssues()
+    {
+        $this->loadIssues = [
+            'error' => [],
+            'warning' => [],
         ];
     }
 }
