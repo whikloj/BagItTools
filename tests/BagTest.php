@@ -361,4 +361,17 @@ class BagTest extends BagItTestFramework
         $bag->setAlgorithm('md5');
         $this->assertArrayEquals(['md5'], $bag->getAlgorithms());
     }
+
+    /**
+     * Test that Windows reserved names are rejected as filenames.
+     * @group Bag
+     * @covers ::addFile
+     * @covers ::reservedFilename
+     * @expectedException  \whikloj\BagItTools\BagItException
+     */
+    public function testUseReservedFilename()
+    {
+        $bag = new Bag($this->tmpdir, true);
+        $bag->addFile(self::TEST_TEXT['filename'], 'data/some/directory/com1');
+    }
 }

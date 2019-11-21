@@ -96,6 +96,14 @@ class Bag
     );
 
     /**
+     * File names that are not allowed on windows, should be disallowed in bags for interoperability.
+     */
+    const WINDOWS_RESERVED_NAMES = [
+        'CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1',
+        'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9',
+    ];
+
+    /**
      * Array of current bag version with keys 'major' and 'minor'.
      *
      * @var array
@@ -298,7 +306,11 @@ class Bag
     {
         if (file_exists($source)) {
             $dest = BagUtils::baseInData($dest);
-            if ($this->pathInBagData($dest)) {
+            if (!$this->pathInBagData($dest)) {
+                throw new BagItException("Path {$dest} resolves outside the bag.");
+            } elseif ($this->reservedFilename($dest)) {
+                throw new BagItException("The filename requested is reserved on Windows OSes.");
+            } else {
                 $fullDest = $this->makeAbsolute($dest);
                 $dirname = dirname($fullDest);
                 if (substr($this->makeRelative($dirname), 0, 5) == "data/") {
@@ -309,8 +321,6 @@ class Bag
                 }
                 copy($source, $fullDest);
                 $this->changed = true;
-            } else {
-                throw new BagItException("Path {$dest} resolves outside the bag.");
             }
         } else {
             throw new BagItException("{$source} does not exist");
@@ -1630,6 +1640,20 @@ class Bag
         $external = self::getAbsolute($external);
         $relative = $this->makeRelative($external);
         return ($relative !== "" && substr($relative, 0, 5) === "data/");
+    }
+
+    /**
+     * Is the requested destination filename reserved on Windows?
+     *
+     * @param string $filepath
+     *   The relative filepath.
+     * @return bool
+     *   True if a reserved filename.
+     */
+    private function reservedFilename($filepath)
+    {
+        $filename = substr($filepath, strrpos($filepath, '/') + 1);
+        return (in_array(strtoupper($filename), self::WINDOWS_RESERVED_NAMES));
     }
 
     /**
