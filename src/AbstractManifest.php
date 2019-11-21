@@ -155,12 +155,15 @@ abstract class AbstractManifest
         $this->manifestErrors = [] + $this->loadErrors;
         foreach ($this->hashes as $path => $hash) {
             $fullPath = $this->bag->makeAbsolute($path);
+            $fullPath = $this->cleanUpAbsPath($fullPath);
             $this->validatePath($path, $fullPath);
-            $calculatedHash = strtolower($this->calculateHash($fullPath));
-            $hash = strtolower($hash);
-            if ($hash !== $calculatedHash) {
-                $this->addError("{$path} calculated hash ({$calculatedHash}) does not match manifest " .
-                    "({$hash})");
+            if (file_exists($fullPath)) {
+                $calculatedHash = strtolower($this->calculateHash($fullPath));
+                $hash = strtolower($hash);
+                if ($hash !== $calculatedHash) {
+                    $this->addError("{$path} calculated hash ({$calculatedHash}) does not match manifest " .
+                        "({$hash})");
+                }
             }
         }
     }
@@ -182,8 +185,7 @@ abstract class AbstractManifest
 
     protected function validatePath($path, $filepath)
     {
-        $filepath = $this->cleanUpAbsPath($filepath);
-        if ($filepath === false || !file_exists($filepath)) {
+        if (!file_exists($filepath)) {
             $this->addError("{$path} does not exist.");
         } elseif ($this->bag->makeRelative($filepath) === "") {
             $this->addError("{$path} resolves to a path outside of the data/ directory.");
