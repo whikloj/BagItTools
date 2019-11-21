@@ -1,14 +1,17 @@
 #!/usr/local/bin/php -q
 <?php
 
+/**
+ * This is a simple CLI interface to allow BagItTools to run the bagit-conformance-suite
+ *
+ * @see https://github.com/LibraryOfCongress/bagit-conformance-suite
+ */
 use whikloj\BagItTools\Bag;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$debug = false;
-
 if ($argc == 1) {
-    print "Usage: " . basename($_SERVER['PHP_SELF']) . ' (Test Bag)' . PHP_EOL;
+    print "Usage: " . basename($_SERVER['PHP_SELF']) . ' (path to Bag )' . PHP_EOL;
 } else {
     $directory = getcwd();
     $input = $argv[1];
@@ -17,7 +20,7 @@ if ($argc == 1) {
     } else {
         $full_path = $directory . DIRECTORY_SEPARATOR . $input;
     }
-    $bag = new Bag($full_path, false);
+    $bag = Bag::load($full_path);
     $valid = $bag->validate();
     $warnings = $bag->getWarnings();
     foreach ($warnings as $warning) {
