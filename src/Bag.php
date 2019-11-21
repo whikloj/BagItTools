@@ -346,10 +346,8 @@ class Bag
                 throw new BagItException("The filename requested is reserved on Windows OSes.");
             } else {
                 $fullDest = $this->makeAbsolute($dest);
-                $fullDest = strtolower($fullDest);
                 $fullDest = \Normalizer::normalize($fullDest);
                 $dirname = dirname($fullDest);
-
                 if (substr($this->makeRelative($dirname), 0, 5) == "data/") {
                     // Create any missing missing directories inside data.
                     if (!file_exists($dirname)) {

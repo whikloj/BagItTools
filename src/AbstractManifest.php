@@ -162,7 +162,9 @@ abstract class AbstractManifest
     {
         $this->manifestWarnings = [] + $this->loadIssues['warning'];
         $this->manifestErrors = [] + $this->loadIssues['error'];
-        $this->addWarning("This manifest was made with MD5, you should use setAlgorithm('sha512') to upgrade your bag.");
+        if ($this->algorithm == 'md5') {
+            $this->addWarning("This manifest is MD5, you should use setAlgorithm('sha512') to upgrade.");
+        }
         foreach ($this->hashes as $path => $hash) {
             $fullPath = $this->bag->makeAbsolute($path);
             $fullPath = $this->cleanUpAbsPath($fullPath);
@@ -223,7 +225,7 @@ abstract class AbstractManifest
                     $hash = $matches[1];
                     $originalPath = $matches[2];
                     if (substr($originalPath, 0, 2) == "./") {
-                        $this->addLoadWarning("Paths should not use relative paths, this will be resolved for validation");
+                        $this->addLoadWarning("Paths SHOULD not use relative paths");
                     }
                     $path = $this->cleanUpRelPath($originalPath);
                     // Normalized path in lowercase (for matching)
@@ -231,8 +233,8 @@ abstract class AbstractManifest
                     if (array_key_exists($path, $this->hashes)) {
                         $this->addLoadError("Path {$originalPath} appears more than once in manifest.");
                     } elseif ($this->matchNormalizedList($lowerNormalized)) {
-                        $this->addLoadWarning("Path {$originalPath} matches another file when normalized for case and " .
-                        "characters.");
+                        $this->addLoadWarning("Path {$originalPath} matches another file when normalized for case " .
+                        "and characters.");
                     } else {
                         $this->hashes[$path] = $hash;
                         $this->addToNormalizedList($lowerNormalized);

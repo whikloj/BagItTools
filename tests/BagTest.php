@@ -18,6 +18,7 @@ class BagTest extends BagItTestFramework
    * @covers ::__construct
    * @covers ::createNewBag
    * @covers ::updateBagIt
+   * @throws \whikloj\BagItTools\BagItException
    */
     public function testConstructNewBag()
     {
@@ -38,6 +39,7 @@ class BagTest extends BagItTestFramework
    * @covers ::loadBagInfo
    * @covers ::loadTagManifests
    * @covers ::isExtended
+   * @throws \whikloj\BagItTools\BagItException
    */
     public function testOpenBag()
     {
@@ -52,6 +54,7 @@ class BagTest extends BagItTestFramework
    * Test adding a file to a bag.
    * @group Bag
    * @covers ::addFile
+   * @throws \whikloj\BagItTools\BagItException
    */
     public function testAddFile()
     {
@@ -94,6 +97,7 @@ class BagTest extends BagItTestFramework
      * Test removing a file from a bag.
      * @group Bag
      * @covers ::removeFile
+     * @throws \whikloj\BagItTools\BagItException
      */
     public function testRemoveFile()
     {
@@ -109,6 +113,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::removeFile
      * @covers ::checkForEmptyDir
+     * @throws \whikloj\BagItTools\BagItException
      */
     public function testRemoveEmptyDirectories()
     {
@@ -122,20 +127,20 @@ class BagTest extends BagItTestFramework
 
         $bag = Bag::load($this->tmpdir);
 
-        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'background-with-flower-and-butterfl.jpg');
-        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'tower-bridge-at-night.jpg');
+        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'another_picture.txt');
+        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'some_more_data.txt');
 
         // Don't reference the correct path.
-        $bag->removeFile('tower-bridge-at-night.jpg');
-        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'tower-bridge-at-night.jpg');
+        $bag->removeFile('some_more_data.txt');
+        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'some_more_data.txt');
 
         // Reference with data/ prefix
-        $bag->removeFile('data/pictures/tower-bridge-at-night.jpg');
-        $this->assertFileNotExists($picturesDir . DIRECTORY_SEPARATOR . 'tower-bridge-at-night.jpg');
+        $bag->removeFile('data/pictures/some_more_data.txt');
+        $this->assertFileNotExists($picturesDir . DIRECTORY_SEPARATOR . 'some_more_data.txt');
 
         // Reference without data/ prefix
-        $bag->removeFile('pictures/background-with-flower-and-butterfl.jpg');
-        $this->assertFileNotExists($picturesDir . DIRECTORY_SEPARATOR . 'background-with-flower-and-butterfl.jpg');
+        $bag->removeFile('pictures/another_picture.txt');
+        $this->assertFileNotExists($picturesDir . DIRECTORY_SEPARATOR . 'another_picture.txt');
 
         // All files are gone so directory data/pictures should have been removed.
         $this->assertDirectoryNotExists($picturesDir);
@@ -146,6 +151,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::removeFile
      * @covers ::checkForEmptyDir
+     * @throws \whikloj\BagItTools\BagItException
      */
     public function testKeepDirectoryWithHiddenFile()
     {
@@ -173,6 +179,7 @@ class BagTest extends BagItTestFramework
      * Test that changes made outside the API still are noticed.
      * @group Bag
      * @covers ::update
+     * @throws \whikloj\BagItTools\BagItException
      */
     public function testUpdateOnDisk()
     {
@@ -212,6 +219,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::setFileEncoding
      * @covers \whikloj\BagItTools\BagUtils::getValidCharset
+     * @throws \whikloj\BagItTools\BagItException
      */
     public function testSetFileEncodingSuccess()
     {
@@ -263,6 +271,7 @@ class BagTest extends BagItTestFramework
      * @covers ::addAlgorithm
      * @covers ::removeAlgorithm
      * @covers ::getAlgorithms
+     * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetHashesNames()
     {
@@ -290,6 +299,7 @@ class BagTest extends BagItTestFramework
      * @covers ::removePayloadManifest
      * @covers ::removeAlgorithm
      * @covers ::getAlgorithms
+     * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetHashesCommon()
     {
@@ -337,6 +347,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::algorithmIsSupported
      * @covers ::hashIsSupported
+     * @throws \whikloj\BagItTools\BagItException
      */
     public function testIsSupportedHash()
     {
@@ -351,6 +362,7 @@ class BagTest extends BagItTestFramework
      * @covers ::setAlgorithm
      * @covers ::removeAllPayloadManifests
      * @covers ::removePayloadManifest
+     * @throws \whikloj\BagItTools\BagItException
      */
     public function testSetAlgorithm()
     {
@@ -387,10 +399,23 @@ class BagTest extends BagItTestFramework
         $bag->addFile(self::TEST_TEXT['filename'], '/var/cache/etc');
     }
 
+    /**
+     * Test getting a warning when validating an MD5 bag.
+     * @group Bag
+     * @covers ::validate
+     * @covers \whikloj\BagItTools\AbstractManifest::loadFile
+     * @throws \whikloj\BagItTools\BagItException
+     */
     public function testWarningOnMd5()
     {
-        $bag = Bag::create($this->tmpdir);
-
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->validate());
+        $this->assertCount(0, $bag->getWarnings());
+        $bag->setAlgorithm('md5');
+        $bag->update();
+        $newBag = Bag::load($this->tmpdir);
+        $this->assertTrue($newBag->validate());
+        $this->assertCount(1, $newBag->getWarnings());
     }
-
 }
