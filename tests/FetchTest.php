@@ -16,11 +16,11 @@ use whikloj\BagItTools\Fetch;
 class FetchTest extends BagItTestFramework
 {
 
-    private const FETCH_FILES = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'fetchFiles';
+    const FETCH_FILES = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'fetchFiles';
 
-    private const WEBSERVER_FILES_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'webserver_responses';
+    const WEBSERVER_FILES_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'webserver_responses';
 
-    private const WEBSERVER_FILES = [
+    const WEBSERVER_FILES = [
         'remote_file1.txt' => [
             'sha512' => 'fd7c6f2a22f5dffac90c4483c9d623206a237a523b8e5a6f291ac0678fb6a3b5d68bb09a779c1809a15d8ef8c7d4' .
                 'e16a6d18d50c9b7f9639fd0d8fcf2b7ef46a',

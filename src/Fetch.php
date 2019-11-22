@@ -9,7 +9,7 @@ namespace whikloj\BagItTools;
 class Fetch
 {
 
-    private const FILENAME = "fetch.txt";
+    const FILENAME = "fetch.txt";
 
     /**
      * The bag this fetch file is part of
@@ -273,7 +273,6 @@ class Fetch
     {
         $ch = curl_init($url);
         curl_setopt_array($ch, $this->curlOptions);
-        //curl_setopt($ch, CURLOPT_FILE, $filestream);
         return $ch;
     }
 
