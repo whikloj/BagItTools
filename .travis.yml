@@ -15,7 +15,7 @@ script:
 branches:
   only:
     - master
-    - php56-cleanup
+    - develop
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
