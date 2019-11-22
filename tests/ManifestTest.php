@@ -5,11 +5,11 @@ namespace whikloj\BagItTools\Test;
 use whikloj\BagItTools\Bag;
 
 /**
- * Class PayloadManifestTest
+ * Class ManifestTest
  * @package whikloj\BagItTools\Test
  * @coversDefaultClass \whikloj\BagItTools\PayloadManifest
  */
-class PayloadManifestTest extends BagItTestFramework
+class ManifestTest extends BagItTestFramework
 {
 
   /**

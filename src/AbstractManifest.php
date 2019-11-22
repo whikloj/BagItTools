@@ -214,7 +214,9 @@ abstract class AbstractManifest
         $fullPath = $this->bag->makeAbsolute($this->filename);
         if (file_exists($fullPath)) {
             $fp = fopen($fullPath, "rb");
+            $lineCount = 0;
             while (!feof($fp)) {
+                $lineCount += 1;
                 $line = fgets($fp);
                 $line = $this->bag->decodeText($line);
                 $line = trim($line);
@@ -225,16 +227,17 @@ abstract class AbstractManifest
                     $hash = $matches[1];
                     $originalPath = $matches[2];
                     if (substr($originalPath, 0, 2) == "./") {
-                        $this->addLoadWarning("Paths SHOULD not use relative paths");
+                        $this->addLoadWarning("Line {$lineCount} : Paths SHOULD not be relative");
                     }
                     $path = $this->cleanUpRelPath($originalPath);
                     // Normalized path in lowercase (for matching)
                     $lowerNormalized = $this->normalizePath($path);
                     if (array_key_exists($path, $this->hashes)) {
-                        $this->addLoadError("Path {$originalPath} appears more than once in manifest.");
+                        $this->addLoadError("Line {$lineCount} : Path {$originalPath} appears more than once in " .
+                            "manifest.");
                     } elseif ($this->matchNormalizedList($lowerNormalized)) {
-                        $this->addLoadWarning("Path {$originalPath} matches another file when normalized for case " .
-                        "and characters.");
+                        $this->addLoadWarning("Line {$lineCount} : Path {$originalPath} matches another file when " .
+                            "normalized for case and characters.");
                     } else {
                         $this->hashes[$path] = $hash;
                         $this->addToNormalizedList($lowerNormalized);

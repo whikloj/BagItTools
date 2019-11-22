@@ -143,6 +143,13 @@ class Bag
     private $payloadFiles;
 
     /**
+     * Reference to a Fetch file or null if not used.
+     *
+     * @var \whikloj\BagItTools\Fetch
+     */
+    private $fetchFile = null;
+
+    /**
      * The absolute path to the root of the bag, all other file paths are
      * relative to this. This path is stored with / as directory separator
      * regardless of the OS.
@@ -862,6 +869,7 @@ class Bag
         $this->loadPayloadManifests();
         $bagInfo = $this->loadBagInfo();
         $tagManifest = $this->loadTagManifests();
+        $this->loadFetch();
         $this->isExtended = ($bagInfo || $tagManifest);
     }
 
@@ -1429,6 +1437,18 @@ class Bag
     }
 
     /**
+     * Load a fetch.txt if it exists.
+     */
+    private function loadFetch()
+    {
+        $fullPath = $this->makeAbsolute('fetch.txt');
+        if (file_exists($fullPath)) {
+            $this->fetchFile = new Fetch($this, true);
+            $this->bagErrors = array_merge($this->bagErrors, $this->fetchFile->getErrors());
+        }
+    }
+
+    /**
      * Check the directory we just deleted a file from, if empty we should remove
      * it too.
      *
@@ -1675,7 +1695,7 @@ class Bag
      * @return boolean
      *   Path is inside the data/ directory.
      */
-    private function pathInBagData($filepath)
+    public function pathInBagData($filepath)
     {
         $external = $this->makeAbsolute($filepath);
         $external = trim($external);
