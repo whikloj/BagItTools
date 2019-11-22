@@ -299,7 +299,6 @@ class Bag
             $this->fetchFile->downloadAll();
             $this->mergeErrors($this->fetchFile->getErrors());
             $this->mergeWarnings($this->fetchFile->getWarnings());
-
         }
         $manifests = array_values($this->payloadManifests);
         if ($this->isExtended) {
