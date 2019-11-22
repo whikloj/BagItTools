@@ -420,7 +420,7 @@ abstract class AbstractManifest
     private function cleanUpAbsPath($filepath)
     {
         $filepath = trim($filepath);
-        return Bag::getAbsolute($filepath);
+        return BagUtils::getAbsolute($filepath);
     }
 
     /**

@@ -295,6 +295,9 @@ class Bag
             // Reload the bag from disk.
             $this->loadBag();
         }
+        if (isset($this->fetchFile)) {
+            $this->fetchFile->downloadAll();
+        }
         $manifests = array_values($this->payloadManifests);
         if ($this->isExtended) {
             // merge in the tag manifests so we can do them all at once.
@@ -321,6 +324,7 @@ class Bag
         }
         $this->updateBagIt();
         $this->updatePayloadManifests();
+        $this->updateFetch();
 
         if ($this->isExtended) {
             $this->updateTagManifests();
@@ -330,6 +334,16 @@ class Bag
             $this->removeBagInfo();
         }
         $this->changed = false;
+    }
+
+    /**
+     * This does cleanup functions related to packaging, for example deleting downloaded files referenced in fetch.txt
+     */
+    public function finalize()
+    {
+        if (isset($this->fetchFile)) {
+            $this->fetchFile->cleanup();
+        }
     }
 
     /**
@@ -421,7 +435,7 @@ class Bag
     public function makeRelative($path)
     {
         $path = $this->internalPath($path);
-        $path = self::getAbsolute($path);
+        $path = BagUtils::getAbsolute($path);
         if (substr($path, 0, strlen($this->bagRoot)) !== $this->bagRoot) {
             return '';
         }
@@ -726,6 +740,21 @@ class Bag
         }
     }
 
+    public function addFetch($url, $destination, $size = null)
+    {
+        $fetchData = [
+            'uri' => $url,
+            'destination' => $destination,
+        ];
+        if (!is_null($size)) {
+            $fetchData['size'] = $size;
+        }
+        if (!isset($this->fetchFile)) {
+            $this->fetchFile = new Fetch($this, false);
+        }
+        // Download the file now to help with manifest handling, deleted when you package() or finalize().
+        $this->fetchFile->download($fetchData);
+    }
     /**
      * Get the current version array or default if not specified.
      *
@@ -841,6 +870,71 @@ class Bag
         return (isset($this->tagManifests) ? $this->tagManifests : null);
     }
 
+    /**
+     * Utility function to convert text to UTF-8
+     * @param string $text
+     *   The source text.
+     * @return string
+     *   The converted text.
+     */
+    public function decodeText($text)
+    {
+        return mb_convert_encoding($text, self::DEFAULT_FILE_ENCODING, $this->getFileEncoding());
+    }
+
+    /**
+     * Utility function to convert text back to the encoding for the file.
+     *
+     * @param string $text
+     *   The source text.
+     * @return string
+     *   The converted text.
+     */
+    public function encodeText($text)
+    {
+        return mb_convert_encoding($text, $this->getFileEncoding(), self::DEFAULT_FILE_ENCODING);
+    }
+
+    /**
+     * Is the path inside the payload directory?
+     *
+     * @param string $filepath
+     *   The internal path.
+     * @return boolean
+     *   Path is inside the data/ directory.
+     */
+    public function pathInBagData($filepath)
+    {
+        $external = $this->makeAbsolute($filepath);
+        $external = trim($external);
+        $external = BagUtils::getAbsolute($external);
+        $relative = $this->makeRelative($external);
+        return ($relative !== "" && substr($relative, 0, 5) === "data/");
+    }
+
+
+    /**
+     * Check the directory we just deleted a file from, if empty we should remove
+     * it too.
+     *
+     * @param string $path
+     *   The file just deleted.
+     */
+    public function checkForEmptyDir($path)
+    {
+        $parentPath = dirname($path);
+        if (substr($this->makeRelative($parentPath), 0, 5) == "data/") {
+            $files = scandir($parentPath);
+            $payload = array_filter($files, function ($o) {
+                // Don't count directory specifiers.
+                return ($o !== "." && $o !== "..");
+            });
+            if (count($payload) == 0) {
+                rmdir($parentPath);
+            }
+        }
+    }
+
     /*
      *  XXX: Private functions
      */
@@ -886,6 +980,30 @@ class Bag
         $this->payloadManifests = [
             self::DEFAULT_HASH_ALGORITHM => new PayloadManifest($this, self::DEFAULT_HASH_ALGORITHM)
         ];
+    }
+
+    /**
+     * Update a fetch.txt if it exists.
+     *
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    private function updateFetch()
+    {
+        if (isset($this->fetchFile)) {
+            $this->fetchFile->update();
+        }
+    }
+
+    /**
+     * Remove the fetch file completely.
+     */
+    private function removeFetch()
+    {
+        $fullPath = $this->makeAbsolute('fetch.txt');
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
+        }
+        unset($this->fetchFile);
     }
 
     /**
@@ -1449,28 +1567,6 @@ class Bag
     }
 
     /**
-     * Check the directory we just deleted a file from, if empty we should remove
-     * it too.
-     *
-     * @param string $path
-     *   The file just deleted.
-     */
-    private function checkForEmptyDir($path)
-    {
-        $parentPath = dirname($path);
-        if (substr($this->makeRelative($parentPath), 0, 5) == "data/") {
-            $files = scandir($parentPath);
-            $payload = array_filter($files, function ($o) {
-                // Don't count directory specifiers.
-                return ($o !== "." && $o !== "..");
-            });
-            if (count($payload) == 0) {
-                rmdir($parentPath);
-            }
-        }
-    }
-
-    /**
      * Utility to remove files using a pattern.
      *
      * @param string $filePattern
@@ -1662,47 +1758,6 @@ class Bag
         return null;
     }
 
-    /**
-     * Utility function to convert text to UTF-8
-     * @param string $text
-     *   The source text.
-     * @return string
-     *   The converted text.
-     */
-    public function decodeText($text)
-    {
-        return mb_convert_encoding($text, self::DEFAULT_FILE_ENCODING, $this->getFileEncoding());
-    }
-
-    /**
-     * Utility function to convert text back to the encoding for the file.
-     *
-     * @param string $text
-     *   The source text.
-     * @return string
-     *   The converted text.
-     */
-    public function encodeText($text)
-    {
-        return mb_convert_encoding($text, $this->getFileEncoding(), self::DEFAULT_FILE_ENCODING);
-    }
-
-    /**
-     * Is the path inside the payload directory?
-     *
-     * @param string $filepath
-     *   The internal path.
-     * @return boolean
-     *   Path is inside the data/ directory.
-     */
-    public function pathInBagData($filepath)
-    {
-        $external = $this->makeAbsolute($filepath);
-        $external = trim($external);
-        $external = self::getAbsolute($external);
-        $relative = $this->makeRelative($external);
-        return ($relative !== "" && substr($relative, 0, 5) === "data/");
-    }
 
     /**
      * Is the requested destination filename reserved on Windows?
@@ -1745,56 +1800,5 @@ class Bag
         $path = urldecode($path);
         return ($path[0] === DIRECTORY_SEPARATOR || strpos($path, "~") !== false ||
             substr($path, 0, 3) == "../");
-    }
-
-    /**
-     * There is a method that deal with Sven Arduwie proposal https://www.php.net/manual/en/function.realpath.php#84012
-     * And runeimp at gmail dot com proposal https://www.php.net/manual/en/function.realpath.php#112367
-     * @author  moreau.marc.web@gmail.com
-     * @param string $path
-     * @return string
-     */
-    public static function getAbsolute(string $path): string
-    {
-        // Cleaning path regarding OS
-        $path = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $path, 'msr');
-        // Check if path start with a separator (UNIX)
-        $startWithSeparator = $path[0] === DIRECTORY_SEPARATOR;
-        // Check if start with drive letter
-        preg_match('/^[a-z]:/', $path, $matches);
-        $startWithLetterDir = isset($matches[0]) ? $matches[0] : false;
-        // Get and filter empty sub paths
-        $subPaths = array_filter(explode(DIRECTORY_SEPARATOR, $path), 'mb_strlen');
-
-        $absolutes = [];
-        foreach ($subPaths as $subPath) {
-            if ('.' === $subPath) {
-                continue;
-            }
-            // if $startWithSeparator is false
-            // and $startWithLetterDir
-            // and (absolutes is empty or all previous values are ..)
-            // save absolute cause that's a relative and we can't deal with that and just forget that we want go up
-            if ('..' === $subPath
-                && !$startWithSeparator
-                && !$startWithLetterDir
-                && empty(array_filter($absolutes, function ($value) {
-                    return !('..' === $value);
-                }))
-            ) {
-                $absolutes[] = $subPath;
-                continue;
-            }
-            if ('..' === $subPath) {
-                array_pop($absolutes);
-                continue;
-            }
-            $absolutes[] = $subPath;
-        }
-
-        return
-            (($startWithSeparator ? DIRECTORY_SEPARATOR : $startWithLetterDir) ?
-                $startWithLetterDir . DIRECTORY_SEPARATOR : ''
-            ) . implode(DIRECTORY_SEPARATOR, $absolutes);
     }
 }

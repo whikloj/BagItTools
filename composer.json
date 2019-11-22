@@ -18,14 +18,14 @@
     "ext-curl": "*",
     "ext-zip": "*",
     "ext-mbstring": "*",
-    "ext-icu": "*",
     "ext-intl": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "~5.7",
     "phpdocumentor/phpdocumentor": "dev-master",
     "sebastian/phpcpd": "*",
-    "squizlabs/php_codesniffer": "~2.7"
+    "squizlabs/php_codesniffer": "~2.7",
+    "donatj/mock-webserver": "^2.1"
   },
   "autoload": {
     "psr-4": {
