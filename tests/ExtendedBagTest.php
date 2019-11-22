@@ -198,15 +198,15 @@ class ExtendedBagTest extends BagItTestFramework
         // Set again differently
         $bag->addAlgorithm('SHA-1');
         // Set a third
-        $bag->addAlgorithm('SHA3-256');
+        $bag->addAlgorithm('SHA-224');
 
         $bag->update();
 
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha1.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt');
 
-        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha3256.txt');
-        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha3256.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha224.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha224.txt');
 
         // Remove one
         $bag->removeAlgorithm('SHA-512');
@@ -215,17 +215,17 @@ class ExtendedBagTest extends BagItTestFramework
         $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt');
         $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha512.txt');
 
-        $this->assertArrayEquals(['sha3256', 'sha1'], $bag->getAlgorithms());
-        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha3256.txt');
+        $this->assertArrayEquals(['sha224', 'sha1'], $bag->getAlgorithms());
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha224.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt');
 
         $bag->setExtended(false);
         $bag->update();
         // tag manifests are gone.
-        $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha3256.txt');
+        $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha224.txt');
         $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt');
         // but payload remain
-        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha3256.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha224.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha1.txt');
     }
 
@@ -243,26 +243,26 @@ class ExtendedBagTest extends BagItTestFramework
         $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
         $bag->addAlgorithm('sha1');
-        $bag->addAlgorithm('SHA3-256');
-        $this->assertArrayEquals(['sha512', 'sha1', 'sha3256'], $bag->getAlgorithms());
+        $bag->addAlgorithm('SHA-224');
+        $this->assertArrayEquals(['sha512', 'sha1', 'sha224'], $bag->getAlgorithms());
         $bag->update();
 
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha1.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt');
-        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha3256.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha224.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha512.txt');
-        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha3256.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha224.txt');
 
         $bag->setAlgorithm('md5');
         $this->assertArrayEquals(['md5'], $bag->getAlgorithms());
         // Still the old manifests exist
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha1.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt');
-        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha3256.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha224.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha512.txt');
-        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha3256.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha224.txt');
         // And the new one doesn't
         $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-md5.txt');
         $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-md5.txt');
@@ -272,10 +272,10 @@ class ExtendedBagTest extends BagItTestFramework
         // Now the old manifests don't exist
         $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha1.txt');
         $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt');
-        $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha3256.txt');
+        $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha224.txt');
         $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt');
         $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha512.txt');
-        $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha3256.txt');
+        $this->assertFileNotExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha224.txt');
         // And the new one does
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-md5.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-md5.txt');

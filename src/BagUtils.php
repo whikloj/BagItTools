@@ -108,7 +108,7 @@ class BagUtils
      * @param string $path
      * @return string
      */
-    public static function getAbsolute(string $path)
+    public static function getAbsolute($path)
     {
         // Cleaning path regarding OS
         $path = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $path, 'msr');

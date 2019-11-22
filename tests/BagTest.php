@@ -315,16 +315,16 @@ class BagTest extends BagItTestFramework
         $bag->addAlgorithm('SHA-1');
         $this->assertArrayEquals(['sha512', 'sha1'], $bag->getAlgorithms());
         // Set a third
-        $bag->addAlgorithm('SHA3-256');
-        $this->assertArrayEquals(['sha3256', 'sha512', 'sha1'], $bag->getAlgorithms());
+        $bag->addAlgorithm('SHA-224');
+        $this->assertArrayEquals(['sha224', 'sha512', 'sha1'], $bag->getAlgorithms());
         // Remove one
         $bag->removeAlgorithm('SHA-512');
-        $this->assertArrayEquals(['sha3256', 'sha1'], $bag->getAlgorithms());
+        $this->assertArrayEquals(['sha224', 'sha1'], $bag->getAlgorithms());
         // Remove one not set.
-        $bag->removeAlgorithm('sha3512');
-        $this->assertArrayEquals(['sha3256', 'sha1'], $bag->getAlgorithms());
+        $bag->removeAlgorithm('sha512');
+        $this->assertArrayEquals(['sha224', 'sha1'], $bag->getAlgorithms());
         // Really remove it
-        $bag->removeAlgorithm('sha3256');
+        $bag->removeAlgorithm('sha224');
         $this->assertArrayEquals(['sha1'], $bag->getAlgorithms());
     }
 
@@ -368,8 +368,8 @@ class BagTest extends BagItTestFramework
     {
         $bag = Bag::create($this->tmpdir);
         $bag->addAlgorithm('sha1');
-        $bag->addAlgorithm('SHA3-256');
-        $this->assertArrayEquals(['sha512', 'sha1', 'sha3256'], $bag->getAlgorithms());
+        $bag->addAlgorithm('SHA-224');
+        $this->assertArrayEquals(['sha512', 'sha1', 'sha224'], $bag->getAlgorithms());
         $bag->setAlgorithm('md5');
         $this->assertArrayEquals(['md5'], $bag->getAlgorithms());
     }

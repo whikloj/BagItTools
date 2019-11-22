@@ -47,9 +47,9 @@ class Fetch
     private $downloadQueue = [];
 
     /**
-     * Curl version array
+     * Curl version number string.
      *
-     * @var array
+     * @var string
      */
     private $curlVersion;
 
@@ -73,7 +73,7 @@ class Fetch
     {
         $this->bag = $bag;
         $this->files = [];
-        $this->curlVersion = curl_version();
+        $this->curlVersion = curl_version()['version_number'];
         $this->setupCurl();
         if ($load) {
             $this->loadFiles();
@@ -295,11 +295,13 @@ class Fetch
             $curl_handles = [];
             $destinations = [];
             if ($mh !== false) {
-                if (version_compare($this->curlVersion['version_number'], '7.62.0') < 0) {
+                if (version_compare($this->curlVersion, '7.62.0') <= 0) {
                     // Try enabling HTTP/1.1 pipelining and HTTP/2 multiplexing.
                     curl_multi_setopt($mh, CURLMOPT_PIPELINING, CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX);
                 }
-                curl_multi_setopt($mh, CURLMOPT_MAX_TOTAL_CONNECTIONS, 10);
+                if (version_compare($this->curlVersion, '7.30.0') <= 0) {
+                    curl_multi_setopt($mh, CURLMOPT_MAX_TOTAL_CONNECTIONS, 10);
+                }
                 foreach ($this->downloadQueue as $key => $download) {
                     $fullPath = $this->bag->makeAbsolute($download['destination']);
                     // Don't download again.
@@ -419,8 +421,16 @@ class Fetch
      */
     private function setupCurl()
     {
-        if (version_compare($this->curlVersion['version_number'], '7.43.0') >= 0) {
-            $this->curlOptions[CURLOPT_PIPEWAIT] = true;
+        if (!defined('CURLMOPT_MAX_TOTAL_CONNECTIONS')) {
+            define('CURLMOPT_MAX_TOTAL_CONNECTIONS', 13);
+        }
+        if (!defined('CURL_PIPEWAIT')) {
+            define('CURL_PIPEWAIT', 237);
+        }
+        if (version_compare('7.0', PHP_VERSION) >= 0 &&
+            version_compare($this->curlVersion, '7.43.0') >= 0) {
+            // Add CURL_PIPEWAIT if we can, using the integer to avoid problems in PHP 5.6
+            $this->curlOptions[CURL_PIPEWAIT] = true;
         }
     }
 

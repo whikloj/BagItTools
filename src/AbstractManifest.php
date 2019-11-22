@@ -414,8 +414,8 @@ abstract class AbstractManifest
      *
      * @param string $filepath
      *   The absolute file path
-     * @return bool|string
-     *   The cleaned up absolute file path or false if file doesn't exist.
+     * @return string
+     *   The cleaned up absolute file path, not resolved on disk.
      */
     private function cleanUpAbsPath($filepath)
     {
@@ -429,13 +429,13 @@ abstract class AbstractManifest
      * @param string $filepath
      *   The relative file path.
      * @return bool|string
-     *   The cleaned up relative file path or false if the file doesn't exist.
+     *   The cleaned up relative file path or blank if not in the bag Root.
      */
     private function cleanUpRelPath($filepath)
     {
         $filepath = $this->bag->makeAbsolute($filepath);
         $filepath = $this->cleanUpAbsPath($filepath);
-        return ($filepath === false ? false : $this->bag->makeRelative($filepath));
+        return $this->bag->makeRelative($filepath);
     }
 
     /**

@@ -431,21 +431,19 @@ class Bag
      *
      * @param $path
      *   The path to process
-     * @return bool|string
-     *   The shortened string.
+     * @return string
+     *   The shortened string or blank if outside bag root.
      */
     public function makeRelative($path)
     {
         $path = $this->internalPath($path);
         $path = BagUtils::getAbsolute($path);
-        if (substr($path, 0, strlen($this->bagRoot)) !== $this->bagRoot) {
+        $rootLength = strlen($this->bagRoot);
+        if (substr($path, 0, $rootLength) !== $this->bagRoot) {
+            // We are not in bag root so return nothing.
             return '';
         }
-        $relative = substr($path, strlen($this->bagRoot) + 1);
-        if ($relative === false) {
-            return '';
-        }
-        return $relative;
+        return substr($path, strlen($this->bagRoot) + 1);
     }
 
     /**
