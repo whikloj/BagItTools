@@ -60,7 +60,6 @@ class Fetch
     private $curlOptions = [
         CURLOPT_CONNECTTIMEOUT => 10,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FAILONERROR => true,
     ];
 
     /**
@@ -139,7 +138,7 @@ class Fetch
         $this->validateData($fetchData);
         $uri = $fetchData['uri'];
         $dest = BagUtils::baseInData($fetchData['destination']);
-        $ch = $this->createCurl($uri);
+        $ch = $this->createCurl($uri, true);
         $output = curl_exec($ch);
         $error = curl_error($ch);
         curl_close($ch);
@@ -266,13 +265,20 @@ class Fetch
      *
      * @param string $url
      *   The URL to download.
+     * @param bool $single
+     *   If this is a download() call versus a downloadAll() call.
      * @return false|resource
      *   False on error, otherwise a resource.
      */
-    private function createCurl($url)
+    private function createCurl($url, $single = false)
     {
         $ch = curl_init($url);
-        curl_setopt_array($ch, $this->curlOptions);
+        $options = $this->curlOptions;
+        if ($single === true) {
+            // If this is set during curl_multi_exec, it swallows error messages.
+            $options[CURLOPT_FAILONERROR] = true;
+        }
+        curl_setopt_array($ch, $options);
         return $ch;
     }
 
