@@ -1,0 +1,20 @@
+language: php
+
+php:
+  - 5.6
+  - 7.1
+  - 7.2
+  - 7.3
+
+before_script:
+  - composer install
+
+script:
+  - composer test
+
+branches:
+  only:
+    - master
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
