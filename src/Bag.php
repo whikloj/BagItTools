@@ -297,6 +297,9 @@ class Bag
         }
         if (isset($this->fetchFile)) {
             $this->fetchFile->downloadAll();
+            $this->mergeErrors($this->fetchFile->getErrors());
+            $this->mergeWarnings($this->fetchFile->getWarnings());
+
         }
         $manifests = array_values($this->payloadManifests);
         if ($this->isExtended) {
@@ -305,8 +308,8 @@ class Bag
         }
         foreach ($manifests as $manifest) {
             $manifest->validate();
-            $this->bagErrors = array_merge($this->bagErrors, $manifest->getErrors());
-            $this->bagWarnings = array_merge($this->bagWarnings, $manifest->getWarnings());
+            $this->mergeErrors($manifest->getErrors());
+            $this->mergeWarnings($manifest->getWarnings());
         }
         return (count($this->bagErrors) == 0);
     }
@@ -1788,17 +1791,24 @@ class Bag
     }
 
     /**
-     * Paths for new and existing files should not have these conditions.
+     * Utility to merge manifest and fetch errors into the bag errors.
      *
-     * @param string $path
-     *   The relative path from an existing bag file or as a destination for a new file.
-     * @return bool
-     *   True if invalid characters/character sequences exist.
+     * @param array $newErrors
+     *   The new errors to be added.
      */
-    public static function invalidPathCharacters($path)
+    private function mergeErrors(array $newErrors)
     {
-        $path = urldecode($path);
-        return ($path[0] === DIRECTORY_SEPARATOR || strpos($path, "~") !== false ||
-            substr($path, 0, 3) == "../");
+        $this->bagErrors = array_merge($this->bagErrors, $newErrors);
+    }
+
+    /**
+     * Utility to merge manifest and fetch warnings into the bag warnings.
+     *
+     * @param array $newWarnings
+     *   The new warnings to be added.
+     */
+    private function mergeWarnings(array $newWarnings)
+    {
+        $this->bagWarnings = array_merge($this->bagWarnings, $newWarnings);
     }
 }

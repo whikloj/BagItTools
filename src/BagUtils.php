@@ -151,4 +151,19 @@ class BagUtils
                 $startWithLetterDir . DIRECTORY_SEPARATOR : ''
             ) . implode(DIRECTORY_SEPARATOR, $absolutes);
     }
+
+    /**
+     * Paths for new and existing files should not have these conditions.
+     *
+     * @param string $path
+     *   The relative path from an existing bag file or as a destination for a new file.
+     * @return bool
+     *   True if invalid characters/character sequences exist.
+     */
+    public static function invalidPathCharacters($path)
+    {
+        $path = urldecode($path);
+        return ($path[0] === DIRECTORY_SEPARATOR || strpos($path, "~") !== false ||
+            substr($path, 0, 3) == "../");
+    }
 }
