@@ -185,32 +185,32 @@ class BagTest extends BagItTestFramework
     public function testUpdateOnDisk()
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $bag = Bag::create($this->tmpdir);
-        $manifest = $bag->getPayloadManifests()['sha512'];
+        $bag = Bag::load($this->tmpdir);
+        $manifest = $bag->getPayloadManifests()['sha256'];
         // File doesn't exist.
         $this->assertArrayNotHasKey('data/land.jpg', $manifest->getHashes());
         $this->assertFileNotExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
 
         // Add the file
         $bag->addFile(self::TEST_IMAGE['filename'], 'data/land.jpg');
-        $manifest = $bag->getPayloadManifests()['sha512'];
+        $manifest = $bag->getPayloadManifests()['sha256'];
         $this->assertArrayNotHasKey('data/land.jpg', $manifest->getHashes());
         $this->assertFileExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
         // Update
         $bag->update();
-        $manifest = $bag->getPayloadManifests()['sha512'];
+        $manifest = $bag->getPayloadManifests()['sha256'];
         $this->assertArrayHasKey('data/land.jpg', $manifest->getHashes());
 
         // Remove it manually.
         unlink($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
-        $manifest = $bag->getPayloadManifests()['sha512'];
+        $manifest = $bag->getPayloadManifests()['sha256'];
         // File is gone
         $this->assertFileNotExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
         // Still exists in the manifest.
         $this->assertArrayHasKey('data/land.jpg', $manifest->getHashes());
         // Update BagIt files on disk.
         $bag->update();
-        $manifest = $bag->getPayloadManifests()['sha512'];
+        $manifest = $bag->getPayloadManifests()['sha256'];
         // Gone from the payload manifest.
         $this->assertArrayNotHasKey('data/land.jpg', $manifest->getHashes());
     }
