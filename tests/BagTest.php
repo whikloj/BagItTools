@@ -4,6 +4,7 @@ namespace whikloj\BagItTools\Test;
 
 use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\BagItException;
+use whikloj\BagItTools\BagUtils;
 
 /**
  * Class BagItTest
@@ -299,6 +300,8 @@ class BagTest extends BagItTestFramework
      * @covers ::removePayloadManifest
      * @covers ::removeAlgorithm
      * @covers ::getAlgorithms
+     * @covers ::hasAlgorithm
+     * @covers ::hasHash
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetHashesCommon()
@@ -313,6 +316,10 @@ class BagTest extends BagItTestFramework
         $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
         // Set again differently
         $bag->addAlgorithm('SHA-1');
+        $this->assertTrue($bag->hasAlgorithm('sha1'));
+        $this->assertTrue($bag->hasAlgorithm('sha-1'));
+        $this->assertTrue($bag->hasAlgorithm('SHA1'));
+        $this->assertTrue($bag->hasAlgorithm('SHA-1'));
         $this->assertArrayEquals(['sha512', 'sha1'], $bag->getAlgorithms());
         // Set a third
         $bag->addAlgorithm('SHA-224');
@@ -390,6 +397,7 @@ class BagTest extends BagItTestFramework
     /**
      * Test writing a file to an absolute location outside data
      * @group Bag
+     * @covers ::create
      * @covers ::addFile
      * @expectedExceptionCode  \whikloj\BagItTools\BagItException
      */
@@ -417,5 +425,91 @@ class BagTest extends BagItTestFramework
         $newBag = Bag::load($this->tmpdir);
         $this->assertTrue($newBag->validate());
         $this->assertCount(1, $newBag->getWarnings());
+    }
+
+    /**
+     * Test opening a non-existant compressed file.
+     * @group Bag
+     * @covers ::load
+     * @covers ::getExtensions
+     * @covers ::isCompressed
+     * @expectedException  \whikloj\BagItTools\BagItException
+     */
+    public function testNonExistantCompressed()
+    {
+        $bag = Bag::load('/my/directory.tar');
+    }
+
+
+    /**
+     * Test opening a tar gzip
+     * @group Bag
+     * @covers ::isCompressed
+     * @covers ::uncompressBag
+     * @covers ::getExtensions
+     * @covers ::untarBag
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testUncompressTarGz()
+    {
+        $bag = Bag::load(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testtar.tgz');
+        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->hasAlgorithm('sha224'));
+        $manifest = $bag->getPayloadManifests()['sha224'];
+        foreach ($manifest->getHashes() as $path => $hash) {
+            $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . BagUtils::baseInData($path));
+        }
+        $this->assertNotEquals(
+            self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testtar.tgz',
+            $bag->getBagRoot()
+        );
+    }
+
+    /**
+     * Test opening a tar bzip2.
+     * @group Bag
+     * @covers ::isCompressed
+     * @covers ::uncompressBag
+     * @covers ::getExtensions
+     * @covers ::untarBag
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testUncompressTarBzip()
+    {
+        $bag = Bag::load(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testtar.tar.bz2');
+        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->hasAlgorithm('sha224'));
+        $manifest = $bag->getPayloadManifests()['sha224'];
+        foreach ($manifest->getHashes() as $path => $hash) {
+            $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . BagUtils::baseInData($path));
+        }
+        $this->assertNotEquals(
+            self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testtar.tar.bz2',
+            $bag->getBagRoot()
+        );
+    }
+
+    /**
+     * Test opening a zip file.
+     * @group Bag
+     * @covers ::isCompressed
+     * @covers ::uncompressBag
+     * @covers ::getExtensions
+     * @covers ::unzipBag
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testUncompressZip()
+    {
+        $bag = Bag::load(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testzip.zip');
+        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->hasAlgorithm('sha224'));
+        $manifest = $bag->getPayloadManifests()['sha224'];
+        foreach ($manifest->getHashes() as $path => $hash) {
+            $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . BagUtils::baseInData($path));
+        }
+        $this->assertNotEquals(
+            self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testzip.zip',
+            $bag->getBagRoot()
+        );
     }
 }

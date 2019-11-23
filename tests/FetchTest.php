@@ -172,16 +172,16 @@ class FetchTest extends BagItTestFramework
     /**
      * Test adding a new fetch file and that it does download the file to update the payload manifest.
      * @group Fetch
-     * @covers \whikloj\BagItTools\Bag::addFetch
+     * @covers \whikloj\BagItTools\Bag::addFetchFile
      * @covers ::download
      * @throws \whikloj\BagItTools\BagItException
      */
-    public function testAddFetch()
+    public function testAddFetchFile()
     {
         $file_one_dest = 'data/dir1/dir2/first_text.txt';
         $bag = Bag::create($this->tmpdir);
         $this->assertFileNotExists($bag->makeAbsolute($file_one_dest));
-        $bag->addFetch(self::$remote_urls[0], $file_one_dest);
+        $bag->addFetchFile(self::$remote_urls[0], $file_one_dest);
         $this->assertFileExists($bag->makeAbsolute($file_one_dest));
         $manifest = $bag->getPayloadManifests()['sha512'];
         $this->assertFalse(array_key_exists($file_one_dest, $manifest->getHashes()));
@@ -190,6 +190,118 @@ class FetchTest extends BagItTestFramework
         $this->assertTrue(array_key_exists($file_one_dest, $manifest->getHashes()));
         $contents = file_get_contents($bag->makeAbsolute($file_one_dest));
         $this->assertEquals(self::$response_content[0], $contents);
+    }
+
+    /**
+     * Test adding a new fetch file twice with the same url.
+     *
+     * @group Fetch
+     * @covers \whikloj\BagItTools\Bag::addFetchFile
+     * @covers ::download
+     * @expectedException  \whikloj\BagItTools\BagItException
+     */
+    public function testAddFetchFileTwice()
+    {
+        $file_one_dest = 'data/dir1/dir2/first_text.txt';
+        $file_two_dest = 'data/dir1/dir2/second_text.txt';
+        $bag = Bag::create($this->tmpdir);
+        $this->assertFileNotExists($bag->makeAbsolute($file_one_dest));
+        $bag->addFetchFile(self::$remote_urls[0], $file_one_dest);
+        $this->assertFileExists($bag->makeAbsolute($file_one_dest));
+        $bag->addFetchFile(self::$remote_urls[0], $file_two_dest);
+    }
+
+    /**
+     * Test removing a fetch file.
+     *
+     * @group Fetch
+     * @covers \whikloj\BagItTools\Bag::addFetchFile
+     * @covers \whikloj\BagItTools\Bag::removeFetchFile
+     * @covers \whikloj\BagItTools\Bag::listFetchFiles
+     * @covers ::download
+     * @covers ::removeFile
+     * @covers ::getData
+     * @throws  \whikloj\BagItTools\BagItException
+     */
+    public function testRemoveFetchFile()
+    {
+        $file_one_dest = 'data/dir1/dir2/first_text.txt';
+        $file_two_dest = 'data/dir1/dir2/second_text.txt';
+        $expected_with_both = [
+            [
+                'uri' => self::$remote_urls[0],
+                'size' => '-',
+                'destination' => $file_one_dest,
+            ],
+            [
+                'uri' => self::$remote_urls[1],
+                'size' => '-',
+                'destination' => $file_two_dest,
+            ],
+        ];
+        $expected_with_one = [
+            [
+                'uri' => self::$remote_urls[1],
+                'size' => '-',
+                'destination' => $file_two_dest,
+            ],
+        ];
+        $bag = Bag::create($this->tmpdir);
+        $this->assertFileNotExists($bag->makeAbsolute($file_one_dest));
+        $this->assertFileNotExists($bag->makeAbsolute($file_two_dest));
+        $bag->addFetchFile(self::$remote_urls[0], $file_one_dest);
+        $this->assertFileExists($bag->makeAbsolute($file_one_dest));
+        $bag->addFetchFile(self::$remote_urls[1], $file_two_dest);
+        $this->assertFileExists($bag->makeAbsolute($file_one_dest));
+        $this->assertEquals($expected_with_both, $bag->listFetchFiles());
+        // Url doesn't exist, nothing happens
+        $bag->removeFetchFile('http://example.org/not/real');
+        // Now really remove it.
+        $bag->removeFetchFile(self::$remote_urls[0]);
+        $this->assertFileNotExists($bag->makeAbsolute($file_one_dest));
+        $this->assertEquals($expected_with_one, $bag->listFetchFiles());
+    }
+
+    /**
+     * Test removing all fetch files.
+     *
+     * @group Fetch
+     * @covers \whikloj\BagItTools\Bag::addFetchFile
+     * @covers \whikloj\BagItTools\Bag::clearFetch
+     * @covers \whikloj\BagItTools\Bag::listFetchFiles
+     * @covers ::download
+     * @covers ::clearData
+     * @covers ::getData
+     * @throws  \whikloj\BagItTools\BagItException
+     */
+    public function testClearFetch()
+    {
+        $file_one_dest = 'data/dir1/dir2/first_text.txt';
+        $file_two_dest = 'data/dir1/dir2/second_text.txt';
+        $expected_with_both = [
+            [
+                'uri' => self::$remote_urls[0],
+                'size' => '-',
+                'destination' => $file_one_dest,
+            ],
+            [
+                'uri' => self::$remote_urls[1],
+                'size' => '-',
+                'destination' => $file_two_dest,
+            ],
+        ];
+        $bag = Bag::create($this->tmpdir);
+        $this->assertFileNotExists($bag->makeAbsolute($file_one_dest));
+        $this->assertFileNotExists($bag->makeAbsolute($file_two_dest));
+        $bag->addFetchFile(self::$remote_urls[0], $file_one_dest);
+        $this->assertFileExists($bag->makeAbsolute($file_one_dest));
+        $bag->addFetchFile(self::$remote_urls[1], $file_two_dest);
+        $this->assertFileExists($bag->makeAbsolute($file_one_dest));
+        $this->assertEquals($expected_with_both, $bag->listFetchFiles());
+        $bag->clearFetch();
+        $this->assertFileNotExists($bag->makeAbsolute($file_one_dest));
+        $this->assertFileNotExists($bag->makeAbsolute($file_two_dest));
+        $this->assertEquals([], $bag->listFetchFiles());
     }
 
     /**
@@ -261,7 +373,7 @@ class FetchTest extends BagItTestFramework
             new Response('', [], 500)
         );
         $bag = Bag::create($this->tmpdir);
-        $bag->addFetch($url, 'data/myfile.txt');
+        $bag->addFetchFile($url, 'data/myfile.txt');
     }
 
     /**

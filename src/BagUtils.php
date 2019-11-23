@@ -49,6 +49,19 @@ class BagUtils
     }
 
     /**
+     * Utility to test a filename as . or ..
+     *
+     * @param string $filename
+     *    Basename of a file or directory.
+     * @return bool
+     *    True if it is a dot directory name.
+     */
+    public static function isDotDir($filename)
+    {
+        return ($filename == "." || $filename == "..");
+    }
+
+    /**
      * Rebase the path in the data directory as payloads only deal in there.
      *
      * @param string $path

@@ -345,7 +345,7 @@ abstract class AbstractManifest
             $currentPath = array_shift($paths);
             $files = scandir($currentPath);
             foreach ($files as $file) {
-                if ($file == "." || $file == "..") {
+                if (BagUtils::isDotDir($file)) {
                     continue;
                 }
                 $fullPath = $currentPath . DIRECTORY_SEPARATOR . $file;

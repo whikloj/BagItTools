@@ -108,6 +108,23 @@ class Bag
     ];
 
     /**
+     * Extensions which map to a tar file.
+     */
+    const TAR_EXTENSIONS = [
+        'tar',
+        'tgz',
+        'tar.gz',
+        'tar.bz2',
+    ];
+
+    /**
+     * Extensions which map to a zip file.
+     */
+    const ZIP_EXTENSIONS = [
+        'zip',
+    ];
+
+    /**
      * Array of current bag version with keys 'major' and 'minor'.
      *
      * @var array
@@ -276,6 +293,12 @@ class Bag
      */
     public static function load($rootPath)
     {
+        if ($rootPath[0] !== DIRECTORY_SEPARATOR) {
+            $rootPath = getcwd() . DIRECTORY_SEPARATOR . $rootPath;
+        }
+        if (is_file($rootPath) && self::isCompressed($rootPath)) {
+            $rootPath = self::uncompressBag($rootPath);
+        }
         return new Bag($rootPath, false);
     }
 
@@ -346,6 +369,10 @@ class Bag
         if (isset($this->fetchFile)) {
             $this->fetchFile->cleanup();
         }
+    }
+
+    public function package($filename, $packageType)
+    {
     }
 
     /**
@@ -740,7 +767,19 @@ class Bag
         }
     }
 
-    public function addFetch($url, $destination, $size = null)
+    /**
+     * Add a file to your fetch file.
+     *
+     * @param string $url
+     *   The source URL.
+     * @param string $destination
+     *   The destination path in the bag.
+     * @param null|integer $size
+     *   Size of the file to be stored in the fetch file, if desired.
+     * @throws \whikloj\BagItTools\BagItException
+     *   On errors adding the file.
+     */
+    public function addFetchFile($url, $destination, $size = null)
     {
         $fetchData = [
             'uri' => $url,
@@ -755,6 +794,41 @@ class Bag
         // Download the file now to help with manifest handling, deleted when you package() or finalize().
         $this->fetchFile->download($fetchData);
     }
+
+    /**
+     * Return the fetch file data, an array of arrays with keys 'url', 'destination' and (optionally) 'size'.
+     *
+     * @return array
+     */
+    public function listFetchFiles()
+    {
+        return (!isset($this->fetchFile) ? [] : $this->fetchFile->getData());
+    }
+
+    /**
+     * Wipe the fetch file data
+     */
+    public function clearFetch()
+    {
+        if (isset($this->fetchFile)) {
+            $this->fetchFile->clearData();
+            unset($this->fetchFile);
+        }
+    }
+
+    /**
+     * Delete a line from the fetch file.
+     *
+     * @param string $url
+     *   The url to delete.
+     */
+    public function removeFetchFile($url)
+    {
+        if (isset($this->fetchFile)) {
+            $this->fetchFile->removeFile($url);
+        }
+    }
+
     /**
      * Get the current version array or default if not specified.
      *
@@ -948,9 +1022,6 @@ class Bag
     private function loadBag()
     {
         $root = $this->getBagRoot();
-        if ($root[0] !== DIRECTORY_SEPARATOR) {
-            $root = getcwd() . DIRECTORY_SEPARATOR . $root;
-        }
         if (!file_exists($root)) {
             throw new BagItException("Path {$root} does not exist, could not load Bag.");
         }
@@ -1567,6 +1638,157 @@ class Bag
     }
 
     /**
+     * Uncompress a BagIt archive file.
+     *
+     * @param string $filepath
+     *   The fullpath to the archive file.
+     * @return string
+     *   The fullpath to extracted bag.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Problems accessing/extracting the archive file.
+     */
+    private static function uncompressBag($filepath)
+    {
+        if (file_exists($filepath)) {
+            $extension = self::getExtensions($filepath);
+            if (in_array($extension, self::ZIP_EXTENSIONS)) {
+                $directory = self::unzipBag($filepath);
+            } elseif (in_array($extension, self::TAR_EXTENSIONS)) {
+                $directory = self::untarBag($filepath, $extension);
+            } else {
+                throw new BagItException("Unable to determine archive format.");
+            }
+            // $directory contains the directory with the bag, so find it.
+            return self::getDirectory($directory);
+        }
+        throw new BagItException("File {$filepath} does not exist.");
+    }
+
+    /**
+     * Unzip a zipfile.
+     *
+     * @param string $filename
+     *   The fullpath to the zip file.
+     * @return string
+     *   The path the archive file was extracted to.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Problems extracting the zip file.
+     */
+    private static function unzipBag($filename)
+    {
+        $zip = new \ZipArchive;
+        $res = $zip->open($filename);
+        if ($res === false) {
+            throw new BagItException("Unable to unzip {$filename}");
+        }
+        $directory = self::extractDir();
+        $zip->extractTo($directory);
+        $zip->close();
+        return $directory;
+    }
+
+    /**
+     * Untar a tar file.
+     *
+     * @param string $filename
+     *   The fullpath to the tar file.
+     * @return string
+     *   The path the archive file was extracted to.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Problems extracting the zip file.
+     */
+    private static function untarBag($filename, $extension)
+    {
+        $compression = (substr($extension, -3) == 'bz2' ? 'bz2' : (substr($extension, -2) == 'gz' ? 'gz' :
+            null));
+        $directory = self::extractDir();
+        $tar = new \Archive_Tar($filename, $compression);
+        $res = $tar->extract($directory);
+        if ($res === false) {
+            throw new BagItException("Usable to untar {$filename}");
+        }
+        return $directory;
+    }
+
+    /**
+     * Generate a temporary directory name.
+     *
+     * @return string
+     *   The path to a new temporary directory.
+     */
+    private static function extractDir()
+    {
+        $temp = tempnam('', '');
+        unlink($temp);
+        mkdir($temp);
+        return $temp;
+    }
+
+    /**
+     * Test a filepath to see if we think it is compressed.
+     *
+     * @param string $filepath
+     *   The full path
+     * @return bool
+     *   True if compressed file (we support).
+     */
+    private static function isCompressed($filepath)
+    {
+        return (in_array(self::getExtensions($filepath), array_merge(
+            self::ZIP_EXTENSIONS,
+            self::TAR_EXTENSIONS
+        )));
+    }
+
+    /**
+     * Get the file extension from a full path.
+     *
+     * @param string $filepath
+     *   The full file path.
+     * @return string
+     *   The extension or an empty string.
+     */
+    private static function getExtensions($filepath)
+    {
+        $filename = strtolower(basename($filepath));
+        if (strpos($filename, '.') !== false) {
+            return substr($filename, strpos($filename, '.') + 1);
+        }
+        return '';
+    }
+
+    /**
+     * Locate the extracted bag directory from inside our temporary directory.
+     *
+     * @param string $filepath
+     *   The temporary directory.
+     * @return string
+     *   The bag directory.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Find more or less than one directory (not including . and ..)
+     */
+    private static function getDirectory($filepath)
+    {
+        $files = scandir($filepath);
+        $dirs = [];
+        if (count($files) > 0) {
+            foreach ($files as $file) {
+                if (BagUtils::isDotDir($file)) {
+                    continue;
+                }
+                $fullpath = $filepath . DIRECTORY_SEPARATOR . $file;
+                if (is_dir($fullpath)) {
+                    $dirs[] = $fullpath;
+                }
+            }
+        }
+        if (count($dirs) !== 1) {
+            throw new BagItException("Found multiple root level directories inside archive file.");
+        }
+        return reset($dirs);
+    }
+
+    /**
      * Utility to remove files using a pattern.
      *
      * @param string $filePattern
@@ -1681,7 +1903,7 @@ class Bag
      */
     private function hasHash($internal_name)
     {
-        return (in_array($internal_name, array_keys($this->manifest)));
+        return (in_array($internal_name, array_keys($this->payloadManifests)));
     }
 
     /**

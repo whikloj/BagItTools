@@ -19,6 +19,13 @@ class Fetch
     private $bag;
 
     /**
+     * The current absolute path to the fetch.txt file.
+     *
+     * @var string
+     */
+    private $filename;
+
+    /**
      * Information from the fetch.txt, array of arrays with keys 'uri', 'size', and 'destination'
      *
      * @var array
@@ -74,10 +81,21 @@ class Fetch
         $this->bag = $bag;
         $this->files = [];
         $this->curlVersion = curl_version()['version_number'];
+        $this->filename = $this->bag->makeAbsolute(self::FILENAME);
         $this->setupCurl();
         if ($load) {
             $this->loadFiles();
         }
+    }
+
+    /**
+     * Return the array of file data.
+     *
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->files;
     }
 
     /**
@@ -137,6 +155,9 @@ class Fetch
     {
         $this->validateData($fetchData);
         $uri = $fetchData['uri'];
+        if ($this->existsInFile($uri)) {
+            throw new BagItException("This file is already in fetch.txt");
+        }
         $dest = BagUtils::baseInData($fetchData['destination']);
         $ch = $this->createCurl($uri, true);
         $output = curl_exec($ch);
@@ -151,6 +172,30 @@ class Fetch
             'size' => (!empty($fetchData['size']) ? $fetchData['size'] : '-'),
             'destination' => $dest,
         ];
+    }
+
+    /**
+     * Remove the URL (case-insensitive match) from the fetch file.
+     *
+     * @param string $url
+     *   The url to remove.
+     */
+    public function removeFile($url)
+    {
+        if ($this->existsInFile($url)) {
+            $newFiles = [];
+            foreach ($this->files as $file) {
+                if (strtolower($url) !== strtolower($file['uri'])) {
+                    $newFiles[] = $file;
+                } else {
+                    $fullFile = $this->bag->makeAbsolute($file['destination']);
+                    if (file_exists($fullFile)) {
+                        unlink($fullFile);
+                    }
+                }
+            }
+            $this->files = $newFiles;
+        }
     }
 
     /**
@@ -177,6 +222,18 @@ class Fetch
                 unlink($fullPath);
                 $this->bag->checkForEmptyDir($fullPath);
             }
+        }
+    }
+
+    /**
+     * Clean up any downloaded files and then wipe the internal data array.
+     */
+    public function clearData()
+    {
+        $this->cleanup();
+        $this->files = [];
+        if (file_exists($this->filename)) {
+            unlink($this->filename);
         }
     }
 
@@ -212,9 +269,8 @@ class Fetch
     private function loadFiles()
     {
         $this->resetErrors();
-        $fullPath = $this->bag->makeAbsolute(self::FILENAME);
-        if (file_exists($fullPath)) {
-            $fp = fopen($fullPath, "rb");
+        if (file_exists($this->filename)) {
+            $fp = fopen($this->filename, "rb");
             $lineCount = 0;
             while (!feof($fp)) {
                 $lineCount += 1;
@@ -241,6 +297,15 @@ class Fetch
         }
     }
 
+    /**
+     * Write out data collected via curl to disk.
+     * @param mixed $content
+     *   The content from curl.
+     * @param $destination
+     *   The relative path to the final file.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Trouble writing to disk.
+     */
     private function saveFileData($content, $destination)
     {
         if (strlen($content) > 0) {
@@ -340,14 +405,13 @@ class Fetch
      */
     private function writeToDisk()
     {
-        $fullPath = $this->bag->makeAbsolute(self::FILENAME);
-        if (file_exists($fullPath)) {
-            unlink($fullPath);
+        if (file_exists($this->filename)) {
+            unlink($this->filename);
         }
         if (count($this->files) > 0) {
-            $fp = fopen(addslashes($fullPath), "wb");
+            $fp = fopen($this->filename, "wb");
             if ($fp === false) {
-                throw new BagItException("Unable to write {$fullPath}");
+                throw new BagItException("Unable to write {$this->filename}");
             }
             foreach ($this->files as $fileData) {
                 $line = "{$fileData['uri']} {$fileData['size']} {$fileData['destination']}" . PHP_EOL;
@@ -414,6 +478,23 @@ class Fetch
             }
         }
         return true;
+    }
+
+    /**
+     * Check if the url is already in the file.
+     *
+     * @param string $url
+     *   The url to check
+     * @return bool
+     *   True if a duplicate.
+     */
+    private function existsInFile($url)
+    {
+        $uris = array_column($this->files, 'uri');
+        array_walk($uris, function (&$item) {
+            $item = strtolower($item);
+        });
+        return (in_array(strtolower($url), $uris));
     }
 
     /**

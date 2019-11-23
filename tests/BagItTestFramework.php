@@ -4,6 +4,7 @@ namespace whikloj\BagItTools\Test;
 
 use PHPUnit\Framework\TestCase;
 use whikloj\BagItTools\Bag;
+use whikloj\BagItTools\BagUtils;
 
 /**
  * Base testing class for BagItTools.
@@ -104,7 +105,7 @@ class BagItTestFramework extends TestCase
         if (is_dir($path)) {
             $files = scandir($path);
             foreach ($files as $file) {
-                if ($file == "." || $file == "..") {
+                if (BagUtils::isDotDir($file)) {
                     continue;
                 }
                 $currentFile = $path . DIRECTORY_SEPARATOR . $file;
@@ -180,7 +181,7 @@ class BagItTestFramework extends TestCase
     private static function copyDir($src, $dest)
     {
         foreach (scandir($src) as $item) {
-            if ($item == "." || $item == "..") {
+            if (BagUtils::isDotDir($item)) {
                 continue;
             }
             if (is_dir("{$src}/{$item}")) {
