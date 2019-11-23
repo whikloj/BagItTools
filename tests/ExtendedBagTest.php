@@ -3,7 +3,6 @@
 namespace whikloj\BagItTools\Test;
 
 use whikloj\BagItTools\Bag;
-use whikloj\BagItTools\BagItException;
 
 /**
  * Test of various classes for extended bag functions..
@@ -284,14 +283,14 @@ class ExtendedBagTest extends BagItTestFramework
     /**
      * Test setting a bag info tag.
      * @group Extended
-     * @covers ::setBagInfoTag
+     * @covers ::addBagInfoTag
      * @covers ::bagInfoTagExists
      */
     public function testSetBagInfoElement()
     {
         $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
-        $bag->setBagInfoTag('Contact-NAME', 'Monty Hall');
+        $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
         $this->assertCount(1, $bag->getBagInfoData());
         $this->assertTrue($bag->hasBagInfoTag('contact-name'));
         $tags = $bag->getBagInfoByTag('CONTACT-NAME');
@@ -304,7 +303,7 @@ class ExtendedBagTest extends BagItTestFramework
             date('Y-m-d', time()) . PHP_EOL;
         $this->assertEquals($expected, file_get_contents($baginfo));
 
-        $bag->setBagInfoTag('contact-nAME', 'Bob Barker');
+        $bag->addBagInfoTag('contact-nAME', 'Bob Barker');
         $tags = $bag->getBagInfoByTag('CONTACT-NAME');
         $this->assertArrayEquals(['Monty Hall', 'Bob Barker'], $tags);
 
@@ -317,18 +316,18 @@ class ExtendedBagTest extends BagItTestFramework
     /**
      * Test the exception when trying to set a generated field.
      * @group Extended
-     * @covers ::setBagInfoTag
+     * @covers ::addBagInfoTag
      * @expectedException  \whikloj\BagItTools\BagItException
      */
     public function testSetGeneratedField()
     {
         $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
-        $bag->setBagInfoTag('Source-organization', 'Planet Earth');
+        $bag->addBagInfoTag('Source-organization', 'Planet Earth');
         // Doesn't match due to underscore instead of hyphen.
-        $bag->setBagInfoTag('PAYLOAD_OXUM', '123456.12');
+        $bag->addBagInfoTag('PAYLOAD_OXUM', '123456.12');
         // Now we explode.
-        $bag->setBagInfoTag('payload-oxum', '123');
+        $bag->addBagInfoTag('payload-oxum', '123');
     }
 
     /**

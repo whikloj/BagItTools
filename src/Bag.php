@@ -582,7 +582,7 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *   When you try to set an auto-generated tag value.
      */
-    public function setBagInfoTag($tag, $value)
+    public function addBagInfoTag($tag, $value)
     {
         $internal_tag = self::trimLower($tag);
         if (in_array($internal_tag, self::BAG_INFO_GENERATED_ELEMENTS)) {
@@ -1044,9 +1044,11 @@ class Bag
     private function createNewBag()
     {
         $this->bagErrors = [];
-        if (!file_exists($this->bagRoot)) {
-            mkdir($this->bagRoot . DIRECTORY_SEPARATOR . "data", 0777, true);
+        $this->bagRoot = BagUtils::getAbsolute($this->bagRoot);
+        if (file_exists($this->bagRoot)) {
+            throw new BagItException("New bag directory {$this->bagRoot} exists");
         }
+        mkdir($this->bagRoot . DIRECTORY_SEPARATOR . "data", 0777, true);
         $this->updateBagIt();
         $this->payloadManifests = [
             self::DEFAULT_HASH_ALGORITHM => new PayloadManifest($this, self::DEFAULT_HASH_ALGORITHM)
@@ -1063,18 +1065,6 @@ class Bag
         if (isset($this->fetchFile)) {
             $this->fetchFile->update();
         }
-    }
-
-    /**
-     * Remove the fetch file completely.
-     */
-    private function removeFetch()
-    {
-        $fullPath = $this->makeAbsolute('fetch.txt');
-        if (file_exists($fullPath)) {
-            unlink($fullPath);
-        }
-        unset($this->fetchFile);
     }
 
     /**
