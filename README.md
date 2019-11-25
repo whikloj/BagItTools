@@ -29,14 +29,18 @@ Features:
 
 ## Installation
 
-There is no release on packagist.org (yet). 
+**Composer**
 
-So for now you must:
+```bash
+composer require "whikloj/bagittools"
+```
+
+**Clone from Github**
 
 ```bash
 git clone https://github.com/whikloj/BagItTools
 cd BagItTools
-composer install
+composer install --no-dev
 ```
 
 ## Dependencies
