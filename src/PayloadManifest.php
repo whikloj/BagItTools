@@ -22,7 +22,7 @@ class PayloadManifest extends AbstractManifest
    * @param bool $load
    *   Whether we are loading an existing file
    */
-    public function __construct(\whikloj\BagItTools\Bag $bag, $algorithm, $load = false)
+    public function __construct(Bag $bag, $algorithm, $load = false)
     {
         parent::__construct($bag, $algorithm, "manifest-{$algorithm}.txt", $load);
     }
