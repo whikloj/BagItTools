@@ -30,7 +30,7 @@ class PayloadManifest extends AbstractManifest
     public function update()
     {
         $this->hashes = [];
-        $files = $this->getAllFiles($this->bag->makeAbsolute("data"));
+        $files = BagUtils::getAllFiles($this->bag->makeAbsolute("data"));
         foreach ($files as $file) {
             $this->hashes[$this->bag->makeRelative($file)] = "";
         }
@@ -43,7 +43,7 @@ class PayloadManifest extends AbstractManifest
     public function validate()
     {
         parent::validate();
-        $onDisk = $this->getAllFiles($this->bag->makeAbsolute("data"));
+        $onDisk = BagUtils::getAllFiles($this->bag->makeAbsolute("data"));
         // 1.0 Spec says each manifest MUST list every file in the data/ directory.
         array_walk($onDisk, function (&$item) {
             $item = $this->bag->makeRelative($item);

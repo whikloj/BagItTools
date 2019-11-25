@@ -30,7 +30,7 @@ class TagManifest extends AbstractManifest
     public function update()
     {
         $this->hashes = [];
-        $files = $this->getAllFiles($this->bag->getBagRoot(), ["data"]);
+        $files = BagUtils::getAllFiles($this->bag->getBagRoot(), ["data"]);
         foreach ($files as $file) {
             if ($this->isTagManifest($file)) {
                 $this->hashes[$this->bag->makeRelative($file)] = "";
@@ -45,7 +45,7 @@ class TagManifest extends AbstractManifest
     public function validate()
     {
         parent::validate();
-        $onDisk = $this->getAllFiles($this->bag->getBagRoot(), ["data"]);
+        $onDisk = BagUtils::getAllFiles($this->bag->getBagRoot(), ["data"]);
         $onDisk = array_filter($onDisk, function ($o) {
             return !$this->isTagManifest($o);
         });

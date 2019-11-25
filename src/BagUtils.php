@@ -14,6 +14,7 @@ class BagUtils
      */
     const CHARACTER_SETS = [
         "utf-8" => "UTF-8",
+        "utf-16" => "UTF-16",
         "us-ascii" => "US-ASCII",
         "iso-8859-1" => "ISO-8859-1",
         "iso-8859-2" => "ISO-8859-2",
@@ -178,5 +179,38 @@ class BagUtils
         $path = urldecode($path);
         return ($path[0] === DIRECTORY_SEPARATOR || strpos($path, "~") !== false ||
             substr($path, 0, 3) == "../");
+    }
+
+    /**
+     * Recursively list all files in a directory, except files starting with .
+     *
+     * @param string $directory
+     *   The starting full path.
+     * @param array $exclusions
+     *   Array with directory names to skip.
+     * @return array
+     *   List of files with absolute path.
+     */
+    public static function getAllFiles($directory, $exclusions = [])
+    {
+        $paths = [$directory];
+        $found_files = [];
+
+        while (count($paths) > 0) {
+            $currentPath = array_shift($paths);
+            $files = scandir($currentPath);
+            foreach ($files as $file) {
+                if (self::isDotDir($file)) {
+                    continue;
+                }
+                $fullPath = $currentPath . DIRECTORY_SEPARATOR . $file;
+                if (is_dir($fullPath) && !in_array($file, $exclusions)) {
+                    $paths[] = $fullPath;
+                } elseif (is_file($fullPath)) {
+                    $found_files[] = $fullPath;
+                }
+            }
+        }
+        return $found_files;
     }
 }

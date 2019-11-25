@@ -125,6 +125,13 @@ class Bag
     ];
 
     /**
+     * All the extensions in one array.
+     *
+     * @var array
+     */
+    private $packageExtensions;
+
+    /**
      * Array of current bag version with keys 'major' and 'minor'.
      *
      * @var array
@@ -247,6 +254,7 @@ class Bag
      */
     private function __construct($rootPath, $new = true)
     {
+        $this->packageExtensions = array_merge(self::TAR_EXTENSIONS, self::ZIP_EXTENSIONS);
         // Define valid hash algorithms our PHP supports.
         $this->validHashAlgorithms = array_filter(
             hash_algos(),
@@ -366,13 +374,33 @@ class Bag
      */
     public function finalize()
     {
+        // Update files to ensure they are correct.
+        $this->update();
         if (isset($this->fetchFile)) {
+            // Clean up fetch files downloaded to generate checksums.
             $this->fetchFile->cleanup();
         }
     }
 
-    public function package($filename, $packageType)
+    /**
+     * Package a bag up into an archive.
+     *
+     * @param string $filepath
+     *   The archive file path.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Problems creating the archive.
+     */
+    public function package($filepath)
     {
+        $extension = self::getExtensions($filepath);
+        if (!in_array($extension, $this->packageExtensions)) {
+            throw new BagItException(
+                "Unknown archive type, the file extension must be one of (" .
+                implode(", ", $this->packageExtensions) . ")"
+            );
+        }
+        $this->finalize();
+        $this->makePackage($filepath);
     }
 
     /**
@@ -1628,6 +1656,86 @@ class Bag
     }
 
     /**
+     * Create an archive file of the current bag.
+     *
+     * @param string $filename
+     *   The archive filename.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Problems creating the archive.
+     */
+    private function makePackage($filename)
+    {
+        $extension = self::getExtensions($filename);
+        if (in_array($extension, self::ZIP_EXTENSIONS)) {
+            $this->makeZip($filename);
+        } elseif (in_array($extension, self::TAR_EXTENSIONS)) {
+            $this->makeTar($filename);
+        } else {
+            throw new BagItException("Unable to determine archive format.");
+        }
+    }
+
+    /**
+     * Create a Zip archive.
+     *
+     * @param string $filename
+     *   The archive filename.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Problems creating the archive.
+     */
+    private function makeZip($filename)
+    {
+        $zip = new \ZipArchive;
+        $res = $zip->open($filename, \ZipArchive::CREATE);
+        if ($res === true) {
+            $files = BagUtils::getAllFiles($this->bagRoot);
+            $parentPrefix = basename($this->bagRoot);
+            foreach ($files as $file) {
+                $relative = $this->makeRelative($file);
+                $zip->addFile($file, "{$parentPrefix}/{$relative}");
+            }
+            $zip->close();
+        } else {
+            throw new BagItException("Unable to create zip file");
+        }
+    }
+
+    /**
+     * Create a Tar archive.
+     *
+     * @param string $filename
+     *   The archive filename.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Problems creating the archive.
+     */
+    private function makeTar($filename)
+    {
+        $extension = self::getExtensions($filename);
+        $compression = self::extensionTarCompression($extension);
+        $tar = new \Archive_Tar($filename, $compression);
+        if ($tar === false) {
+            throw new BagItException("Error creating Tar file.");
+        }
+        $parent = $this->getParentDir();
+        $files = BagUtils::getAllFiles($this->bagRoot);
+        if (!$tar->createModify($files, "", $parent)) {
+            throw new BagItException("Error adding files to {$filename}.");
+        }
+    }
+
+    /**
+     * Get the parent directory of the current Bag.
+     *
+     * @return string
+     *   The parent directory.
+     */
+    private function getParentDir()
+    {
+        $fullPath = $this->bagRoot;
+        return dirname($fullPath);
+    }
+
+    /**
      * Uncompress a BagIt archive file.
      *
      * @param string $filepath
@@ -1689,8 +1797,7 @@ class Bag
      */
     private static function untarBag($filename, $extension)
     {
-        $compression = (substr($extension, -3) == 'bz2' ? 'bz2' : (substr($extension, -2) == 'gz' ? 'gz' :
-            null));
+        $compression = self::extensionTarCompression($extension);
         $directory = self::extractDir();
         $tar = new \Archive_Tar($filename, $compression);
         $res = $tar->extract($directory);
@@ -1698,6 +1805,20 @@ class Bag
             throw new BagItException("Usable to untar {$filename}");
         }
         return $directory;
+    }
+
+    /**
+     * Determine the correct compression (if any) from the extension.
+     *
+     * @param string $extension
+     *   The extension.
+     * @return string|null
+     *   The compression string or null for no compression.
+     */
+    private static function extensionTarCompression($extension)
+    {
+        return (substr($extension, -3) == 'bz2' ? 'bz2' : (substr($extension, -2) == 'gz' ? 'gz' :
+            null));
     }
 
     /**

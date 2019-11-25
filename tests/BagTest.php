@@ -512,4 +512,116 @@ class BagTest extends BagItTestFramework
             $bag->getBagRoot()
         );
     }
+
+    /**
+     * Test generating a zip.
+     *
+     * TODO: Re-extract and compare against source bag.
+     * @group Bag
+     * @covers ::makePackage
+     * @covers ::makeZip
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testZipBag()
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $archivefile = $this->getTempName();
+        $archivefile .= ".zip";
+        $this->assertFileNotExists($archivefile);
+        $bag->package($archivefile);
+        $this->assertFileExists($archivefile);
+
+        $newbag = Bag::load($archivefile);
+        $this->assertTrue($newbag->validate());
+
+        $this->assertEquals(
+            $bag->getPayloadManifests()['sha256']->getHashes(),
+            $newbag->getPayloadManifests()['sha256']->getHashes()
+        );
+    }
+
+    /**
+     * Test generating a tar.
+     *
+     * TODO: Re-extract and compare against source bag.
+     * @group Bag
+     * @covers ::makePackage
+     * @covers ::makeTar
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testTarBag()
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $archivefile = $this->getTempName();
+        $archivefile .= ".tar";
+        $this->assertFileNotExists($archivefile);
+        $bag->package($archivefile);
+        $this->assertFileExists($archivefile);
+
+        $newbag = Bag::load($archivefile);
+        $this->assertTrue($newbag->validate());
+
+        $this->assertEquals(
+            $bag->getPayloadManifests()['sha256']->getHashes(),
+            $newbag->getPayloadManifests()['sha256']->getHashes()
+        );
+    }
+
+    /**
+     * Test generating a tar.
+     *
+     * TODO: Re-extract and compare against source bag.
+     * @group Bag
+     * @covers ::makePackage
+     * @covers ::makeTar
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testTarGzBag()
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $archivefile = $this->getTempName();
+        $archivefile .= ".tar.gz";
+        $this->assertFileNotExists($archivefile);
+        $bag->package($archivefile);
+        $this->assertFileExists($archivefile);
+
+        $newbag = Bag::load($archivefile);
+        $this->assertTrue($newbag->validate());
+
+        $this->assertEquals(
+            $bag->getPayloadManifests()['sha256']->getHashes(),
+            $newbag->getPayloadManifests()['sha256']->getHashes()
+        );
+    }
+
+    /**
+     * Test generating a tar.
+     *
+     * TODO: Re-extract and compare against source bag.
+     * @group Bag
+     * @covers ::makePackage
+     * @covers ::makeTar
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testTarBzipBag()
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $archivefile = $this->getTempName();
+        $archivefile .= ".tar.bz2";
+        $this->assertFileNotExists($archivefile);
+        $bag->package($archivefile);
+        $this->assertFileExists($archivefile);
+
+        $newbag = Bag::load($archivefile);
+        $this->assertTrue($newbag->validate());
+
+        $this->assertEquals(
+            $bag->getPayloadManifests()['sha256']->getHashes(),
+            $newbag->getPayloadManifests()['sha256']->getHashes()
+        );
+    }
 }

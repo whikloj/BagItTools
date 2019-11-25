@@ -326,39 +326,6 @@ abstract class AbstractManifest
         return Bag::HASH_ALGORITHMS[$this->algorithm];
     }
 
-    /**
-     * Recursively list all files in a directory, except files starting with .
-     *
-     * @param string $directory
-     *   The starting full path.
-     * @param array $exclusions
-     *   Array with directory names to skip.
-     * @return array
-     *   List of files with absolute path.
-     */
-    protected function getAllFiles($directory, $exclusions = [])
-    {
-        $paths = [$directory];
-        $found_files = [];
-
-        while (count($paths) > 0) {
-            $currentPath = array_shift($paths);
-            $files = scandir($currentPath);
-            foreach ($files as $file) {
-                if (BagUtils::isDotDir($file)) {
-                    continue;
-                }
-                $fullPath = $currentPath . DIRECTORY_SEPARATOR . $file;
-                if (is_dir($fullPath) && !in_array($file, $exclusions)) {
-                    $paths[] = $fullPath;
-                } elseif (is_file($fullPath)) {
-                    $found_files[] = $fullPath;
-                }
-            }
-        }
-        return $found_files;
-    }
-
     /*
      * Private functions
      */
