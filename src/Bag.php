@@ -1029,7 +1029,7 @@ class Bag
             $files = scandir($parentPath);
             $payload = array_filter($files, function ($o) {
                 // Don't count directory specifiers.
-                return ($o !== "." && $o !== "..");
+                return (!BagUtils::isDotDir($o));
             });
             if (count($payload) == 0) {
                 rmdir($parentPath);
