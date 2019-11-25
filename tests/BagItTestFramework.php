@@ -13,6 +13,9 @@ use whikloj\BagItTools\BagUtils;
 class BagItTestFramework extends TestCase
 {
 
+    /**
+     * Path to the test resources directory.
+     */
     const TEST_RESOURCES = __DIR__ . DIRECTORY_SEPARATOR . "resources";
 
     /**

@@ -3,12 +3,18 @@
 namespace whikloj\BagItTools;
 
 /**
- * Fetch.txt class
+ * Class for holding and interacting with fetch.txt data.
+ *
  * @package whikloj\BagItTools
+ * @author whikloj
+ * @since 1.0.0
  */
 class Fetch
 {
 
+    /**
+     * The fetch filename.
+     */
     const FILENAME = "fetch.txt";
 
     /**
@@ -40,13 +46,6 @@ class Fetch
     private $fetchErrors = [];
 
     /**
-     * Warnings
-     *
-     * @var array
-     */
-    private $fetchWarnings = [];
-
-    /**
      * Urls and Files that validated and should be downloaded.
      *
      * @var array
@@ -62,6 +61,7 @@ class Fetch
 
     /**
      * Standard curl options to use.
+     *
      * @var array
      */
     private $curlOptions = [
@@ -71,6 +71,7 @@ class Fetch
 
     /**
      * Fetch constructor.
+     *
      * @param \whikloj\BagItTools\Bag $bag
      *   The bag this fetch is part of.
      * @param bool $load
@@ -122,8 +123,10 @@ class Fetch
 
     /**
      * Validate fetch data.
+     *
      * @param array $fetchData
      *   Array with mandatory keys 'uri' and 'destination' and optional key 'size'.
+     *
      * @throws \whikloj\BagItTools\BagItException
      *   For all validation errors.
      */
@@ -148,7 +151,11 @@ class Fetch
     }
 
     /**
-     * @param $fetchData
+     * Download a single file as it is added to the fetch file so we can generate checksums.
+     *
+     * @param array $fetchData
+     *   Array of data with keys 'uri', 'destination' and optionally 'size'.
+     *
      * @throws \whikloj\BagItTools\BagItException
      */
     public function download($fetchData)
@@ -248,17 +255,6 @@ class Fetch
         return $this->fetchErrors;
     }
 
-    /**
-     * Return the warnings.
-     *
-     * @return array
-     *   Array of warnings.
-     */
-    public function getWarnings()
-    {
-        return $this->fetchWarnings;
-    }
-
     /*
      * Private functions
      */
@@ -299,9 +295,10 @@ class Fetch
 
     /**
      * Write out data collected via curl to disk.
+     *
      * @param mixed $content
      *   The content from curl.
-     * @param $destination
+     * @param string $destination
      *   The relative path to the final file.
      * @throws \whikloj\BagItTools\BagItException
      *   Trouble writing to disk.
@@ -333,7 +330,7 @@ class Fetch
      * @param bool $single
      *   If this is a download() call versus a downloadAll() call.
      * @return false|resource
-     *   False on error, otherwise a resource.
+     *   False on error, otherwise a Curl resource.
      */
     private function createCurl($url, $single = false)
     {
@@ -440,7 +437,7 @@ class Fetch
     }
 
     /**
-     * Library specific (non-spec) requirements for URLs.
+     * BagItTools specific (non-spec) requirements for URLs.
      *
      * @param string $url
      *   The URL.
@@ -521,21 +518,6 @@ class Fetch
     private function resetErrors()
     {
         $this->fetchErrors = [];
-        $this->fetchWarnings = [];
-    }
-
-    /**
-     * Add a warning for the fetch file.
-     *
-     * @param string $message
-     *   The message.
-     */
-    private function addWarning($message)
-    {
-        $this->fetchWarnings[] = [
-            'file' => self::FILENAME,
-            'message' => $message,
-        ];
     }
 
     /**

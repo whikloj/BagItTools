@@ -4,7 +4,10 @@ namespace whikloj\BagItTools;
 
 /**
  * Abstract manifest class to hold common elements between Payload and Tag manifests.
+ *
  * @package whikloj\BagItTools
+ * @author whikloj
+ * @since 1.0.0
  */
 abstract class AbstractManifest
 {
@@ -195,6 +198,14 @@ abstract class AbstractManifest
      * Protected functions.
      */
 
+    /**
+     * Common checks for paths being added to a manifest.
+     *
+     * @param string $path
+     *   The path relative to the bag root.
+     * @param string $filepath
+     *   The absolute filepath.
+     */
     protected function validatePath($path, $filepath)
     {
         if (!file_exists($filepath)) {

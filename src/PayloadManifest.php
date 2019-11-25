@@ -3,8 +3,11 @@
 namespace whikloj\BagItTools;
 
 /**
- * Payload Manifest class.
- * @package whikloj\BagItTools'
+ * Payload Manifest extension of AbstractManifest.
+ *
+ * @package whikloj\BagItTools
+ * @author whikloj
+ * @since 1.0.0
  */
 class PayloadManifest extends AbstractManifest
 {
@@ -14,7 +17,7 @@ class PayloadManifest extends AbstractManifest
    *
    * @param \whikloj\BagItTools\Bag $bag
    *   The bag this manifest is part of.
-   * @param $algorithm
+   * @param string $algorithm
    *   The BagIt name of the hash algorithm.
    * @param bool $load
    *   Whether we are loading an existing file

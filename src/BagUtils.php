@@ -4,7 +4,10 @@ namespace whikloj\BagItTools;
 
 /**
  * Utility class to hold static functions.
+ *
  * @package whikloj\BagItTools
+ * @author whikloj
+ * @since 1.0.0
  */
 class BagUtils
 {
@@ -182,7 +185,7 @@ class BagUtils
     }
 
     /**
-     * Recursively list all files in a directory, except files starting with .
+     * Recursively list all files in a directory, except dot files.
      *
      * @param string $directory
      *   The starting full path.

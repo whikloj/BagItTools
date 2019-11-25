@@ -3,11 +3,12 @@
 namespace whikloj\BagItTools;
 
 /**
- * Simple holder for general BagIt exceptions.
+ * BagIt exception thrown for all errors or client invalidation.
+ *
  * @package whikloj\BagItTools
+ * @author whikloj
+ * @since 1.0.0
  */
 class BagItException extends \Exception
 {
-
-
 }

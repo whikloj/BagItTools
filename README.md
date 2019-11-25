@@ -11,6 +11,22 @@ BagItTools is a PHP implementation of the BagIt v1.0 specification ([RFC-8493](h
 
 It is currently in active development see [Development](#development).
 
+Features:
+
+* Create new bag
+* Load existing directory as a bag.
+* Load archive file (*.zip, *.tar, *.tar.gz, *.tgz, *.tar.bz2)
+* Validate a bag
+* Add/Remove files
+* Add/Remove fetch urls
+* Add/Remove hash algorithms (md5, sha1, sha224, sha256, sha384, sha512, sha3-224, sha3-256, sha3-384, sha3-512)
+* Generate payload for all data/ files for all hash algorithms (depending on PHP support)
+* Generate tag manifests for all root level files and any additional tag directories/files.
+* Add/Remove tags from bag-info.txt files, maintains ordering of tags loaded.
+* Generates/updates payload-oxum and bagging-date.
+* Passes all bagit-conformance-suite tests.
+* Create an archive (zip, tar, tar.gz, tgz, tar.bz2)
+
 ## Installation
 
 There is no release on packagist.org (yet). 
@@ -77,10 +93,25 @@ if ($bag->hasBagInfoTag('contact-name')) {
                      //    'Additional admins',
                      // )
 
+    // Remove a specific tag value using array index from the above listing.
+    $bag->removeBagInfoTagIndex('contact-name', 1); 
+    
+    // Get tags
+    $tags = $bag->getBagInfoByTag('contact-name');
+    
+    var_dump($tags); // array(
+                     //    'Jared Whiklo',
+                     // )
+
+    // Remove all values for the specified tag.
+    $bag->removeBagInfoTag('contact-name');
 }
 
 // Write bagit support files (manifests, bag-info, etc)
 $bag->update();
+
+// Write the bag to the specified path and filename using the expected archiving method.
+$bag->package('./archive.tar.bz2');
 
 ```
 
@@ -98,24 +129,8 @@ This is still a work in progress, if you have a use case or discover a problem p
 
 ### Roadmap-ish
 
-Completed:
-
-* Create new bag
-* Load directory
-* Load archive file (zip, tar, tar.gz, tgz, tar.bz2)
-* Validate bag
-* Add/Remove files
-* Add/Remove fetch urls
-* Add/Remove additional hash algorithms (md5, sha1, sha224, sha256, sha384, sha512, sha3-224, sha3-256, sha3-384, sha3-512)
-* Generate payload for all data/ files for all hash algorithms (depending on PHP support)
-* Generate tag manifests for all root level files and alternate tag directories.
-* Add/Remove tags from bag-info.txt files, maintains ordering of tags loaded.
-* Generates payload-oxum
-* Passes all bagit-conformance-suite tests.
-
 To-Do:
 
-* Create an archive (zip, tar, tar.gz, tgz, tar.bz2)
 * Allow insert of bag-info.txt tags
 * In-place upgrade of bag from v0.97 to v1.0
 * CLI interface to handle simple validation functions.

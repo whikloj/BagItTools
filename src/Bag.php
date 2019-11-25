@@ -3,8 +3,9 @@
 namespace whikloj\BagItTools;
 
 /**
- * Class BagFactory
- * @package whikloj\BagItTools
+ * Bag class as normal interface for all actions and holder of supporting constructs.
+ *
+ * @package \whikloj\BagItTools
  * @author whikloj
  * @since 1.0.0
  */
@@ -242,7 +243,7 @@ class Bag
     private $loaded = false;
 
     /**
-     * BagFactory constructor.
+     * Bag constructor.
      *
      * @param string $rootPath
      *   The path of the root of the new or existing bag.
@@ -295,7 +296,7 @@ class Bag
      * @param string $rootPath
      *   Path to the existing bag.
      * @return \whikloj\BagItTools\Bag
-     *   The bag.
+     *   The bag object.
      * @throws \whikloj\BagItTools\BagItException
      *   If we can't read files in the bag.
      */
@@ -314,7 +315,7 @@ class Bag
      * Validate the bag as it appears on disk.
      *
      * @return boolean
-     *   True if valid
+     *   True if the bag is valid
      * @throws \whikloj\BagItTools\BagItException
      *   Problems writing to disk.
      */
@@ -329,7 +330,6 @@ class Bag
         if (isset($this->fetchFile)) {
             $this->fetchFile->downloadAll();
             $this->mergeErrors($this->fetchFile->getErrors());
-            $this->mergeWarnings($this->fetchFile->getWarnings());
         }
         $manifests = array_values($this->payloadManifests);
         if ($this->isExtended) {
@@ -386,7 +386,7 @@ class Bag
      * Package a bag up into an archive.
      *
      * @param string $filepath
-     *   The archive file path.
+     *   The full path to create the archive at.
      * @throws \whikloj\BagItTools\BagItException
      *   Problems creating the archive.
      */
@@ -408,7 +408,7 @@ class Bag
      *
      * @param string $source
      *   Full path to the source file.
-     * @param $dest
+     * @param string $dest
      *   Relative path for the destination.
      *
      * @throws \whikloj\BagItTools\BagItException
@@ -443,7 +443,7 @@ class Bag
     /**
      * Remove a payload file.
      *
-     * @param $dest
+     * @param string $dest
      *   The relative path of the file.
      */
     public function removeFile($dest)
@@ -463,7 +463,7 @@ class Bag
      * Add the bag root to the front of a relative bag path and return with
      * OS directory separator.
      *
-     * @param $path
+     * @param string $path
      *   The relative path.
      * @return string
      *   The absolute path.
@@ -484,10 +484,10 @@ class Bag
     /**
      * Remove all the extraneous path information and make relative to bag root.
      *
-     * @param $path
-     *   The path to process
+     * @param string $path
+     *   The absolute path to process
      * @return string
-     *   The shortened string or blank if outside bag root.
+     *   The shortened path or blank if it is outside bag root.
      */
     public function makeRelative($path)
     {
@@ -528,7 +528,7 @@ class Bag
     /**
      * Find all instances of tag and return an array of values.
      *
-     * @param $tag
+     * @param string $tag
      *   Bag info tag to locate
      * @return array
      *   Array of values for the tag.
@@ -683,7 +683,7 @@ class Bag
      * @param string $hashAlgorithm
      *   The requested hash algorithms.
      *
-     * @return bool Do we already have this payload manifest.
+     * @return boolean Do we already have this payload manifest.
      */
     public function hasAlgorithm($hashAlgorithm)
     {
@@ -699,7 +699,7 @@ class Bag
      *
      * @param string $algorithm
      *   The requested hash algorithm
-     * @return bool
+     * @return boolean
      *   Whether it is supported by our PHP.
      */
     public function algorithmIsSupported($algorithm)
@@ -1298,7 +1298,7 @@ class Bag
     /**
      * Wrap bagInfo lines to 79 characters if possible
      *
-     * @param $text
+     * @param string $text
      *   The whole tag and value as one.
      * @return array
      *   The text as an array.
@@ -1326,9 +1326,9 @@ class Bag
 
     /**
      * Utility to remove newline characters, wrap the string and return an array of the rows.
-     * @param $text
+     * @param string $text
      *   The text to wrap.
-     * @param $length
+     * @param int $length
      *   The length to wrap at.
      * @return array
      *   Rows of text.
@@ -1739,9 +1739,9 @@ class Bag
      * Uncompress a BagIt archive file.
      *
      * @param string $filepath
-     *   The fullpath to the archive file.
+     *   The full path to the archive file.
      * @return string
-     *   The fullpath to extracted bag.
+     *   The full path to extracted bag.
      * @throws \whikloj\BagItTools\BagItException
      *   Problems accessing/extracting the archive file.
      */
@@ -1763,10 +1763,10 @@ class Bag
     }
 
     /**
-     * Unzip a zipfile.
+     * Unzip a zip file.
      *
      * @param string $filename
-     *   The fullpath to the zip file.
+     *   The full path to the zip file.
      * @return string
      *   The path the archive file was extracted to.
      * @throws \whikloj\BagItTools\BagItException
@@ -1790,6 +1790,8 @@ class Bag
      *
      * @param string $filename
      *   The fullpath to the tar file.
+     * @param string $extension
+     *   The extension pulled from the filename.
      * @return string
      *   The path the archive file was extracted to.
      * @throws \whikloj\BagItTools\BagItException
@@ -1923,7 +1925,7 @@ class Bag
      * Utility function to add bag error.
      * @param string $filename
      *   The file the error was detected in.
-     * @param $message
+     * @param string $message
      *   The message.
      */
     private function addBagError($filename, $message)
@@ -1938,7 +1940,7 @@ class Bag
      * Utility function to add bag error.
      * @param string $filename
      *   The file the error was detected in.
-     * @param $message
+     * @param string $message
      *   The message.
      */
     private function addBagWarning($filename, $message)
@@ -2036,7 +2038,7 @@ class Bag
      * @param string $search The key to look for.
      * @param string|int $key The associative or numeric key to look in.
      * @param array $map The associative array to search.
-     * @return bool True if the key exists regardless of case.
+     * @return boolean True if the key exists regardless of case.
      */
     private static function arrayKeyExistsNoCase($search, $key, array $map)
     {
@@ -2097,7 +2099,7 @@ class Bag
      *
      * @param string $filepath
      *   The relative filepath.
-     * @return bool
+     * @return boolean
      *   True if a reserved filename.
      */
     private function reservedFilename($filepath)
