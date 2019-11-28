@@ -206,7 +206,7 @@ class BagItTestFramework extends TestCase
      * @param string $method
      *   Method to get.
      *
-     * @return mixed
+     * @return \ReflectionMethod
      *   Reflection of the method.
      *
      * @throws \ReflectionException

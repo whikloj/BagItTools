@@ -586,6 +586,7 @@ class BagTest extends BagItTestFramework
      *
      * TODO: Re-extract and compare against source bag.
      * @group Bag
+     * @covers ::package
      * @covers ::makePackage
      * @covers ::makeZip
      * @throws \whikloj\BagItTools\BagItException
@@ -614,6 +615,7 @@ class BagTest extends BagItTestFramework
      *
      * TODO: Re-extract and compare against source bag.
      * @group Bag
+     * @covers ::package
      * @covers ::makePackage
      * @covers ::makeTar
      * @throws \whikloj\BagItTools\BagItException
@@ -642,6 +644,7 @@ class BagTest extends BagItTestFramework
      *
      * TODO: Re-extract and compare against source bag.
      * @group Bag
+     * @covers ::package
      * @covers ::makePackage
      * @covers ::makeTar
      * @throws \whikloj\BagItTools\BagItException
@@ -670,6 +673,7 @@ class BagTest extends BagItTestFramework
      *
      * TODO: Re-extract and compare against source bag.
      * @group Bag
+     * @covers ::package
      * @covers ::makePackage
      * @covers ::makeTar
      * @throws \whikloj\BagItTools\BagItException

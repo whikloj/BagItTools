@@ -115,7 +115,8 @@ class FetchTest extends BagItTestFramework
      * @group Fetch
      * @covers ::loadFiles
      * @covers ::downloadAll
-     * @covers  ::downloadFiles
+     * @covers ::downloadFiles
+     * @covers ::validateData
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testDestinationOutsideData()
@@ -131,7 +132,9 @@ class FetchTest extends BagItTestFramework
      * @group Fetch
      * @covers ::loadFiles
      * @covers ::downloadAll
-     * @covers  ::downloadFiles
+     * @covers ::downloadFiles
+     * @covers ::validateData
+     * @covers ::validatePath
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testDestinationOtherEncodedCharacters()
@@ -148,6 +151,8 @@ class FetchTest extends BagItTestFramework
      * @covers ::loadFiles
      * @covers ::downloadAll
      * @covers ::downloadFiles
+     * @covers ::validateData
+     * @covers ::internalValidateUrl
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testNotHttpUrl()
@@ -447,5 +452,59 @@ class FetchTest extends BagItTestFramework
                 $this->assertFileNotExists($newbag->makeAbsolute($dest));
             }
         }
+    }
+
+    /**
+     * Test validate a URI without a scheme
+     * @group Fetch
+     * @throws \ReflectionException
+     * @expectedException \whikloj\BagItTools\BagItException
+     */
+    public function testUriNoScheme()
+    {
+        $reflection = $this->getReflectionMethod('whikloj\BagItTools\Fetch', 'validateData');
+        $bag = Bag::create($this->tmpdir);
+        $fetch = new Fetch($bag);
+        $data = [
+            'uri' => 'somewhere.com',
+            'destination' => 'somewhere',
+        ];
+        $reflection->invokeArgs($fetch, [$data]);
+    }
+
+    /**
+     * Test validate a URI without a host
+     * @group Fetch
+     * @throws \ReflectionException
+     * @expectedException \whikloj\BagItTools\BagItException
+     */
+    public function testUriNoHost()
+    {
+        $reflection = $this->getReflectionMethod('whikloj\BagItTools\Fetch', 'validateData');
+        $bag = Bag::create($this->tmpdir);
+        $fetch = new Fetch($bag);
+        $data = [
+            'uri' => 'http://',
+            'destination' => 'somewhere',
+        ];
+        $reflection->invokeArgs($fetch, [$data]);
+    }
+
+    /**
+     * Test validate a URI with a scheme we don't support.
+     * @group Fetch
+     * @throws \ReflectionException
+     * @expectedException \whikloj\BagItTools\BagItException
+     */
+    public function testUriInvalidScheme()
+    {
+        $reflection = $this->getReflectionMethod('whikloj\BagItTools\Fetch', 'validateData');
+        $bag = Bag::create($this->tmpdir);
+        $fetch = new Fetch($bag);
+        $data = [
+            'uri' => 'ftp://somewhere.com',
+            'destination' => 'somewhere',
+        ];
+        $reflection->invokeArgs($fetch, [$data]);
     }
 }
