@@ -360,11 +360,11 @@ class Bag
         $this->updateFetch();
 
         if ($this->isExtended) {
-            $this->updateTagManifests();
             $this->updateBagInfo();
+            $this->updateTagManifests();
         } else {
-            $this->clearTagManifests();
             $this->removeBagInfo();
+            $this->clearTagManifests();
         }
         $this->changed = false;
     }

@@ -35,7 +35,7 @@ class TagManifest extends AbstractManifest
         $this->hashes = [];
         $files = BagUtils::getAllFiles($this->bag->getBagRoot(), ["data"]);
         foreach ($files as $file) {
-            if ($this->isTagManifest($file)) {
+            if (!$this->isTagManifest($file)) {
                 $this->hashes[$this->bag->makeRelative($file)] = "";
             }
         }
