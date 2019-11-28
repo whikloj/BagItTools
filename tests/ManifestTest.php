@@ -7,7 +7,7 @@ use whikloj\BagItTools\Bag;
 /**
  * Class ManifestTest
  * @package whikloj\BagItTools\Test
- * @coversDefaultClass \whikloj\BagItTools\PayloadManifest
+ * @coversDefaultClass \whikloj\BagItTools\AbstractManifest
  */
 class ManifestTest extends BagItTestFramework
 {
@@ -17,6 +17,8 @@ class ManifestTest extends BagItTestFramework
    * @group Manifest
    * @covers ::__construct
    * @covers \whikloj\BagItTools\PayloadManifest::__construct
+   * @covers ::getFilename
+   * @covers ::getAlgorithm
    * @throws \whikloj\BagItTools\BagItException
    */
     public function testCreateManifest()
