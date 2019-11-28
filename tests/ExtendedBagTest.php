@@ -13,10 +13,25 @@ class ExtendedBagTest extends BagItTestFramework
 {
 
     /**
+     * @group Extended
+     * @covers ::validate
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testValidateExtendedBag()
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->validate());
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(0, $bag->getWarnings());
+    }
+
+    /**
      * Test a non-extended bag has no tag manifest.
      * @group Extended
-     * @covers \whikloj\BagItTools\TagManifest::calculateHash
+     * @covers \whikloj\BagItTools\AbstractManifest::calculateHash
      * @covers \whikloj\BagItTools\TagManifest::update
+     * @covers \whikloj\BagItTools\AbstractManifest::update
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testNoTagManifest()
@@ -51,6 +66,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::updateBagInfo
      * @covers ::calculateOxum
      * @covers ::updateCalculateBagInfoFields
+     * @covers \whikloj\BagItTools\AbstractManifest::loadFile
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testLoadExtendedBag()

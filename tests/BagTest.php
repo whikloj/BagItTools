@@ -40,6 +40,7 @@ class BagTest extends BagItTestFramework
    * @covers ::loadBagInfo
    * @covers ::loadTagManifests
    * @covers ::isExtended
+   * @covers ::validate
    * @throws \whikloj\BagItTools\BagItException
    */
     public function testOpenBag()
@@ -49,6 +50,9 @@ class BagTest extends BagItTestFramework
         $this->assertCount(0, $bag->getErrors());
         $this->assertArrayHasKey('sha256', $bag->getPayloadManifests());
         $this->assertFalse($bag->isExtended());
+        $this->assertTrue($bag->validate());
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(0, $bag->getWarnings());
     }
 
   /**

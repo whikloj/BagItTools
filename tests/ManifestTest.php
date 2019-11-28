@@ -14,8 +14,9 @@ class ManifestTest extends BagItTestFramework
 
   /**
    * Test creation of default payload manifest with construction.
-   * @group PayloadManifest
+   * @group Manifest
    * @covers ::__construct
+   * @covers \whikloj\BagItTools\PayloadManifest::__construct
    * @throws \whikloj\BagItTools\BagItException
    */
     public function testCreateManifest()
@@ -30,6 +31,10 @@ class ManifestTest extends BagItTestFramework
 
     /**
      * Test that manifests files are appropriately filled out.
+     * @group Manifest
+     * @covers ::__construct
+     * @covers \whikloj\BagItTools\TagManifest::__construct
+     * @covers \whikloj\BagItTools\PayloadManifest::__construct
      * @covers ::update
      * @covers \whikloj\BagItTools\TagManifest::update
      * @covers \whikloj\BagItTools\PayloadManifest::update
@@ -76,6 +81,25 @@ class ManifestTest extends BagItTestFramework
             $this->assertTrue($constraints->evaluate($line, '', true));
         }
         fclose($fp);
+    }
+
+    /**
+     * @group Manifest
+     * @covers ::validate
+     * @covers ::validatePath
+     * @covers ::calculateHash
+     * @covers \whikloj\BagItTools\TagManifest::validate
+     * @covers \whikloj\BagItTools\PayloadManifest::validate
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testValidateManifests()
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->validate());
+
+        file_put_contents($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'oops.txt', "Slip up");
+        $this->assertFalse($bag->validate());
     }
 
     /**
