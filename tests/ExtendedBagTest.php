@@ -15,6 +15,10 @@ class ExtendedBagTest extends BagItTestFramework
     /**
      * @group Extended
      * @covers ::validate
+     * @covers ::getErrors
+     * @covers \whikloj\BagItTools\AbstractManifest::getErrors
+     * @covers ::getWarnings
+     * @covers \whikloj\BagItTools\AbstractManifest::getWarnings
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testValidateExtendedBag()
@@ -32,6 +36,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers \whikloj\BagItTools\AbstractManifest::calculateHash
      * @covers \whikloj\BagItTools\TagManifest::update
      * @covers \whikloj\BagItTools\AbstractManifest::update
+     * @covers \whikloj\BagItTools\AbstractManifest::writeToDisk
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testNoTagManifest()
@@ -66,6 +71,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::updateBagInfo
      * @covers ::calculateOxum
      * @covers ::updateCalculateBagInfoFields
+     * @covers ::update
      * @covers \whikloj\BagItTools\AbstractManifest::loadFile
      * @throws \whikloj\BagItTools\BagItException
      */
@@ -165,6 +171,7 @@ class ExtendedBagTest extends BagItTestFramework
         ];
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->validate());
         $this->assertTrue($bag->isExtended());
         $this->assertCount(7, $bag->getBagInfoData());
         $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));

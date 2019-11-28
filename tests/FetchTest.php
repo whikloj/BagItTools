@@ -310,6 +310,7 @@ class FetchTest extends BagItTestFramework
      * @covers ::downloadAll
      * @covers ::downloadFiles
      * @covers ::saveFileData
+     * @covers \whikloj\BagItTools\Bag::finalize
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testMultipleDownloadsSuccess()

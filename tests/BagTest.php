@@ -510,6 +510,7 @@ class BagTest extends BagItTestFramework
     /**
      * Test opening a tar gzip
      * @group Bag
+     * @covers ::load
      * @covers ::isCompressed
      * @covers ::uncompressBag
      * @covers ::getExtensions
@@ -534,6 +535,7 @@ class BagTest extends BagItTestFramework
     /**
      * Test opening a tar bzip2.
      * @group Bag
+     * @covers ::load
      * @covers ::isCompressed
      * @covers ::uncompressBag
      * @covers ::getExtensions
