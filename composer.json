@@ -40,7 +40,7 @@
   "scripts": {
     "check": [
       "./vendor/bin/phpcs --standard=PSR2 src tests",
-      "./vendor/bin/phpcpd --names *.php src"
+      "./vendor/bin/phpcpd --names='*.php' src"
     ],
     "test": [
       "@check",

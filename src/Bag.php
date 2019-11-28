@@ -425,6 +425,9 @@ class Bag
             } else {
                 $fullDest = $this->makeAbsolute($dest);
                 $fullDest = \Normalizer::normalize($fullDest);
+                if (file_exists($fullDest)) {
+                    throw new BagItException("File {$dest} already exists in the bag.");
+                }
                 $dirname = dirname($fullDest);
                 if (substr($this->makeRelative($dirname), 0, 5) == "data/") {
                     // Create any missing missing directories inside data.
@@ -456,6 +459,28 @@ class Bag
                 $this->checkForEmptyDir($fullPath);
                 $this->changed = true;
             }
+        }
+    }
+
+    /**
+     * Add a string as a file to the bag.
+     *
+     * @param string $string
+     *   The contents of the file.
+     * @param string $dest
+     *   The name of the file in the bag.
+     * @throws \whikloj\BagItTools\BagItException
+     *   Source file does not exist or the destination is outside the data directory.
+     */
+    public function createFile($string, $dest)
+    {
+        $tempname = tempnam("", "bagit_");
+        unlink($tempname);
+        file_put_contents($tempname, $string);
+        try {
+            $this->addFile($tempname, $dest);
+        } finally {
+            unlink($tempname);
         }
     }
 

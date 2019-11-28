@@ -95,6 +95,24 @@ class BagTest extends BagItTestFramework
     }
 
     /**
+     * Test adding a file to a bag twice.
+     * @group Bag
+     * @covers ::addFile
+     * @expectedException  \whikloj\BagItTools\BagItException
+     */
+    public function testAddFileTwice()
+    {
+        $source_file = self::TEST_IMAGE['filename'];
+        $bag = Bag::create($this->tmpdir);
+        $bag->addFile($source_file, "some/image.txt");
+        $this->assertDirectoryExists($bag->getDataDirectory() .
+            DIRECTORY_SEPARATOR . 'some');
+        $this->assertFileExists($bag->getDataDirectory() .
+            DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'image.txt');
+        $bag->addFile($source_file, "some/image.txt");
+    }
+
+    /**
      * Test removing a file from a bag.
      * @group Bag
      * @covers ::removeFile
@@ -107,6 +125,50 @@ class BagTest extends BagItTestFramework
         $this->assertFileExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'jekyll_and_hyde.txt');
         $bag->removeFile('jekyll_and_hyde.txt');
         $this->assertFileNotExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'jekyll_and_hyde.txt');
+    }
+
+    /**
+     * Test adding a string to a bag.
+     * @group Bag
+     * @covers ::addFile
+     * @covers ::createFile
+     * @throws  \whikloj\BagItTools\BagItException
+     */
+    public function testCreateFile()
+    {
+        $source = "Hi this is a test";
+        $bag = Bag::create($this->tmpdir);
+        $this->assertDirectoryNotExists($bag->getDataDirectory() .
+            DIRECTORY_SEPARATOR . 'some');
+        $this->assertFileNotExists($bag->getDataDirectory() .
+            DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'text.txt');
+        $bag->createFile($source, "some/text.txt");
+        $this->assertDirectoryExists($bag->getDataDirectory() .
+            DIRECTORY_SEPARATOR . 'some');
+        $this->assertFileExists($bag->getDataDirectory() .
+            DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'text.txt');
+        $contents = file_get_contents($bag->getDataDirectory() .
+            DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'text.txt');
+        $this->assertEquals($source, $contents);
+    }
+
+    /**
+     * Test adding a string to a bag twice.
+     * @group Bag
+     * @covers ::addFile
+     * @covers ::createFile
+     * @expectedException  \whikloj\BagItTools\BagItException
+     */
+    public function testCreateFileTwice()
+    {
+        $source = "Hi this is a test";
+        $bag = Bag::create($this->tmpdir);
+        $bag->createFile($source, "some/text.txt");
+        $contents = file_get_contents($bag->getDataDirectory() .
+            DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'text.txt');
+        $this->assertEquals($source, $contents);
+        $source_two = "This is new stuff";
+        $bag->createFile($source_two, "some/text.txt");
     }
 
     /**
