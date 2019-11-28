@@ -457,6 +457,8 @@ class FetchTest extends BagItTestFramework
     /**
      * Test validate a URI without a scheme
      * @group Fetch
+     * @covers ::validateUrl
+     * @covers ::validateData
      * @throws \ReflectionException
      * @expectedException \whikloj\BagItTools\BagItException
      */
@@ -465,16 +467,24 @@ class FetchTest extends BagItTestFramework
         $reflection = $this->getReflectionMethod('whikloj\BagItTools\Fetch', 'validateData');
         $bag = Bag::create($this->tmpdir);
         $fetch = new Fetch($bag);
-        $data = [
+        $good_data = [
+            'uri' => 'http://example.org',
+            'destination' => 'somewhere',
+        ];
+        $reflection->invokeArgs($fetch, [$good_data]);
+
+        $bad_data = [
             'uri' => 'somewhere.com',
             'destination' => 'somewhere',
         ];
-        $reflection->invokeArgs($fetch, [$data]);
+        $reflection->invokeArgs($fetch, [$bad_data]);
     }
 
     /**
      * Test validate a URI without a host
      * @group Fetch
+     * @covers ::validateUrl
+     * @covers ::validateData
      * @throws \ReflectionException
      * @expectedException \whikloj\BagItTools\BagItException
      */
@@ -493,6 +503,8 @@ class FetchTest extends BagItTestFramework
     /**
      * Test validate a URI with a scheme we don't support.
      * @group Fetch
+     * @covers ::validateData
+     * @covers ::internalValidateUrl
      * @throws \ReflectionException
      * @expectedException \whikloj\BagItTools\BagItException
      */
@@ -501,10 +513,16 @@ class FetchTest extends BagItTestFramework
         $reflection = $this->getReflectionMethod('whikloj\BagItTools\Fetch', 'validateData');
         $bag = Bag::create($this->tmpdir);
         $fetch = new Fetch($bag);
-        $data = [
+        $good_data = [
+            'uri' => 'http://somewhere.com',
+            'destination' => 'somewhere',
+        ];
+        $reflection->invokeArgs($fetch, [$good_data]);
+
+        $bad_data = [
             'uri' => 'ftp://somewhere.com',
             'destination' => 'somewhere',
         ];
-        $reflection->invokeArgs($fetch, [$data]);
+        $reflection->invokeArgs($fetch, [$bad_data]);
     }
 }
