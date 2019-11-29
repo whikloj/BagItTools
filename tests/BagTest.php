@@ -478,6 +478,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::validate
      * @covers \whikloj\BagItTools\AbstractManifest::loadFile
+     * @covers \whikloj\BagItTools\AbstractManifest::validate
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testWarningOnMd5()
