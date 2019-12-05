@@ -260,7 +260,7 @@ class FetchTest extends BagItTestFramework
         $destination = "data/myplace.txt";
         $bag = Bag::create($this->tmpdir);
         $bag->addFetchFile(self::$remote_urls[0], $destination);
-        $bag->addFetchFile(self::TEST_IMAGE['filename'], $destination);
+        $bag->addFile(self::TEST_IMAGE['filename'], $destination);
     }
 
     /**
