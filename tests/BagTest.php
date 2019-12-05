@@ -57,6 +57,45 @@ class BagTest extends BagItTestFramework
         $this->assertCount(0, $bag->getWarnings());
     }
 
+    /**
+     * Test the getVersion function.
+     * @group Bag
+     * @covers ::getVersion
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testGetVersion()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->assertArrayEquals(
+            [ 'major' => 1, 'minor' => 0 ],
+            $bag->getVersion()
+        );
+        file_put_contents(
+            $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bagit.txt',
+            "BagIt-Version: 0.97" . PHP_EOL . "Tag-File-Character-Encoding: UTF-8" . PHP_EOL
+        );
+        $newbag = Bag::load($this->tmpdir);
+        $this->assertArrayEquals(
+            [ 'major' => 0, 'minor' => 97 ],
+            $newbag->getVersion()
+        );
+    }
+
+    /**
+     * Simple tests of reporting bag root and data directory
+     * @group Bag
+     * @covers ::getDataDirectory
+     * @covers ::getBagRoot
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testBagDirs()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->assertEquals($this->tmpdir, $bag->getBagRoot());
+        $data = $this->tmpdir . DIRECTORY_SEPARATOR . 'data';
+        $this->assertEquals($data, $bag->getDataDirectory());
+    }
+
   /**
    * Test adding a file to a bag.
    * @group Bag
@@ -288,6 +327,7 @@ class BagTest extends BagItTestFramework
      * Test setting the file encoding.
      * @group Bag
      * @covers ::setFileEncoding
+     * @covers ::getFileEncoding
      * @covers \whikloj\BagItTools\BagUtils::getValidCharset
      * @throws \whikloj\BagItTools\BagItException
      */
@@ -705,6 +745,7 @@ class BagTest extends BagItTestFramework
      * Test an upgrade of a v0.97 bag
      * @group Bag
      * @covers ::upgrade()
+     * @covers ::getVersionString
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testUpdateV07()

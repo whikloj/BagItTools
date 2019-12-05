@@ -154,7 +154,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @group Extended
      * @covers ::hasBagInfoTag
      * @covers ::getBagInfoByTag
-     * @covers ::removeBagInfoTag
+     * @covers ::removeBagInfoTagIndex
      * @covers ::bagInfoTagExists
      * @throws \whikloj\BagItTools\BagItException
      */
@@ -192,6 +192,9 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::clearTagManifests
      * @covers ::removeAlgorithm
      * @covers ::getAlgorithms
+     * @covers ::updateTagManifests
+     * @covers ::updatePayloadManifests
+     * @covers ::ensureTagManifests
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetHashesCommon()
@@ -340,6 +343,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test the exception when trying to set a generated field.
      * @group Extended
      * @covers ::addBagInfoTag
+     * @covers ::setExtended
      * @expectedException  \whikloj\BagItTools\BagItException
      */
     public function testSetGeneratedField()
@@ -389,5 +393,41 @@ class ExtendedBagTest extends BagItTestFramework
         touch($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-md5.txt');
         $testbag = Bag::load($this->tmpdir);
         $this->assertCount(0, $testbag->getErrors());
+    }
+
+    /**
+     * Test getting manifests for basic bag.
+     * @group Extended
+     * @covers ::load
+     * @covers ::getPayloadManifests
+     * @covers ::getTagManifests
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testGetManifests()
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $payloads = $bag->getPayloadManifests();
+        $this->assertCount(1, $payloads);
+        $tags = $bag->getTagManifests();
+        $this->assertNull($tags);
+    }
+
+    /**
+     * Test getting manifests for extended bag.
+     * @group Extended
+     * @covers ::load
+     * @covers ::getPayloadManifests
+     * @covers ::getTagManifests
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testGetManifestsExtended()
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $payloads = $bag->getPayloadManifests();
+        $this->assertCount(1, $payloads);
+        $tags = $bag->getTagManifests();
+        $this->assertCount(1, $tags);
     }
 }
