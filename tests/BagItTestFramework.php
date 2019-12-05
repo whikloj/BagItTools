@@ -29,6 +29,11 @@ class BagItTestFramework extends TestCase
     const TEST_EXTENDED_BAG_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestExtendedBag";
 
     /**
+     * Location of manifests.
+     */
+    const TEST_MANIFEST_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "manifests";
+
+    /**
      * Location and hashes of the test image.
      */
     const TEST_IMAGE = [

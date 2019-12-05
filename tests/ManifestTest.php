@@ -90,6 +90,10 @@ class ManifestTest extends BagItTestFramework
      * @covers ::validate
      * @covers ::validatePath
      * @covers ::calculateHash
+     * @covers ::loadFile
+     * @covers ::normalizePath
+     * @covers ::matchNormalizedList
+     * @covers ::addToNormalizedList
      * @covers \whikloj\BagItTools\TagManifest::validate
      * @covers \whikloj\BagItTools\PayloadManifest::validate
      * @throws \whikloj\BagItTools\BagItException
@@ -102,6 +106,72 @@ class ManifestTest extends BagItTestFramework
 
         file_put_contents($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'oops.txt', "Slip up");
         $this->assertFalse($bag->validate());
+    }
+
+    /**
+     * Test that a relative path in a manifest file is a warning.
+     * @group Manifest
+     * @covers ::loadFile
+     * @covers ::addLoadWarning
+     * @covers ::normalizePath
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testRelativeManifestPaths()
+    {
+        $this->prepareManifest('manifest-with-relative-paths-sha256.txt');
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->validate());
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(1, $bag->getWarnings());
+    }
+
+    /**
+     * Test that a duplicate path in a manifest file is an error.
+     * @group Manifest
+     * @covers ::loadFile
+     * @covers ::addLoadError
+     * @covers ::normalizePath
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testDuplicateManifestPaths()
+    {
+        $this->prepareManifest('manifest-with-duplicate-lines-sha256.txt');
+        $bag = Bag::load($this->tmpdir);
+        $this->assertFalse($bag->validate());
+        $this->assertCount(1, $bag->getErrors());
+        $this->assertCount(0, $bag->getWarnings());
+    }
+
+    /**
+     * Test that a duplicate path with different case in a manifest file is a warning.
+     * @group Manifest
+     * @covers ::loadFile
+     * @covers ::addLoadWarning
+     * @covers ::normalizePath
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testDuplicateCaseInsensitiveManifestPaths()
+    {
+        $this->prepareManifest('manifest-with-case-insensitive-duplicates-sha256.txt');
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->validate());
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(1, $bag->getWarnings());
+    }
+
+    /**
+     * Utility to set a bag with a specific manifest file.
+     * @param string $manifest_filename
+     *   File name from tests/resources/manifests to put in bag.
+     */
+    private function prepareManifest($manifest_filename)
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . 'manifest-sha256.txt',
+            file_get_contents(self::TEST_MANIFEST_DIR . DIRECTORY_SEPARATOR .
+                $manifest_filename)
+        );
     }
 
     /**

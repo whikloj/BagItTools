@@ -40,6 +40,9 @@ class BagTest extends BagItTestFramework
    * @covers ::loadTagManifests
    * @covers ::isExtended
    * @covers ::validate
+   * @covers \whikloj\BagItTools\AbstractManifest::loadFile
+   * @covers \whikloj\BagItTools\AbstractManifest::cleanUpRelPath
+   * @covers \whikloj\BagItTools\AbstractManifest::addToNormalizedList
    * @throws \whikloj\BagItTools\BagItException
    */
     public function testOpenBag()
@@ -245,6 +248,7 @@ class BagTest extends BagItTestFramework
      * Test that changes made outside the API still are noticed.
      * @group Bag
      * @covers ::update
+     * @covers \whikloj\BagItTools\AbstractManifest::getHashes
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testUpdateOnDisk()
@@ -464,7 +468,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::create
      * @covers ::addFile
-     * @expectedExceptionCode  \whikloj\BagItTools\BagItException
+     * @expectedExceptionCode \whikloj\BagItTools\BagItException
      */
     public function testAddFileAbsolutePath()
     {
@@ -503,7 +507,7 @@ class BagTest extends BagItTestFramework
      */
     public function testNonExistantCompressed()
     {
-        $bag = Bag::load('/my/directory.tar');
+        Bag::load('/my/directory.tar');
     }
 
 
