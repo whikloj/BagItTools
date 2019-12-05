@@ -162,10 +162,18 @@ class Fetch
     {
         $this->validateData($fetchData);
         $uri = $fetchData['uri'];
-        if ($this->existsInFile($uri)) {
-            throw new BagItException("This file is already in fetch.txt");
+        if ($this->urlExistsInFile($uri)) {
+            throw new BagItException("This URL ({$uri}) is already in fetch.txt");
         }
         $dest = BagUtils::baseInData($fetchData['destination']);
+        if ($this->destinationExistsInFile($dest)) {
+            throw new BagItException("This destination ({$dest}) is already in the fetch.txt");
+        }
+        $fullDest = $this->bag->makeAbsolute($dest);
+        $fullDest = \Normalizer::normalize($fullDest);
+        if (file_exists($fullDest)) {
+            throw new BagItException("File already exists at the destination path {$dest}");
+        }
         $ch = $this->createCurl($uri, true);
         $output = curl_exec($ch);
         $error = curl_error($ch);
@@ -189,7 +197,7 @@ class Fetch
      */
     public function removeFile($url)
     {
-        if ($this->existsInFile($url)) {
+        if ($this->urlExistsInFile($url)) {
             $newFiles = [];
             foreach ($this->files as $file) {
                 if (strtolower($url) !== strtolower($file['uri'])) {
@@ -253,6 +261,20 @@ class Fetch
     public function getErrors()
     {
         return $this->fetchErrors;
+    }
+
+    /**
+     * Check if the destination is supposed to be used by a fetched url.
+     *
+     * @param string $dest
+     *   The relative path to check.
+     * @return bool
+     *   True if the destination is in the fetch.txt
+     */
+    public function reservedPath($dest)
+    {
+        $dest = BagUtils::baseInData($dest);
+        return $this->destinationExistsInFile($dest);
     }
 
     /*
@@ -485,13 +507,30 @@ class Fetch
      * @return bool
      *   True if a duplicate.
      */
-    private function existsInFile($url)
+    private function urlExistsInFile($url)
     {
         $uris = array_column($this->files, 'uri');
         array_walk($uris, function (&$item) {
             $item = strtolower($item);
         });
         return (in_array(strtolower($url), $uris));
+    }
+
+    /**
+     * Check if the destination path is already in the file.
+     *
+     * @param string $dest
+     *   Relative path to the destination file.
+     * @return bool
+     *   True if a duplicate.
+     */
+    private function destinationExistsInFile($dest)
+    {
+        $paths = array_column($this->files, 'destination');
+        array_walk($paths, function (&$item) {
+            $item = strtolower($item);
+        });
+        return (in_array(strtolower($dest), $paths));
     }
 
     /**

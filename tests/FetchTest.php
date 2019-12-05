@@ -205,7 +205,7 @@ class FetchTest extends BagItTestFramework
      * @covers ::download
      * @expectedException  \whikloj\BagItTools\BagItException
      */
-    public function testAddFetchFileTwice()
+    public function testAddFetchUrlTwice()
     {
         $file_one_dest = 'data/dir1/dir2/first_text.txt';
         $file_two_dest = 'data/dir1/dir2/second_text.txt';
@@ -214,6 +214,53 @@ class FetchTest extends BagItTestFramework
         $bag->addFetchFile(self::$remote_urls[0], $file_one_dest);
         $this->assertFileExists($bag->makeAbsolute($file_one_dest));
         $bag->addFetchFile(self::$remote_urls[0], $file_two_dest);
+    }
+
+    /**
+     * Test adding a new fetch file twice with the same destination.
+     *
+     * @group Fetch
+     * @covers \whikloj\BagItTools\Bag::addFetchFile
+     * @covers ::download
+     * @expectedException  \whikloj\BagItTools\BagItException
+     */
+    public function testAddFetchDestTwice()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->addFetchFile(self::$remote_urls[0], 'data/specialplace.txt');
+        $bag->addFetchFile(self::$remote_urls[1], 'data/specialplace.txt');
+    }
+
+    /**
+     * Ensure you can't add a fetch file with the same destination as an existing file.
+     *
+     * @group Fetch
+     * @covers \whikloj\BagItTools\Bag::addFetchFile
+     * @covers ::download
+     * @expectedException \whikloj\BagItTools\BagItException
+     */
+    public function testDownloadToExistingPath()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->addFile(self::TEST_IMAGE['filename'],'pretty.jpg');
+        $this->assertFileExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'pretty.jpg');
+        $bag->addFetchFile(self::$remote_urls[0], 'pretty.jpg');
+    }
+
+    /**
+     * Test you can't add a file to the bag where a fetch file will eventually exist.
+     *
+     * @group Fetch
+     * @covers ::reservedPath
+     * @covers \whikloj\BagItTools\Bag::addFile
+     * @expectedException \whikloj\BagItTools\BagItException
+     */
+    public function testAddBagFileWithDestOfFetchFile()
+    {
+        $destination = "data/myplace.txt";
+        $bag = Bag::create($this->tmpdir);
+        $bag->addFetchFile(self::$remote_urls[0], $destination);
+        $bag->addFetchFile(self::TEST_IMAGE['filename'], $destination);
     }
 
     /**

@@ -422,6 +422,8 @@ class Bag
                 throw new BagItException("Path {$dest} resolves outside the bag.");
             } elseif ($this->reservedFilename($dest)) {
                 throw new BagItException("The filename requested is reserved on Windows OSes.");
+            } elseif (isset($this->fetchFile) && $this->fetchFile->reservedPath($dest)) {
+                throw new BagItException("The path ({$dest}) is used in the fetch.txt file.");
             } else {
                 $fullDest = $this->makeAbsolute($dest);
                 $fullDest = \Normalizer::normalize($fullDest);
@@ -846,6 +848,7 @@ class Bag
         }
         // Download the file now to help with manifest handling, deleted when you package() or finalize().
         $this->fetchFile->download($fetchData);
+        $this->changed = true;
     }
 
     /**
@@ -866,6 +869,7 @@ class Bag
         if (isset($this->fetchFile)) {
             $this->fetchFile->clearData();
             unset($this->fetchFile);
+            $this->changed = true;
         }
     }
 
@@ -879,6 +883,7 @@ class Bag
     {
         if (isset($this->fetchFile)) {
             $this->fetchFile->removeFile($url);
+            $this->changed = true;
         }
     }
 
@@ -951,6 +956,7 @@ class Bag
     {
         $extBag = (bool) $extBag;
         $this->isExtended = $extBag;
+        $this->changed = true;
     }
 
     /**
