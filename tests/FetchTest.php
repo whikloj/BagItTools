@@ -242,7 +242,7 @@ class FetchTest extends BagItTestFramework
     public function testDownloadToExistingPath()
     {
         $bag = Bag::create($this->tmpdir);
-        $bag->addFile(self::TEST_IMAGE['filename'],'pretty.jpg');
+        $bag->addFile(self::TEST_IMAGE['filename'], 'pretty.jpg');
         $this->assertFileExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'pretty.jpg');
         $bag->addFetchFile(self::$remote_urls[0], 'pretty.jpg');
     }
