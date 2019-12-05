@@ -2,9 +2,7 @@
 
 namespace whikloj\BagItTools\Test;
 
-use Doctrine\Common\Annotations\IndexedReader;
 use whikloj\BagItTools\Bag;
-use whikloj\BagItTools\BagItException;
 use whikloj\BagItTools\BagUtils;
 
 /**
