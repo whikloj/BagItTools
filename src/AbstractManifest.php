@@ -96,6 +96,7 @@ abstract class AbstractManifest
         $this->bag = $bag;
         $this->algorithm = $algorithm;
         $this->filename = $filename;
+        $this->resetLoadIssues();
 
         if ($load) {
             $this->loadFile();

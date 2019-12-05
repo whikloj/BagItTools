@@ -151,7 +151,7 @@ class BagItTestFramework extends TestCase
      * @return string
      *   The path to the copy of the bag.
      */
-    private function copyTestBag($testDir)
+    protected function copyTestBag($testDir)
     {
         $tmp = $this->getTempName();
         mkdir($tmp);

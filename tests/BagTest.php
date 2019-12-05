@@ -2,6 +2,7 @@
 
 namespace whikloj\BagItTools\Test;
 
+use Doctrine\Common\Annotations\IndexedReader;
 use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\BagItException;
 use whikloj\BagItTools\BagUtils;
@@ -696,5 +697,93 @@ class BagTest extends BagItTestFramework
             $bag->getPayloadManifests()['sha256']->getHashes(),
             $newbag->getPayloadManifests()['sha256']->getHashes()
         );
+    }
+
+    /**
+     * Test an upgrade of a v0.97 bag
+     * @group Bag
+     * @covers ::upgrade()
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testUpdateV07()
+    {
+        # Spaces on both sides of colon allowed.
+        $v097_regex = "/^.*?\b\s*:\s+\b.*?$/";
+        # Only spaces after the colon allowed.
+        $v10_regex = "/^.*?\b:\s+\b.*?$/";
+
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
+        $bag = Bag::load($this->tmpdir);
+        $this->assertEquals('0.97', $bag->getVersionString());
+        $this->assertTrue($bag->validate());
+        $fp = fopen($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt', 'r');
+        while (!feof($fp)) {
+            $line = fgets($fp);
+            $line = trim($line);
+            if (empty($line)) {
+                continue;
+            }
+            $this->assertEquals(1, preg_match($v097_regex, $line));
+            $this->assertEquals(0, preg_match($v10_regex, $line));
+        }
+        fclose($fp);
+        $bag->upgrade();
+        $this->assertEquals('1.0', $bag->getVersionString());
+        $this->assertTrue($bag->validate());
+        $fp = fopen($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt', 'r');
+        while (!feof($fp)) {
+            $line = fgets($fp);
+            $line = trim($line);
+            if (empty($line)) {
+                continue;
+            }
+            $this->assertEquals(1, preg_match($v10_regex, $line));
+        }
+        fclose($fp);
+    }
+
+    /**
+     * Only upgrade bags that were loaded.
+     *
+     * @group Bag
+     * @covers ::upgrade
+     * @expectedException \whikloj\BagItTools\BagItException
+     */
+    public function testUpgradeCreatedBag()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->upgrade();
+    }
+
+    /**
+     * Only upgrade bags that are not already v1.0
+     *
+     * @group Bag
+     * @covers ::upgrade
+     * @expectedException \whikloj\BagItTools\BagItException
+     */
+    public function testUpgradeV1Bag()
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $this->assertEquals('1.0', $bag->getVersionString());
+        $bag->upgrade();
+    }
+
+    /**
+     * Only upgrade bags that are valid.
+     *
+     * @group Bag
+     * @covers ::upgrade
+     * @expectedException \whikloj\BagItTools\BagItException
+     */
+    public function testUpgradeInvalid()
+    {
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
+        $bag = Bag::load($this->tmpdir);
+        $this->assertEquals('0.97', $bag->getVersionString());
+        touch($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'oops.txt');
+        $this->assertFalse($bag->validate());
+        $bag->upgrade();
     }
 }

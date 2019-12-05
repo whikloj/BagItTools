@@ -1068,6 +1068,31 @@ class Bag
         }
     }
 
+    /**
+     * Upgrade an older bag to comply with the 1.0 specification.
+     *
+     * @throws \whikloj\BagItTools\BagItException
+     *   If the bag cannot be upgraded for some reason.
+     */
+    public function upgrade()
+    {
+        if (!$this->loaded) {
+            throw new BagItException("You can only upgrade loaded bags.");
+        } elseif ($this->getVersion() == self::DEFAULT_BAGIT_VERSION) {
+            throw new BagItException("Bag is already at version {$this->getVersionString()}");
+        } elseif (!$this->validate()) {
+            throw new BagItException("This bag is not valid, we cannot automatically upgrade it.");
+        } else {
+            // We can upgrade.
+            $hashes = array_keys($this->getPayloadManifests());
+            if (count($hashes) == 1 && $hashes[0] == 'md5') {
+                $this->setAlgorithm(self::DEFAULT_HASH_ALGORITHM);
+            }
+            unset($this->currentVersion);
+            $this->update();
+        }
+    }
+
     /*
      *  XXX: Private functions
      */
