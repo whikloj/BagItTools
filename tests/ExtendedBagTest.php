@@ -430,4 +430,27 @@ class ExtendedBagTest extends BagItTestFramework
         $tags = $bag->getTagManifests();
         $this->assertCount(1, $tags);
     }
+
+    /**
+     * Test payload-oxum calculation is only done once independent of how
+     * many hash algorithm are used.
+     * @group Extended
+     * @covers ::update
+     * @covers ::getBagInfoByTag
+     * @covers ::calculateOxum
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testOxumCalculationForManyHashAlogrithm()
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isExtended());
+        $bag->addAlgorithm('SHA-224');
+        $bag->update();
+
+        $oxums = $bag->getBagInfoByTag('payload-oxum');
+        $this->assertCount(1, $oxums);
+        $this->assertEquals('408183.2', $oxums[0]);
+    }
 }
