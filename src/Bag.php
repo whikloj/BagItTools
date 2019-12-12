@@ -1540,7 +1540,7 @@ class Bag
                     $files = array_merge($files, array_keys($temp->getHashes()));
                 }
             }
-            $this->payloadFiles = $files;
+            $this->payloadFiles = array_unique($files);
         }
     }
 
@@ -1560,7 +1560,7 @@ class Bag
             $manifest->update();
             $files = array_merge($files, array_keys($manifest->getHashes()));
         }
-        $this->payloadFiles = $files;
+        $this->payloadFiles = array_unique($files);
     }
 
     /**
