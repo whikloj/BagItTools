@@ -26,6 +26,7 @@ Features:
 * Generates/updates payload-oxum and bagging-date.
 * Passes all bagit-conformance-suite tests.
 * Create an archive (zip, tar, tar.gz, tgz, tar.bz2)
+* In-place upgrade of bag from v0.97 to v1.0
 
 ## Installation
 
@@ -136,5 +137,4 @@ This is still a work in progress, if you have a use case or discover a problem p
 To-Do:
 
 * Allow insert of bag-info.txt tags
-* In-place upgrade of bag from v0.97 to v1.0
 * CLI interface to handle simple validation functions.
