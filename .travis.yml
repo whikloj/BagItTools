@@ -11,6 +11,7 @@ before_script:
 
 script:
   - composer test
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" -a "$TRAVIS_BRANCH" = "master" ]; then bash ./vendor/bin/phpdoc; fi'
 
 branches:
   only:
@@ -19,3 +20,10 @@ branches:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+deploy:
+  provider: pages
+  local_dir: documentation/complete
+  token: $GITHUB_TOKEN
+  on:
+    branch: master
