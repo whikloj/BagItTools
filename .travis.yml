@@ -24,6 +24,7 @@ after_success:
 deploy:
   provider: pages
   local_dir: documentation/complete
+  cleanup: false
   token: $GITHUB_TOKEN
   on:
     branch: master
