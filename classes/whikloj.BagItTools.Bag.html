@@ -1,0 +1,1913 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+<meta charset="utf-8">
+<title>BagItTools » \whikloj\BagItTools\Bag</title>
+<meta name="author" content="Mike van Riel">
+<meta name="description" content="">
+<link href="../css/template.css" rel="stylesheet" media="all">
+<script src="../js/jquery-1.7.1.min.js" type="text/javascript"></script><script src="../js/jquery-ui-1.8.2.custom.min.js" type="text/javascript"></script><script src="../js/jquery.mousewheel.min.js" type="text/javascript"></script><script src="../js/bootstrap.js" type="text/javascript"></script><script src="../js/template.js" type="text/javascript"></script><script src="../js/prettify/prettify.min.js" type="text/javascript"></script><link rel="shortcut icon" href="../img/favicon.ico">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="72x72" href="../img/apple-touch-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="114x114" href="../img/apple-touch-icon-114x114.png">
+</head>
+<body>
+<div class="navbar navbar-fixed-top">
+<div class="navbar-inner"><div class="container">
+<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a><a class="brand" href="../index.html">BagItTools</a><div class="nav-collapse"><ul class="nav">
+<li class="dropdown">
+<a href="#api" class="dropdown-toggle" data-toggle="dropdown">
+                                    API Documentation <b class="caret"></b></a><ul class="dropdown-menu">
+<li><a>Namespaces</a></li>
+<li><a href="../namespaces/global.html"><i class="icon-th"></i> global</a></li>
+<li><a href="../namespaces/whikloj.html"><i class="icon-th"></i> whikloj</a></li>
+<li><a>Packages</a></li>
+<li><a href="../packages/Default.html"><i class="icon-folder-open"></i> Default</a></li>
+<li><a href="../packages/whikloj.html"><i class="icon-folder-open"></i> whikloj</a></li>
+</ul>
+</li>
+<li class="dropdown" id="charts-menu">
+<a href="#charts" class="dropdown-toggle" data-toggle="dropdown">
+                                    Charts <b class="caret"></b></a><ul class="dropdown-menu"><li><a href="../graph_class.html"><i class="icon-list-alt"></i> Class hierarchy diagram</a></li></ul>
+</li>
+<li class="dropdown" id="reports-menu">
+<a href="#reports" class="dropdown-toggle" data-toggle="dropdown">
+                                    Reports <b class="caret"></b></a><ul class="dropdown-menu">
+<li><a href="../errors.html"><i class="icon-remove-sign"></i> Errors 
+                <span class="label label-info">7</span></a></li>
+<li><a href="../markers.html"><i class="icon-map-marker"></i> Markers 
+                <ul></ul></a></li>
+<li><a href="../deprecated.html"><i class="icon-stop"></i> Deprecated elements 
+                <span class="label label-info">0</span></a></li>
+</ul>
+</li>
+</ul></div>
+</div></div>
+<div class="go_to_top"><a href="#___" style="color: inherit">Back to top  <i class="icon-upload icon-white"></i></a></div>
+</div>
+<div id="___" class="container">
+<noscript><div class="alert alert-warning">
+                            Javascript is disabled; several features are only available
+                            if Javascript is enabled.
+                        </div></noscript>
+<div class="row">
+<div class="span4">
+<div xmlns:php="http://php.net/xsl" class="btn-toolbar">
+<div class="btn-group visibility" data-toggle="buttons-checkbox">
+<button class="btn public active" title="Show public elements">Public</button><button class="btn protected" title="Show protected elements">Protected</button><button class="btn private" title="Show private elements">Private</button><button class="btn inherited active" title="Show inherited elements">Inherited</button>
+</div>
+<div class="btn-group view pull-right" data-toggle="buttons-radio">
+<button class="btn details" title="Show descriptions and method names"><i class="icon-list"></i></button><button class="btn simple" title="Show only method names"><i class="icon-align-justify"></i></button>
+</div>
+</div>
+<ul xmlns:php="http://php.net/xsl" class="side-nav nav nav-list">
+<li class="nav-header">
+<i title="Methods" class="icon-custom icon-method"></i> Methods
+                    <ul>
+<li class="method public "><a href="#method_addAlgorithm" title="addAlgorithm() :: Add a hash algorithm to the bag."><span class="description">Add a hash algorithm to the bag.</span><pre>addAlgorithm()</pre></a></li>
+<li class="method public "><a href="#method_addBagInfoTag" title="addBagInfoTag() :: Add tag and value to bag-info."><span class="description">Add tag and value to bag-info.</span><pre>addBagInfoTag()</pre></a></li>
+<li class="method public "><a href="#method_addFetchFile" title="addFetchFile() :: Add a file to your fetch file."><span class="description">Add a file to your fetch file.</span><pre>addFetchFile()</pre></a></li>
+<li class="method public "><a href="#method_addFile" title="addFile() :: Add a file to the bag."><span class="description">Add a file to the bag.</span><pre>addFile()</pre></a></li>
+<li class="method public "><a href="#method_algorithmIsSupported" title="algorithmIsSupported() :: The algorithm is supported."><span class="description">The algorithm is supported.</span><pre>algorithmIsSupported()</pre></a></li>
+<li class="method public "><a href="#method_checkForEmptyDir" title="checkForEmptyDir() :: Check the directory we just deleted a file from, if empty we should remove
+it too."><span class="description">Check the directory we just deleted a file from, if empty we should remove
+it too.</span><pre>checkForEmptyDir()</pre></a></li>
+<li class="method public "><a href="#method_clearFetch" title="clearFetch() :: Wipe the fetch file data"><span class="description">Wipe the fetch file data</span><pre>clearFetch()</pre></a></li>
+<li class="method public "><a href="#method_create" title="create() :: Static function to create a new Bag"><span class="description">Static function to create a new Bag</span><pre>create()</pre></a></li>
+<li class="method public "><a href="#method_createFile" title="createFile() :: Add a string as a file to the bag."><span class="description">Add a string as a file to the bag.</span><pre>createFile()</pre></a></li>
+<li class="method public "><a href="#method_decodeText" title="decodeText() :: Utility function to convert text to UTF-8"><span class="description">Utility function to convert text to UTF-8</span><pre>decodeText()</pre></a></li>
+<li class="method public "><a href="#method_encodeText" title="encodeText() :: Utility function to convert text back to the encoding for the file."><span class="description">Utility function to convert text back to the encoding for the file.</span><pre>encodeText()</pre></a></li>
+<li class="method public "><a href="#method_finalize" title="finalize() :: This does cleanup functions related to packaging, for example deleting downloaded files referenced in fetch.txt"><span class="description">This does cleanup functions related to packaging, for example deleting downloaded files referenced in fetch.txt</span><pre>finalize()</pre></a></li>
+<li class="method public "><a href="#method_getAlgorithms" title="getAlgorithms() :: Get the currently active payload (and tag) manifests."><span class="description">Get the currently active payload (and tag) manifests.</span><pre>getAlgorithms()</pre></a></li>
+<li class="method public "><a href="#method_getBagInfoByTag" title="getBagInfoByTag() :: Find all instances of tag and return an array of values."><span class="description">Find all instances of tag and return an array of values.</span><pre>getBagInfoByTag()</pre></a></li>
+<li class="method public "><a href="#method_getBagInfoData" title="getBagInfoData() :: Return raw bag info data."><span class="description">Return raw bag info data.</span><pre>getBagInfoData()</pre></a></li>
+<li class="method public "><a href="#method_getBagRoot" title="getBagRoot() :: Return path to the bag root."><span class="description">Return path to the bag root.</span><pre>getBagRoot()</pre></a></li>
+<li class="method public "><a href="#method_getDataDirectory" title="getDataDirectory() :: Return path to the data directory."><span class="description">Return path to the data directory.</span><pre>getDataDirectory()</pre></a></li>
+<li class="method public "><a href="#method_getErrors" title="getErrors() :: Get errors on the bag."><span class="description">Get errors on the bag.</span><pre>getErrors()</pre></a></li>
+<li class="method public "><a href="#method_getFileEncoding" title="getFileEncoding() :: Get current file encoding or default if not specified."><span class="description">Get current file encoding or default if not specified.</span><pre>getFileEncoding()</pre></a></li>
+<li class="method public "><a href="#method_getPayloadManifests" title="getPayloadManifests() :: Get the payload manifests as an associative array with hash algorithm as key."><span class="description">Get the payload manifests as an associative array with hash algorithm as key.</span><pre>getPayloadManifests()</pre></a></li>
+<li class="method public "><a href="#method_getTagManifests" title="getTagManifests() :: Get the tag manifests as an associative array with hash algorithm as key."><span class="description">Get the tag manifests as an associative array with hash algorithm as key.</span><pre>getTagManifests()</pre></a></li>
+<li class="method public "><a href="#method_getVersion" title="getVersion() :: Get the current version array or default if not specified."><span class="description">Get the current version array or default if not specified.</span><pre>getVersion()</pre></a></li>
+<li class="method public "><a href="#method_getVersionString" title="getVersionString() :: Get current version as string."><span class="description">Get current version as string.</span><pre>getVersionString()</pre></a></li>
+<li class="method public "><a href="#method_getWarnings" title="getWarnings() :: Get any warnings related to the bag."><span class="description">Get any warnings related to the bag.</span><pre>getWarnings()</pre></a></li>
+<li class="method public "><a href="#method_hasAlgorithm" title="hasAlgorithm() :: Do we have this hash algorithm already?"><span class="description">Do we have this hash algorithm already?</span><pre>hasAlgorithm()</pre></a></li>
+<li class="method public "><a href="#method_hasBagInfoTag" title="hasBagInfoTag() :: Case-insensitive search of bag-info tags."><span class="description">Case-insensitive search of bag-info tags.</span><pre>hasBagInfoTag()</pre></a></li>
+<li class="method public "><a href="#method_isExtended" title="isExtended() :: Check the bag's extended status."><span class="description">Check the bag's extended status.</span><pre>isExtended()</pre></a></li>
+<li class="method public "><a href="#method_listFetchFiles" title="listFetchFiles() :: Return the fetch file data, an array of arrays with keys 'url', 'destination' and (optionally) 'size'."><span class="description">Return the fetch file data, an array of arrays with keys 'url', 'destination' and (optionally) 'size'.</span><pre>listFetchFiles()</pre></a></li>
+<li class="method public "><a href="#method_load" title="load() :: Static constructor to load an existing bag."><span class="description">Static constructor to load an existing bag.</span><pre>load()</pre></a></li>
+<li class="method public "><a href="#method_makeAbsolute" title="makeAbsolute() :: Add the bag root to the front of a relative bag path and return with
+OS directory separator."><span class="description">Add the bag root to the front of a relative bag path and return with
+OS directory separator.</span><pre>makeAbsolute()</pre></a></li>
+<li class="method public "><a href="#method_makeRelative" title="makeRelative() :: Remove all the extraneous path information and make relative to bag root."><span class="description">Remove all the extraneous path information and make relative to bag root.</span><pre>makeRelative()</pre></a></li>
+<li class="method public "><a href="#method_package" title="package() :: Package a bag up into an archive."><span class="description">Package a bag up into an archive.</span><pre>package()</pre></a></li>
+<li class="method public "><a href="#method_pathInBagData" title="pathInBagData() :: Is the path inside the payload directory?"><span class="description">Is the path inside the payload directory?</span><pre>pathInBagData()</pre></a></li>
+<li class="method public "><a href="#method_removeAlgorithm" title="removeAlgorithm() :: Remove a hash algorithm from the bag."><span class="description">Remove a hash algorithm from the bag.</span><pre>removeAlgorithm()</pre></a></li>
+<li class="method public "><a href="#method_removeBagInfoTag" title="removeBagInfoTag() :: Remove ALL instances of tag."><span class="description">Remove ALL instances of tag.</span><pre>removeBagInfoTag()</pre></a></li>
+<li class="method public "><a href="#method_removeBagInfoTagIndex" title="removeBagInfoTagIndex() :: Removes a specific entry for a tag by the array index. This can be determined using the index in the array
+returned by getBagInfoByKey()."><span class="description">Removes a specific entry for a tag by the array index. This can be determined using the index in the array
+returned by getBagInfoByKey().</span><pre>removeBagInfoTagIndex()</pre></a></li>
+<li class="method public "><a href="#method_removeFetchFile" title="removeFetchFile() :: Delete a line from the fetch file."><span class="description">Delete a line from the fetch file.</span><pre>removeFetchFile()</pre></a></li>
+<li class="method public "><a href="#method_removeFile" title="removeFile() :: Remove a payload file."><span class="description">Remove a payload file.</span><pre>removeFile()</pre></a></li>
+<li class="method public "><a href="#method_setAlgorithm" title="setAlgorithm() :: Replaces any existing hash algorithms with the one requested."><span class="description">Replaces any existing hash algorithms with the one requested.</span><pre>setAlgorithm()</pre></a></li>
+<li class="method public "><a href="#method_setExtended" title="setExtended() :: Turn extended bag features on or off."><span class="description">Turn extended bag features on or off.</span><pre>setExtended()</pre></a></li>
+<li class="method public "><a href="#method_setFileEncoding" title="setFileEncoding() :: Set the file encoding."><span class="description">Set the file encoding.</span><pre>setFileEncoding()</pre></a></li>
+<li class="method public "><a href="#method_update" title="update() :: Write the updated BagIt files to disk."><span class="description">Write the updated BagIt files to disk.</span><pre>update()</pre></a></li>
+<li class="method public "><a href="#method_upgrade" title="upgrade() :: Upgrade an older bag to comply with the 1.0 specification."><span class="description">Upgrade an older bag to comply with the 1.0 specification.</span><pre>upgrade()</pre></a></li>
+<li class="method public "><a href="#method_validate" title="validate() :: Validate the bag as it appears on disk."><span class="description">Validate the bag as it appears on disk.</span><pre>validate()</pre></a></li>
+</ul>
+</li>
+<li class="nav-header private">» Private
+                    <ul>
+<li class="method private "><a href="#method___construct" title="__construct() :: Bag constructor."><span class="description">Bag constructor.</span><pre>__construct()</pre></a></li>
+<li class="method private "><a href="#method_addBagError" title="addBagError() :: Utility function to add bag error."><span class="description">Utility function to add bag error.</span><pre>addBagError()</pre></a></li>
+<li class="method private "><a href="#method_addBagWarning" title="addBagWarning() :: Utility function to add bag error."><span class="description">Utility function to add bag error.</span><pre>addBagWarning()</pre></a></li>
+<li class="method private "><a href="#method_arrayKeyExistsNoCase" title="arrayKeyExistsNoCase() :: Case-insensitive version of array_key_exists"><span class="description">Case-insensitive version of array_key_exists</span><pre>arrayKeyExistsNoCase()</pre></a></li>
+<li class="method private "><a href="#method_bagInfoTagExists" title="bagInfoTagExists() :: Internal case insensitive search of bag info."><span class="description">Internal case insensitive search of bag info.</span><pre>bagInfoTagExists()</pre></a></li>
+<li class="method private "><a href="#method_calculateOxum" title="calculateOxum() :: Calculate the payload-oxum value for all payload files."><span class="description">Calculate the payload-oxum value for all payload files.</span><pre>calculateOxum()</pre></a></li>
+<li class="method private "><a href="#method_clearFilesOfPattern" title="clearFilesOfPattern() :: Utility to remove files using a pattern."><span class="description">Utility to remove files using a pattern.</span><pre>clearFilesOfPattern()</pre></a></li>
+<li class="method private "><a href="#method_clearPayloadManifests" title="clearPayloadManifests() :: Remove all manifest files."><span class="description">Remove all manifest files.</span><pre>clearPayloadManifests()</pre></a></li>
+<li class="method private "><a href="#method_clearTagManifests" title="clearTagManifests() :: Remove all tagmanifest files."><span class="description">Remove all tagmanifest files.</span><pre>clearTagManifests()</pre></a></li>
+<li class="method private "><a href="#method_compareVersion" title="compareVersion() :: Compare the provided version against the current one."><span class="description">Compare the provided version against the current one.</span><pre>compareVersion()</pre></a></li>
+<li class="method private "><a href="#method_createNewBag" title="createNewBag() :: Create a new bag and output the default parts."><span class="description">Create a new bag and output the default parts.</span><pre>createNewBag()</pre></a></li>
+<li class="method private "><a href="#method_determineHashFromFilename" title="determineHashFromFilename() :: Parse manifest/tagmanifest file names to determine hash algorithm."><span class="description">Parse manifest/tagmanifest file names to determine hash algorithm.</span><pre>determineHashFromFilename()</pre></a></li>
+<li class="method private "><a href="#method_ensureTagManifests" title="ensureTagManifests() :: Utility to setup tag manifests."><span class="description">Utility to setup tag manifests.</span><pre>ensureTagManifests()</pre></a></li>
+<li class="method private "><a href="#method_extensionTarCompression" title="extensionTarCompression() :: Determine the correct compression (if any) from the extension."><span class="description">Determine the correct compression (if any) from the extension.</span><pre>extensionTarCompression()</pre></a></li>
+<li class="method private "><a href="#method_extractDir" title="extractDir() :: Generate a temporary directory name."><span class="description">Generate a temporary directory name.</span><pre>extractDir()</pre></a></li>
+<li class="method private "><a href="#method_filterPhpHashAlgorithms" title="filterPhpHashAlgorithms() :: Check if the algorithm PHP has is allowed by the specification."><span class="description">Check if the algorithm PHP has is allowed by the specification.</span><pre>filterPhpHashAlgorithms()</pre></a></li>
+<li class="method private "><a href="#method_getDirectory" title="getDirectory() :: Locate the extracted bag directory from inside our temporary directory."><span class="description">Locate the extracted bag directory from inside our temporary directory.</span><pre>getDirectory()</pre></a></li>
+<li class="method private "><a href="#method_getExtensions" title="getExtensions() :: Get the file extension from a full path."><span class="description">Get the file extension from a full path.</span><pre>getExtensions()</pre></a></li>
+<li class="method private "><a href="#method_getHashName" title="getHashName() :: Return the BagIt sanitized algorithm name."><span class="description">Return the BagIt sanitized algorithm name.</span><pre>getHashName()</pre></a></li>
+<li class="method private "><a href="#method_getParentDir" title="getParentDir() :: Get the parent directory of the current Bag."><span class="description">Get the parent directory of the current Bag.</span><pre>getParentDir()</pre></a></li>
+<li class="method private "><a href="#method_hasHash" title="hasHash() :: Do we have a payload manifest with this internal hash name. Internal use only to avoid getHashName()"><span class="description">Do we have a payload manifest with this internal hash name. Internal use only to avoid getHashName()</span><pre>hasHash()</pre></a></li>
+<li class="method private "><a href="#method_hashIsSupported" title="hashIsSupported() :: Is the internal named hash supported by our PHP. Internal use only to avoid getHashName()"><span class="description">Is the internal named hash supported by our PHP. Internal use only to avoid getHashName()</span><pre>hashIsSupported()</pre></a></li>
+<li class="method private "><a href="#method_internalPath" title="internalPath() :: Convert paths from using the OS directory separator to using /."><span class="description">Convert paths from using the OS directory separator to using /.</span><pre>internalPath()</pre></a></li>
+<li class="method private "><a href="#method_isCompressed" title="isCompressed() :: Test a filepath to see if we think it is compressed."><span class="description">Test a filepath to see if we think it is compressed.</span><pre>isCompressed()</pre></a></li>
+<li class="method private "><a href="#method_loadBag" title="loadBag() :: Load a bag from disk."><span class="description">Load a bag from disk.</span><pre>loadBag()</pre></a></li>
+<li class="method private "><a href="#method_loadBagInfo" title="loadBagInfo() :: Read in the bag-info.txt file."><span class="description">Read in the bag-info.txt file.</span><pre>loadBagInfo()</pre></a></li>
+<li class="method private "><a href="#method_loadBagIt" title="loadBagIt() :: Load the bagit.txt on disk."><span class="description">Load the bagit.txt on disk.</span><pre>loadBagIt()</pre></a></li>
+<li class="method private "><a href="#method_loadFetch" title="loadFetch() :: Load a fetch.txt if it exists."><span class="description">Load a fetch.txt if it exists.</span><pre>loadFetch()</pre></a></li>
+<li class="method private "><a href="#method_loadPayloadManifests" title="loadPayloadManifests() :: Load all payload manifests found on disk."><span class="description">Load all payload manifests found on disk.</span><pre>loadPayloadManifests()</pre></a></li>
+<li class="method private "><a href="#method_loadTagManifests" title="loadTagManifests() :: Load all tag manifests (if any)."><span class="description">Load all tag manifests (if any).</span><pre>loadTagManifests()</pre></a></li>
+<li class="method private "><a href="#method_makePackage" title="makePackage() :: Create an archive file of the current bag."><span class="description">Create an archive file of the current bag.</span><pre>makePackage()</pre></a></li>
+<li class="method private "><a href="#method_makeTar" title="makeTar() :: Create a Tar archive."><span class="description">Create a Tar archive.</span><pre>makeTar()</pre></a></li>
+<li class="method private "><a href="#method_makeZip" title="makeZip() :: Create a Zip archive."><span class="description">Create a Zip archive.</span><pre>makeZip()</pre></a></li>
+<li class="method private "><a href="#method_mergeErrors" title="mergeErrors() :: Utility to merge manifest and fetch errors into the bag errors."><span class="description">Utility to merge manifest and fetch errors into the bag errors.</span><pre>mergeErrors()</pre></a></li>
+<li class="method private "><a href="#method_mergeWarnings" title="mergeWarnings() :: Utility to merge manifest and fetch warnings into the bag warnings."><span class="description">Utility to merge manifest and fetch warnings into the bag warnings.</span><pre>mergeWarnings()</pre></a></li>
+<li class="method private "><a href="#method_mustNotRepeatBagInfoExists" title="mustNotRepeatBagInfoExists() :: Check that the key is not non-repeatable and already in the bagInfo."><span class="description">Check that the key is not non-repeatable and already in the bagInfo.</span><pre>mustNotRepeatBagInfoExists()</pre></a></li>
+<li class="method private "><a href="#method_normalizeHashAlgorithmName" title="normalizeHashAlgorithmName() :: Normalize a PHP hash algorithm to a BagIt specification name. Used to alter the incoming $item."><span class="description">Normalize a PHP hash algorithm to a BagIt specification name. Used to alter the incoming $item.</span><pre>normalizeHashAlgorithmName()</pre></a></li>
+<li class="method private "><a href="#method_removeAllPayloadManifests" title="removeAllPayloadManifests() :: Remove payload manifests."><span class="description">Remove payload manifests.</span><pre>removeAllPayloadManifests()</pre></a></li>
+<li class="method private "><a href="#method_removeAllTagManifests" title="removeAllTagManifests() :: Remove tag manifests."><span class="description">Remove tag manifests.</span><pre>removeAllTagManifests()</pre></a></li>
+<li class="method private "><a href="#method_removeBagInfo" title="removeBagInfo() :: Remove the bag-info.txt file and data."><span class="description">Remove the bag-info.txt file and data.</span><pre>removeBagInfo()</pre></a></li>
+<li class="method private "><a href="#method_removePayloadManifest" title="removePayloadManifest() :: Remove a single payload manifest."><span class="description">Remove a single payload manifest.</span><pre>removePayloadManifest()</pre></a></li>
+<li class="method private "><a href="#method_removeTagManifest" title="removeTagManifest() :: Remove a single tag manifest."><span class="description">Remove a single tag manifest.</span><pre>removeTagManifest()</pre></a></li>
+<li class="method private "><a href="#method_reservedFilename" title="reservedFilename() :: Is the requested destination filename reserved on Windows?"><span class="description">Is the requested destination filename reserved on Windows?</span><pre>reservedFilename()</pre></a></li>
+<li class="method private "><a href="#method_shouldNotRepeatBagInfoExists" title="shouldNotRepeatBagInfoExists() :: Check that the key is not non-repeatable and already in the bagInfo."><span class="description">Check that the key is not non-repeatable and already in the bagInfo.</span><pre>shouldNotRepeatBagInfoExists()</pre></a></li>
+<li class="method private "><a href="#method_trimLower" title="trimLower() :: Return a trimmed and lowercase version of text."><span class="description">Return a trimmed and lowercase version of text.</span><pre>trimLower()</pre></a></li>
+<li class="method private "><a href="#method_uncompressBag" title="uncompressBag() :: Uncompress a BagIt archive file."><span class="description">Uncompress a BagIt archive file.</span><pre>uncompressBag()</pre></a></li>
+<li class="method private "><a href="#method_untarBag" title="untarBag() :: Untar a tar file."><span class="description">Untar a tar file.</span><pre>untarBag()</pre></a></li>
+<li class="method private "><a href="#method_unzipBag" title="unzipBag() :: Unzip a zip file."><span class="description">Unzip a zip file.</span><pre>unzipBag()</pre></a></li>
+<li class="method private "><a href="#method_updateBagInfo" title="updateBagInfo() :: Write the contents of the bag-info array to disk."><span class="description">Write the contents of the bag-info array to disk.</span><pre>updateBagInfo()</pre></a></li>
+<li class="method private "><a href="#method_updateBagInfoIndex" title="updateBagInfoIndex() :: Generate a faster index of Bag-Info tags."><span class="description">Generate a faster index of Bag-Info tags.</span><pre>updateBagInfoIndex()</pre></a></li>
+<li class="method private "><a href="#method_updateBagIt" title="updateBagIt() :: Update the bagit.txt on disk."><span class="description">Update the bagit.txt on disk.</span><pre>updateBagIt()</pre></a></li>
+<li class="method private "><a href="#method_updateCalculateBagInfoFields" title="updateCalculateBagInfoFields() :: Update the calculated bag-info fields"><span class="description">Update the calculated bag-info fields</span><pre>updateCalculateBagInfoFields()</pre></a></li>
+<li class="method private "><a href="#method_updateFetch" title="updateFetch() :: Update a fetch.txt if it exists."><span class="description">Update a fetch.txt if it exists.</span><pre>updateFetch()</pre></a></li>
+<li class="method private "><a href="#method_updatePayloadManifests" title="updatePayloadManifests() :: Run update against the payload manifests."><span class="description">Run update against the payload manifests.</span><pre>updatePayloadManifests()</pre></a></li>
+<li class="method private "><a href="#method_updateTagManifests" title="updateTagManifests() :: Run update against the tag manifests."><span class="description">Run update against the tag manifests.</span><pre>updateTagManifests()</pre></a></li>
+<li class="method private "><a href="#method_wrapAtLength" title="wrapAtLength() :: Utility to remove newline characters, wrap the string and return an array of the rows."><span class="description">Utility to remove newline characters, wrap the string and return an array of the rows.</span><pre>wrapAtLength()</pre></a></li>
+<li class="method private "><a href="#method_wrapBagInfoText" title="wrapBagInfoText() :: Wrap bagInfo lines to 79 characters if possible"><span class="description">Wrap bagInfo lines to 79 characters if possible</span><pre>wrapBagInfoText()</pre></a></li>
+</ul>
+</li>
+<li class="nav-header">
+<i title="Properties" class="icon-custom icon-property"></i> Properties
+                    <ul></ul>
+</li>
+<li class="nav-header private">» Private
+                    <ul>
+<li class="property private "><a href="#property_bagErrors" title="$bagErrors() :: Errors when validating a bag."><span class="description"></span><pre>$bagErrors</pre></a></li>
+<li class="property private "><a href="#property_bagInfoData" title="$bagInfoData() :: Bag Info data."><span class="description"></span><pre>$bagInfoData</pre></a></li>
+<li class="property private "><a href="#property_bagInfoTagIndex" title="$bagInfoTagIndex() :: Unique array of all Bag info tags/values. Tags are stored once in lower case with an array of all instances
+of values. This index does not save order."><span class="description"></span><pre>$bagInfoTagIndex</pre></a></li>
+<li class="property private "><a href="#property_bagRoot" title="$bagRoot() :: The absolute path to the root of the bag, all other file paths are
+relative to this. This path is stored with / as directory separator
+regardless of the OS."><span class="description"></span><pre>$bagRoot</pre></a></li>
+<li class="property private "><a href="#property_bagWarnings" title="$bagWarnings() :: Warnings when validating a bag."><span class="description"></span><pre>$bagWarnings</pre></a></li>
+<li class="property private "><a href="#property_changed" title="$changed() :: Have we changed the bag and not written it to disk?"><span class="description"></span><pre>$changed</pre></a></li>
+<li class="property private "><a href="#property_currentFileEncoding" title="$currentFileEncoding() :: Current bag file encoding."><span class="description"></span><pre>$currentFileEncoding</pre></a></li>
+<li class="property private "><a href="#property_currentVersion" title="$currentVersion() :: Array of current bag version with keys 'major' and 'minor'."><span class="description"></span><pre>$currentVersion</pre></a></li>
+<li class="property private "><a href="#property_fetchFile" title="$fetchFile() :: Reference to a Fetch file or null if not used."><span class="description"></span><pre>$fetchFile</pre></a></li>
+<li class="property private "><a href="#property_isExtended" title="$isExtended() :: Is this an extended bag?"><span class="description"></span><pre>$isExtended</pre></a></li>
+<li class="property private "><a href="#property_loaded" title="$loaded() :: Did we load this from disk."><span class="description"></span><pre>$loaded</pre></a></li>
+<li class="property private "><a href="#property_packageExtensions" title="$packageExtensions() :: All the extensions in one array."><span class="description"></span><pre>$packageExtensions</pre></a></li>
+<li class="property private "><a href="#property_payloadFiles" title="$payloadFiles() :: List of relative file paths for all files."><span class="description"></span><pre>$payloadFiles</pre></a></li>
+<li class="property private "><a href="#property_payloadManifests" title="$payloadManifests() :: Array of payload manifests."><span class="description"></span><pre>$payloadManifests</pre></a></li>
+<li class="property private "><a href="#property_tagManifests" title="$tagManifests() :: Array of tag manifests."><span class="description"></span><pre>$tagManifests</pre></a></li>
+<li class="property private "><a href="#property_validHashAlgorithms" title="$validHashAlgorithms() :: The valid algorithms from the current version of PHP filtered to those
+supported by the BagIt specification. Stored to avoid extraneous calls
+to hash_algos()."><span class="description"></span><pre>$validHashAlgorithms</pre></a></li>
+</ul>
+</li>
+<li class="nav-header">
+<i title="Constants" class="icon-custom icon-constant"></i> Constants
+                    <ul>
+<li class="constant  "><a href="#constant_BAG_INFO_GENERATED_ELEMENTS" title="BAG_INFO_GENERATED_ELEMENTS() :: Fields you can't set because we generate them on $bag-&gt;update()."><span class="description">Fields you can't set because we generate them on $bag-&gt;update().</span><pre>BAG_INFO_GENERATED_ELEMENTS</pre></a></li>
+<li class="constant  "><a href="#constant_BAG_INFO_MUST_NOT_REPEAT" title="BAG_INFO_MUST_NOT_REPEAT() :: Bag-info fields that MUST not be repeated."><span class="description">Bag-info fields that MUST not be repeated.</span><pre>BAG_INFO_MUST_NOT_REPEAT</pre></a></li>
+<li class="constant  "><a href="#constant_BAG_INFO_RESERVED_ELEMENTS" title="BAG_INFO_RESERVED_ELEMENTS() :: Reserved element names for Bag-info fields."><span class="description">Reserved element names for Bag-info fields.</span><pre>BAG_INFO_RESERVED_ELEMENTS</pre></a></li>
+<li class="constant  "><a href="#constant_BAG_INFO_SHOULD_NOT_REPEAT" title="BAG_INFO_SHOULD_NOT_REPEAT() :: Bag-info fields that SHOULD NOT be repeated."><span class="description">Bag-info fields that SHOULD NOT be repeated.</span><pre>BAG_INFO_SHOULD_NOT_REPEAT</pre></a></li>
+<li class="constant  "><a href="#constant_DEFAULT_BAGIT_VERSION" title="DEFAULT_BAGIT_VERSION() :: The default bagit version."><span class="description">The default bagit version.</span><pre>DEFAULT_BAGIT_VERSION</pre></a></li>
+<li class="constant  "><a href="#constant_DEFAULT_FILE_ENCODING" title="DEFAULT_FILE_ENCODING() :: The default file encoding if one is not specified."><span class="description">The default file encoding if one is not specified.</span><pre>DEFAULT_FILE_ENCODING</pre></a></li>
+<li class="constant  "><a href="#constant_DEFAULT_HASH_ALGORITHM" title="DEFAULT_HASH_ALGORITHM() :: The default algorithm to use if one is not specified."><span class="description">The default algorithm to use if one is not specified.</span><pre>DEFAULT_HASH_ALGORITHM</pre></a></li>
+<li class="constant  "><a href="#constant_HASH_ALGORITHMS" title="HASH_ALGORITHMS() :: Array of BagIt approved names of hash algorithms to the PHP names of
+those hash algorithms for use with hash_file()."><span class="description">Array of BagIt approved names of hash algorithms to the PHP names of
+those hash algorithms for use with hash_file().</span><pre>HASH_ALGORITHMS</pre></a></li>
+<li class="constant  "><a href="#constant_TAR_EXTENSIONS" title="TAR_EXTENSIONS() :: Extensions which map to a tar file."><span class="description">Extensions which map to a tar file.</span><pre>TAR_EXTENSIONS</pre></a></li>
+<li class="constant  "><a href="#constant_WINDOWS_PATH_CHARACTERS" title="WINDOWS_PATH_CHARACTERS() :: "><span class="description">WINDOWS_PATH_CHARACTERS</span><pre>WINDOWS_PATH_CHARACTERS</pre></a></li>
+<li class="constant  "><a href="#constant_WINDOWS_RESERVED_NAMES" title="WINDOWS_RESERVED_NAMES() :: File names that are not allowed on windows, should be disallowed in bags for interoperability."><span class="description">File names that are not allowed on windows, should be disallowed in bags for interoperability.</span><pre>WINDOWS_RESERVED_NAMES</pre></a></li>
+<li class="constant  "><a href="#constant_ZIP_EXTENSIONS" title="ZIP_EXTENSIONS() :: Extensions which map to a zip file."><span class="description">Extensions which map to a zip file.</span><pre>ZIP_EXTENSIONS</pre></a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="span8">
+<a xmlns:php="http://php.net/xsl" id="\whikloj\BagItTools\Bag"></a><ul xmlns:php="http://php.net/xsl" class="breadcrumb">
+<li>
+<a href="../index.html"><i title="Classes" class="icon-custom icon-class"></i></a><span class="divider">\</span>
+</li>
+<li><a href="../namespaces/whikloj.html">whikloj</a></li>
+<li>
+<span class="divider">\</span><a href="../namespaces/whikloj.BagItTools.html">BagItTools</a>
+</li>
+<li class="active">
+<span class="divider">\</span><a href="../classes/whikloj.BagItTools.Bag.html">Bag</a>
+</li>
+</ul>
+<div xmlns:php="http://php.net/xsl" class="element class">
+<p class="short_description">Bag class as normal interface for all actions and holder of supporting constructs.</p>
+<div class="details">
+<div class="long_description"></div>
+<table class="table table-bordered">
+<tr>
+<th>package</th>
+<td><a href="../packages/whikloj.BagItTools.html">\whikloj\BagItTools</a></td>
+</tr>
+<tr>
+<th>author</th>
+<td><a href="">whikloj</a></td>
+</tr>
+<tr>
+<th>since</th>
+<td>1.0.0</td>
+</tr>
+</table>
+<h3>
+<i title="Methods" class="icon-custom icon-method"></i> Methods</h3>
+<a id="method_addAlgorithm"></a><div class="element clickable method public method_addAlgorithm " data-toggle="collapse" data-target=".method_addAlgorithm .collapse" title="public">
+<h2>Add a hash algorithm to the bag.</h2>
+<pre>addAlgorithm(string $algorithm) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$algorithm</h4>
+<code>string</code><p>Algorithm to add.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Asking for an unsupported algorithm.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_addBagInfoTag"></a><div class="element clickable method public method_addBagInfoTag " data-toggle="collapse" data-target=".method_addBagInfoTag .collapse" title="public">
+<h2>Add tag and value to bag-info.</h2>
+<pre>addBagInfoTag(string $tag, string $value) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$tag</h4>
+<code>string</code><p>The tag to add.</p></div>
+<div class="subelement argument">
+<h4>$value</h4>
+<code>string</code><p>The value to add.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>When you try to set an auto-generated tag value.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_addFetchFile"></a><div class="element clickable method public method_addFetchFile " data-toggle="collapse" data-target=".method_addFetchFile .collapse" title="public">
+<h2>Add a file to your fetch file.</h2>
+<pre>addFetchFile(string $url, string $destination, null|integer $size<code> = null</code>) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$url</h4>
+<code>string</code><p>The source URL.</p></div>
+<div class="subelement argument">
+<h4>$destination</h4>
+<code>string</code><p>The destination path in the bag.</p></div>
+<div class="subelement argument">
+<h4>$size</h4>
+<code>null</code><code>integer</code><p>Size of the file to be stored in the fetch file, if desired.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>On errors adding the file.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_addFile"></a><div class="element clickable method public method_addFile " data-toggle="collapse" data-target=".method_addFile .collapse" title="public">
+<h2>Add a file to the bag.</h2>
+<pre>addFile(string $source, string $dest) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$source</h4>
+<code>string</code><p>Full path to the source file.</p></div>
+<div class="subelement argument">
+<h4>$dest</h4>
+<code>string</code><p>Relative path for the destination.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Source file does not exist or the destination is outside the data directory.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_algorithmIsSupported"></a><div class="element clickable method public method_algorithmIsSupported " data-toggle="collapse" data-target=".method_algorithmIsSupported .collapse" title="public">
+<h2>The algorithm is supported.</h2>
+<pre>algorithmIsSupported(string $algorithm) : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$algorithm</h4>
+<code>string</code><p>The requested hash algorithm</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>Whether it is supported by our PHP.</div>
+</div></div>
+</div>
+<a id="method_checkForEmptyDir"></a><div class="element clickable method public method_checkForEmptyDir " data-toggle="collapse" data-target=".method_checkForEmptyDir .collapse" title="public">
+<h2>Check the directory we just deleted a file from, if empty we should remove
+it too.</h2>
+<pre>checkForEmptyDir(string $path) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$path</h4>
+<code>string</code><p>The file just deleted.</p></div>
+</div></div>
+</div>
+<a id="method_clearFetch"></a><div class="element clickable method public method_clearFetch " data-toggle="collapse" data-target=".method_clearFetch .collapse" title="public">
+<h2>Wipe the fetch file data</h2>
+<pre>clearFetch() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_create"></a><div class="element clickable method public method_create " data-toggle="collapse" data-target=".method_create .collapse" title="public">
+<h2>Static function to create a new Bag</h2>
+<pre>create(string $rootPath) : \whikloj\BagItTools\Bag</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$rootPath</h4>
+<code>string</code><p>Path to the new bag, must not exist</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>If we can't create the directory.</td>
+</tr></table>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>\whikloj\BagItTools\Bag</code>The bag.</div>
+</div></div>
+</div>
+<a id="method_createFile"></a><div class="element clickable method public method_createFile " data-toggle="collapse" data-target=".method_createFile .collapse" title="public">
+<h2>Add a string as a file to the bag.</h2>
+<pre>createFile(string $string, string $dest) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$string</h4>
+<code>string</code><p>The contents of the file.</p></div>
+<div class="subelement argument">
+<h4>$dest</h4>
+<code>string</code><p>The name of the file in the bag.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Source file does not exist or the destination is outside the data directory.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_decodeText"></a><div class="element clickable method public method_decodeText " data-toggle="collapse" data-target=".method_decodeText .collapse" title="public">
+<h2>Utility function to convert text to UTF-8</h2>
+<pre>decodeText(string $text) : string</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$text</h4>
+<code>string</code><p>The source text.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The converted text.</div>
+</div></div>
+</div>
+<a id="method_encodeText"></a><div class="element clickable method public method_encodeText " data-toggle="collapse" data-target=".method_encodeText .collapse" title="public">
+<h2>Utility function to convert text back to the encoding for the file.</h2>
+<pre>encodeText(string $text) : string</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$text</h4>
+<code>string</code><p>The source text.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The converted text.</div>
+</div></div>
+</div>
+<a id="method_finalize"></a><div class="element clickable method public method_finalize " data-toggle="collapse" data-target=".method_finalize .collapse" title="public">
+<h2>This does cleanup functions related to packaging, for example deleting downloaded files referenced in fetch.txt</h2>
+<pre>finalize() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_getAlgorithms"></a><div class="element clickable method public method_getAlgorithms " data-toggle="collapse" data-target=".method_getAlgorithms .collapse" title="public">
+<h2>Get the currently active payload (and tag) manifests.</h2>
+<pre>getAlgorithms() : array</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>Internal hash names for current manifests.</div>
+</div></div>
+</div>
+<a id="method_getBagInfoByTag"></a><div class="element clickable method public method_getBagInfoByTag " data-toggle="collapse" data-target=".method_getBagInfoByTag .collapse" title="public">
+<h2>Find all instances of tag and return an array of values.</h2>
+<pre>getBagInfoByTag(string $tag) : array</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$tag</h4>
+<code>string</code><p>Bag info tag to locate</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>Array of values for the tag.</div>
+</div></div>
+</div>
+<a id="method_getBagInfoData"></a><div class="element clickable method public method_getBagInfoData " data-toggle="collapse" data-target=".method_getBagInfoData .collapse" title="public">
+<h2>Return raw bag info data.</h2>
+<pre>getBagInfoData() : array</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>Bag Info data.</div>
+</div></div>
+</div>
+<a id="method_getBagRoot"></a><div class="element clickable method public method_getBagRoot " data-toggle="collapse" data-target=".method_getBagRoot .collapse" title="public">
+<h2>Return path to the bag root.</h2>
+<pre>getBagRoot() : string</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The bag root path.</div>
+</div></div>
+</div>
+<a id="method_getDataDirectory"></a><div class="element clickable method public method_getDataDirectory " data-toggle="collapse" data-target=".method_getDataDirectory .collapse" title="public">
+<h2>Return path to the data directory.</h2>
+<pre>getDataDirectory() : string</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The bag data directory path.</div>
+</div></div>
+</div>
+<a id="method_getErrors"></a><div class="element clickable method public method_getErrors " data-toggle="collapse" data-target=".method_getErrors .collapse" title="public">
+<h2>Get errors on the bag.</h2>
+<pre>getErrors() : array</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>The errors.</div>
+</div></div>
+</div>
+<a id="method_getFileEncoding"></a><div class="element clickable method public method_getFileEncoding " data-toggle="collapse" data-target=".method_getFileEncoding .collapse" title="public">
+<h2>Get current file encoding or default if not specified.</h2>
+<pre>getFileEncoding() : string</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>Current file encoding.</div>
+</div></div>
+</div>
+<a id="method_getPayloadManifests"></a><div class="element clickable method public method_getPayloadManifests " data-toggle="collapse" data-target=".method_getPayloadManifests .collapse" title="public">
+<h2>Get the payload manifests as an associative array with hash algorithm as key.</h2>
+<pre>getPayloadManifests() : array</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>hash algorithm => Payload manifests</div>
+</div></div>
+</div>
+<a id="method_getTagManifests"></a><div class="element clickable method public method_getTagManifests " data-toggle="collapse" data-target=".method_getTagManifests .collapse" title="public">
+<h2>Get the tag manifests as an associative array with hash algorithm as key.</h2>
+<pre>getTagManifests() : array | null</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code><code>null</code>hash algorithm => Tag manifests or null if not an extended bag.</div>
+</div></div>
+</div>
+<a id="method_getVersion"></a><div class="element clickable method public method_getVersion " data-toggle="collapse" data-target=".method_getVersion .collapse" title="public">
+<h2>Get the current version array or default if not specified.</h2>
+<pre>getVersion() : array</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>Current version.</div>
+</div></div>
+</div>
+<a id="method_getVersionString"></a><div class="element clickable method public method_getVersionString " data-toggle="collapse" data-target=".method_getVersionString .collapse" title="public">
+<h2>Get current version as string.</h2>
+<pre>getVersionString() : string</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>Current version in M.N format.</div>
+</div></div>
+</div>
+<a id="method_getWarnings"></a><div class="element clickable method public method_getWarnings " data-toggle="collapse" data-target=".method_getWarnings .collapse" title="public">
+<h2>Get any warnings related to the bag.</h2>
+<pre>getWarnings() : array</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>The warnings.</div>
+</div></div>
+</div>
+<a id="method_hasAlgorithm"></a><div class="element clickable method public method_hasAlgorithm " data-toggle="collapse" data-target=".method_hasAlgorithm .collapse" title="public">
+<h2>Do we have this hash algorithm already?</h2>
+<pre>hasAlgorithm(string $hashAlgorithm) : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$hashAlgorithm</h4>
+<code>string</code><p>The requested hash algorithms.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>Do we already have this payload manifest.</div>
+</div></div>
+</div>
+<a id="method_hasBagInfoTag"></a><div class="element clickable method public method_hasBagInfoTag " data-toggle="collapse" data-target=".method_hasBagInfoTag .collapse" title="public">
+<h2>Case-insensitive search of bag-info tags.</h2>
+<pre>hasBagInfoTag(string $tag) : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$tag</h4>
+<code>string</code><p>Bag info tag to locate</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>Does the tag exist.</div>
+</div></div>
+</div>
+<a id="method_isExtended"></a><div class="element clickable method public method_isExtended " data-toggle="collapse" data-target=".method_isExtended .collapse" title="public">
+<h2>Check the bag's extended status.</h2>
+<pre>isExtended() : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>Does the bag use extended features?</div>
+</div></div>
+</div>
+<a id="method_listFetchFiles"></a><div class="element clickable method public method_listFetchFiles " data-toggle="collapse" data-target=".method_listFetchFiles .collapse" title="public">
+<h2>Return the fetch file data, an array of arrays with keys 'url', 'destination' and (optionally) 'size'.</h2>
+<pre>listFetchFiles() : array</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response"><code>array</code></div>
+</div></div>
+</div>
+<a id="method_load"></a><div class="element clickable method public method_load " data-toggle="collapse" data-target=".method_load .collapse" title="public">
+<h2>Static constructor to load an existing bag.</h2>
+<pre>load(string $rootPath) : \whikloj\BagItTools\Bag</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$rootPath</h4>
+<code>string</code><p>Path to the existing bag.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>If we can't read files in the bag.</td>
+</tr></table>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>\whikloj\BagItTools\Bag</code>The bag object.</div>
+</div></div>
+</div>
+<a id="method_makeAbsolute"></a><div class="element clickable method public method_makeAbsolute " data-toggle="collapse" data-target=".method_makeAbsolute .collapse" title="public">
+<h2>Add the bag root to the front of a relative bag path and return with
+OS directory separator.</h2>
+<pre>makeAbsolute(string $path) : string</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$path</h4>
+<code>string</code><p>The relative path.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The absolute path.</div>
+</div></div>
+</div>
+<a id="method_makeRelative"></a><div class="element clickable method public method_makeRelative " data-toggle="collapse" data-target=".method_makeRelative .collapse" title="public">
+<h2>Remove all the extraneous path information and make relative to bag root.</h2>
+<pre>makeRelative(string $path) : string</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$path</h4>
+<code>string</code><p>The absolute path to process</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The shortened path or blank if it is outside bag root.</div>
+</div></div>
+</div>
+<a id="method_package"></a><div class="element clickable method public method_package " data-toggle="collapse" data-target=".method_package .collapse" title="public">
+<h2>Package a bag up into an archive.</h2>
+<pre>package(string $filepath) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>The full path to create the archive at.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems creating the archive.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_pathInBagData"></a><div class="element clickable method public method_pathInBagData " data-toggle="collapse" data-target=".method_pathInBagData .collapse" title="public">
+<h2>Is the path inside the payload directory?</h2>
+<pre>pathInBagData(string $filepath) : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>The internal path.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>Path is inside the data/ directory.</div>
+</div></div>
+</div>
+<a id="method_removeAlgorithm"></a><div class="element clickable method public method_removeAlgorithm " data-toggle="collapse" data-target=".method_removeAlgorithm .collapse" title="public">
+<h2>Remove a hash algorithm from the bag.</h2>
+<pre>removeAlgorithm(string $algorithm) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$algorithm</h4>
+<code>string</code><p>Algorithm to remove</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Trying to remove the last algorithm or asking for an unsupported algorithm.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_removeBagInfoTag"></a><div class="element clickable method public method_removeBagInfoTag " data-toggle="collapse" data-target=".method_removeBagInfoTag .collapse" title="public">
+<h2>Remove ALL instances of tag.</h2>
+<pre>removeBagInfoTag(string $tag) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$tag</h4>
+<code>string</code><p>The tag to remove.</p></div>
+</div></div>
+</div>
+<a id="method_removeBagInfoTagIndex"></a><div class="element clickable method public method_removeBagInfoTagIndex " data-toggle="collapse" data-target=".method_removeBagInfoTagIndex .collapse" title="public">
+<h2>Removes a specific entry for a tag by the array index. This can be determined using the index in the array
+returned by getBagInfoByKey().</h2>
+<pre>removeBagInfoTagIndex(string $tag, integer $index) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$tag</h4>
+<code>string</code><p>The tag to remove.</p></div>
+<div class="subelement argument">
+<h4>$index</h4>
+<code>integer</code><p>The index of the value to remove.</p></div>
+</div></div>
+</div>
+<a id="method_removeFetchFile"></a><div class="element clickable method public method_removeFetchFile " data-toggle="collapse" data-target=".method_removeFetchFile .collapse" title="public">
+<h2>Delete a line from the fetch file.</h2>
+<pre>removeFetchFile(string $url) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$url</h4>
+<code>string</code><p>The url to delete.</p></div>
+</div></div>
+</div>
+<a id="method_removeFile"></a><div class="element clickable method public method_removeFile " data-toggle="collapse" data-target=".method_removeFile .collapse" title="public">
+<h2>Remove a payload file.</h2>
+<pre>removeFile(string $dest) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$dest</h4>
+<code>string</code><p>The relative path of the file.</p></div>
+</div></div>
+</div>
+<a id="method_setAlgorithm"></a><div class="element clickable method public method_setAlgorithm " data-toggle="collapse" data-target=".method_setAlgorithm .collapse" title="public">
+<h2>Replaces any existing hash algorithms with the one requested.</h2>
+<pre>setAlgorithm(string $algorithm) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$algorithm</h4>
+<code>string</code><p>Algorithm to use.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Asking for an unsupported algorithm.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_setExtended"></a><div class="element clickable method public method_setExtended " data-toggle="collapse" data-target=".method_setExtended .collapse" title="public">
+<h2>Turn extended bag features on or off.</h2>
+<pre>setExtended(boolean $extBag) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$extBag</h4>
+<code>boolean</code><p>Whether the bag should be extended or not.</p></div>
+</div></div>
+</div>
+<a id="method_setFileEncoding"></a><div class="element clickable method public method_setFileEncoding " data-toggle="collapse" data-target=".method_setFileEncoding .collapse" title="public">
+<h2>Set the file encoding.</h2>
+<pre>setFileEncoding(string $encoding) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$encoding</h4>
+<code>string</code><p>The MIME name of the character set to encode with.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>If we don't support the requested character set.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_update"></a><div class="element clickable method public method_update " data-toggle="collapse" data-target=".method_update .collapse" title="public">
+<h2>Write the updated BagIt files to disk.</h2>
+<pre>update() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Errors with writing files to disk.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_upgrade"></a><div class="element clickable method public method_upgrade " data-toggle="collapse" data-target=".method_upgrade .collapse" title="public">
+<h2>Upgrade an older bag to comply with the 1.0 specification.</h2>
+<pre>upgrade() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>If the bag cannot be upgraded for some reason.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_validate"></a><div class="element clickable method public method_validate " data-toggle="collapse" data-target=".method_validate .collapse" title="public">
+<h2>Validate the bag as it appears on disk.</h2>
+<pre>validate() : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems writing to disk.</td>
+</tr></table>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>True if the bag is valid</div>
+</div></div>
+</div>
+<a id="method___construct"></a><div class="element clickable method private method___construct " data-toggle="collapse" data-target=".method___construct .collapse" title="private">
+<h2>Bag constructor.</h2>
+<pre>__construct(string $rootPath, boolean $new<code> = true</code>) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$rootPath</h4>
+<code>string</code><p>The path of the root of the new or existing bag.</p></div>
+<div class="subelement argument">
+<h4>$new</h4>
+<code>boolean</code><p>Are we making a new bag?</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems accessing a file.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_addBagError"></a><div class="element clickable method private method_addBagError " data-toggle="collapse" data-target=".method_addBagError .collapse" title="private">
+<h2>Utility function to add bag error.</h2>
+<pre>addBagError(string $filename, string $message) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filename</h4>
+<code>string</code><p>The file the error was detected in.</p></div>
+<div class="subelement argument">
+<h4>$message</h4>
+<code>string</code><p>The message.</p></div>
+</div></div>
+</div>
+<a id="method_addBagWarning"></a><div class="element clickable method private method_addBagWarning " data-toggle="collapse" data-target=".method_addBagWarning .collapse" title="private">
+<h2>Utility function to add bag error.</h2>
+<pre>addBagWarning(string $filename, string $message) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filename</h4>
+<code>string</code><p>The file the error was detected in.</p></div>
+<div class="subelement argument">
+<h4>$message</h4>
+<code>string</code><p>The message.</p></div>
+</div></div>
+</div>
+<a id="method_arrayKeyExistsNoCase"></a><div class="element clickable method private method_arrayKeyExistsNoCase " data-toggle="collapse" data-target=".method_arrayKeyExistsNoCase .collapse" title="private">
+<h2>Case-insensitive version of array_key_exists</h2>
+<pre>arrayKeyExistsNoCase(string $search, string|integer $key, array $map) : boolean</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$search</h4>
+<code>string</code><p>The key to look for.</p></div>
+<div class="subelement argument">
+<h4>$key</h4>
+<code>string</code><code>integer</code><p>The associative or numeric key to look in.</p></div>
+<div class="subelement argument">
+<h4>$map</h4>
+<code>array</code><p>The associative array to search.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>True if the key exists regardless of case.</div>
+</div></div>
+</div>
+<a id="method_bagInfoTagExists"></a><div class="element clickable method private method_bagInfoTagExists " data-toggle="collapse" data-target=".method_bagInfoTagExists .collapse" title="private">
+<h2>Internal case insensitive search of bag info.</h2>
+<pre>bagInfoTagExists(string $internal_tag) : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$internal_tag</h4>
+<code>string</code><p>Trimmed and lowercase tag.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>Does it exist in the index.</div>
+</div></div>
+</div>
+<a id="method_calculateOxum"></a><div class="element clickable method private method_calculateOxum " data-toggle="collapse" data-target=".method_calculateOxum .collapse" title="private">
+<h2>Calculate the payload-oxum value for all payload files.</h2>
+<pre>calculateOxum() : string | null</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code><code>null</code>The payload-oxum or null if we couldn't read all the file sizes.</div>
+</div></div>
+</div>
+<a id="method_clearFilesOfPattern"></a><div class="element clickable method private method_clearFilesOfPattern " data-toggle="collapse" data-target=".method_clearFilesOfPattern .collapse" title="private">
+<h2>Utility to remove files using a pattern.</h2>
+<pre>clearFilesOfPattern(string $filePattern) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filePattern</h4>
+<code>string</code><p>The file pattern.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems deleting files.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_clearPayloadManifests"></a><div class="element clickable method private method_clearPayloadManifests " data-toggle="collapse" data-target=".method_clearPayloadManifests .collapse" title="private">
+<h2>Remove all manifest files.</h2>
+<pre>clearPayloadManifests() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Errors with glob() pattern.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_clearTagManifests"></a><div class="element clickable method private method_clearTagManifests " data-toggle="collapse" data-target=".method_clearTagManifests .collapse" title="private">
+<h2>Remove all tagmanifest files.</h2>
+<pre>clearTagManifests() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Errors with glob() pattern.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_compareVersion"></a><div class="element clickable method private method_compareVersion " data-toggle="collapse" data-target=".method_compareVersion .collapse" title="private">
+<h2>Compare the provided version against the current one.</h2>
+<pre>compareVersion(string $version) : integer</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$version</h4>
+<code>string</code><p>The version to compare against.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>integer</code>returns -1 $version < current, 0  $version == current, and 1 $version > current.</div>
+</div></div>
+</div>
+<a id="method_createNewBag"></a><div class="element clickable method private method_createNewBag " data-toggle="collapse" data-target=".method_createNewBag .collapse" title="private">
+<h2>Create a new bag and output the default parts.</h2>
+<pre>createNewBag() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_determineHashFromFilename"></a><div class="element clickable method private method_determineHashFromFilename " data-toggle="collapse" data-target=".method_determineHashFromFilename .collapse" title="private">
+<h2>Parse manifest/tagmanifest file names to determine hash algorithm.</h2>
+<pre>determineHashFromFilename(string $filepath) : string | null</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>the filename.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code><code>null</code>the hash or null.</div>
+</div></div>
+</div>
+<a id="method_ensureTagManifests"></a><div class="element clickable method private method_ensureTagManifests " data-toggle="collapse" data-target=".method_ensureTagManifests .collapse" title="private">
+<h2>Utility to setup tag manifests.</h2>
+<pre>ensureTagManifests() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_extensionTarCompression"></a><div class="element clickable method private method_extensionTarCompression " data-toggle="collapse" data-target=".method_extensionTarCompression .collapse" title="private">
+<h2>Determine the correct compression (if any) from the extension.</h2>
+<pre>extensionTarCompression(string $extension) : string | null</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$extension</h4>
+<code>string</code><p>The extension.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code><code>null</code>The compression string or null for no compression.</div>
+</div></div>
+</div>
+<a id="method_extractDir"></a><div class="element clickable method private method_extractDir " data-toggle="collapse" data-target=".method_extractDir .collapse" title="private">
+<h2>Generate a temporary directory name.</h2>
+<pre>extractDir() : string</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The path to a new temporary directory.</div>
+</div></div>
+</div>
+<a id="method_filterPhpHashAlgorithms"></a><div class="element clickable method private method_filterPhpHashAlgorithms " data-toggle="collapse" data-target=".method_filterPhpHashAlgorithms .collapse" title="private">
+<h2>Check if the algorithm PHP has is allowed by the specification.</h2>
+<pre>filterPhpHashAlgorithms(string $item) : boolean</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$item</h4>
+<code>string</code><p>A hash algorithm name.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>True if allowed by the specification.</div>
+</div></div>
+</div>
+<a id="method_getDirectory"></a><div class="element clickable method private method_getDirectory " data-toggle="collapse" data-target=".method_getDirectory .collapse" title="private">
+<h2>Locate the extracted bag directory from inside our temporary directory.</h2>
+<pre>getDirectory(string $filepath) : string</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>The temporary directory.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Find more or less than one directory (not including . and ..)</td>
+</tr></table>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The bag directory.</div>
+</div></div>
+</div>
+<a id="method_getExtensions"></a><div class="element clickable method private method_getExtensions " data-toggle="collapse" data-target=".method_getExtensions .collapse" title="private">
+<h2>Get the file extension from a full path.</h2>
+<pre>getExtensions(string $filepath) : string</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>The full file path.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The extension or an empty string.</div>
+</div></div>
+</div>
+<a id="method_getHashName"></a><div class="element clickable method private method_getHashName " data-toggle="collapse" data-target=".method_getHashName .collapse" title="private">
+<h2>Return the BagIt sanitized algorithm name.</h2>
+<pre>getHashName(string $algorithm) : string | null</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$algorithm</h4>
+<code>string</code><p>A algorithm name</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code><code>null</code>The sanitized version of algorithm or null if invalid.</div>
+</div></div>
+</div>
+<a id="method_getParentDir"></a><div class="element clickable method private method_getParentDir " data-toggle="collapse" data-target=".method_getParentDir .collapse" title="private">
+<h2>Get the parent directory of the current Bag.</h2>
+<pre>getParentDir() : string</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The parent directory.</div>
+</div></div>
+</div>
+<a id="method_hasHash"></a><div class="element clickable method private method_hasHash " data-toggle="collapse" data-target=".method_hasHash .collapse" title="private">
+<h2>Do we have a payload manifest with this internal hash name. Internal use only to avoid getHashName()</h2>
+<pre>hasHash(string $internal_name) : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$internal_name</h4>
+<code>string</code><p>Internal name from getHashName.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>Already have this algorithm.</div>
+</div></div>
+</div>
+<a id="method_hashIsSupported"></a><div class="element clickable method private method_hashIsSupported " data-toggle="collapse" data-target=".method_hashIsSupported .collapse" title="private">
+<h2>Is the internal named hash supported by our PHP. Internal use only to avoid getHashName()</h2>
+<pre>hashIsSupported(string $internal_name) : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$internal_name</h4>
+<code>string</code><p>Output of getHashName</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>Do we support the algorithm</div>
+</div></div>
+</div>
+<a id="method_internalPath"></a><div class="element clickable method private method_internalPath " data-toggle="collapse" data-target=".method_internalPath .collapse" title="private">
+<h2>Convert paths from using the OS directory separator to using /.</h2>
+<pre>internalPath(string $path) : string</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$path</h4>
+<code>string</code><p>The external path.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The modified path.</div>
+</div></div>
+</div>
+<a id="method_isCompressed"></a><div class="element clickable method private method_isCompressed " data-toggle="collapse" data-target=".method_isCompressed .collapse" title="private">
+<h2>Test a filepath to see if we think it is compressed.</h2>
+<pre>isCompressed(string $filepath) : boolean</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>The full path</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>True if compressed file (we support).</div>
+</div></div>
+</div>
+<a id="method_loadBag"></a><div class="element clickable method private method_loadBag " data-toggle="collapse" data-target=".method_loadBag .collapse" title="private">
+<h2>Load a bag from disk.</h2>
+<pre>loadBag() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>If a file cannot be read.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_loadBagInfo"></a><div class="element clickable method private method_loadBagInfo " data-toggle="collapse" data-target=".method_loadBagInfo .collapse" title="private">
+<h2>Read in the bag-info.txt file.</h2>
+<pre>loadBagInfo() : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Unable to read bag-info.txt</td>
+</tr></table>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>Does bag-info.txt exists.</div>
+</div></div>
+</div>
+<a id="method_loadBagIt"></a><div class="element clickable method private method_loadBagIt " data-toggle="collapse" data-target=".method_loadBagIt .collapse" title="private">
+<h2>Load the bagit.txt on disk.</h2>
+<pre>loadBagIt() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Can't read the file on disk.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_loadFetch"></a><div class="element clickable method private method_loadFetch " data-toggle="collapse" data-target=".method_loadFetch .collapse" title="private">
+<h2>Load a fetch.txt if it exists.</h2>
+<pre>loadFetch() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_loadPayloadManifests"></a><div class="element clickable method private method_loadPayloadManifests " data-toggle="collapse" data-target=".method_loadPayloadManifests .collapse" title="private">
+<h2>Load all payload manifests found on disk.</h2>
+<pre>loadPayloadManifests() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems with glob() pattern or loading manifest.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_loadTagManifests"></a><div class="element clickable method private method_loadTagManifests " data-toggle="collapse" data-target=".method_loadTagManifests .collapse" title="private">
+<h2>Load all tag manifests (if any).</h2>
+<pre>loadTagManifests() : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems with glob() pattern or loading manifest.</td>
+</tr></table>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>Are there any tag manifest files.</div>
+</div></div>
+</div>
+<a id="method_makePackage"></a><div class="element clickable method private method_makePackage " data-toggle="collapse" data-target=".method_makePackage .collapse" title="private">
+<h2>Create an archive file of the current bag.</h2>
+<pre>makePackage(string $filename) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filename</h4>
+<code>string</code><p>The archive filename.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems creating the archive.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_makeTar"></a><div class="element clickable method private method_makeTar " data-toggle="collapse" data-target=".method_makeTar .collapse" title="private">
+<h2>Create a Tar archive.</h2>
+<pre>makeTar(string $filename) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filename</h4>
+<code>string</code><p>The archive filename.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems creating the archive.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_makeZip"></a><div class="element clickable method private method_makeZip " data-toggle="collapse" data-target=".method_makeZip .collapse" title="private">
+<h2>Create a Zip archive.</h2>
+<pre>makeZip(string $filename) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filename</h4>
+<code>string</code><p>The archive filename.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems creating the archive.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_mergeErrors"></a><div class="element clickable method private method_mergeErrors " data-toggle="collapse" data-target=".method_mergeErrors .collapse" title="private">
+<h2>Utility to merge manifest and fetch errors into the bag errors.</h2>
+<pre>mergeErrors(array $newErrors) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$newErrors</h4>
+<code>array</code><p>The new errors to be added.</p></div>
+</div></div>
+</div>
+<a id="method_mergeWarnings"></a><div class="element clickable method private method_mergeWarnings " data-toggle="collapse" data-target=".method_mergeWarnings .collapse" title="private">
+<h2>Utility to merge manifest and fetch warnings into the bag warnings.</h2>
+<pre>mergeWarnings(array $newWarnings) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$newWarnings</h4>
+<code>array</code><p>The new warnings to be added.</p></div>
+</div></div>
+</div>
+<a id="method_mustNotRepeatBagInfoExists"></a><div class="element clickable method private method_mustNotRepeatBagInfoExists " data-toggle="collapse" data-target=".method_mustNotRepeatBagInfoExists .collapse" title="private">
+<h2>Check that the key is not non-repeatable and already in the bagInfo.</h2>
+<pre>mustNotRepeatBagInfoExists(string $key) : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$key</h4>
+<code>string</code><p>The key being added.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>True if the key is non-repeatable and already in the</div>
+</div></div>
+</div>
+<a id="method_normalizeHashAlgorithmName"></a><div class="element clickable method private method_normalizeHashAlgorithmName " data-toggle="collapse" data-target=".method_normalizeHashAlgorithmName .collapse" title="private">
+<h2>Normalize a PHP hash algorithm to a BagIt specification name. Used to alter the incoming $item.</h2>
+<pre>normalizeHashAlgorithmName(string $item) </pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$item</h4>
+<code>string</code><p>The hash algorithm name.</p></div>
+</div></div>
+</div>
+<a id="method_removeAllPayloadManifests"></a><div class="element clickable method private method_removeAllPayloadManifests " data-toggle="collapse" data-target=".method_removeAllPayloadManifests .collapse" title="private">
+<h2>Remove payload manifests.</h2>
+<pre>removeAllPayloadManifests(array $exclusions<code> = array()</code>) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$exclusions</h4>
+<code>array</code><p>Hash algorithm names of manifests to preserve.</p></div>
+</div></div>
+</div>
+<a id="method_removeAllTagManifests"></a><div class="element clickable method private method_removeAllTagManifests " data-toggle="collapse" data-target=".method_removeAllTagManifests .collapse" title="private">
+<h2>Remove tag manifests.</h2>
+<pre>removeAllTagManifests(array $exclusions<code> = array()</code>) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$exclusions</h4>
+<code>array</code><p>Hash algorithm names of manifests to preserve.</p></div>
+</div></div>
+</div>
+<a id="method_removeBagInfo"></a><div class="element clickable method private method_removeBagInfo " data-toggle="collapse" data-target=".method_removeBagInfo .collapse" title="private">
+<h2>Remove the bag-info.txt file and data.</h2>
+<pre>removeBagInfo() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_removePayloadManifest"></a><div class="element clickable method private method_removePayloadManifest " data-toggle="collapse" data-target=".method_removePayloadManifest .collapse" title="private">
+<h2>Remove a single payload manifest.</h2>
+<pre>removePayloadManifest(string $internal_name) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$internal_name</h4>
+<code>string</code><p>The hash name to remove.</p></div>
+</div></div>
+</div>
+<a id="method_removeTagManifest"></a><div class="element clickable method private method_removeTagManifest " data-toggle="collapse" data-target=".method_removeTagManifest .collapse" title="private">
+<h2>Remove a single tag manifest.</h2>
+<pre>removeTagManifest(string $internal_name) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$internal_name</h4>
+<code>string</code><p>The hash name to remove.</p></div>
+</div></div>
+</div>
+<a id="method_reservedFilename"></a><div class="element clickable method private method_reservedFilename " data-toggle="collapse" data-target=".method_reservedFilename .collapse" title="private">
+<h2>Is the requested destination filename reserved on Windows?</h2>
+<pre>reservedFilename(string $filepath) : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>The relative filepath.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>True if a reserved filename.</div>
+</div></div>
+</div>
+<a id="method_shouldNotRepeatBagInfoExists"></a><div class="element clickable method private method_shouldNotRepeatBagInfoExists " data-toggle="collapse" data-target=".method_shouldNotRepeatBagInfoExists .collapse" title="private">
+<h2>Check that the key is not non-repeatable and already in the bagInfo.</h2>
+<pre>shouldNotRepeatBagInfoExists(string $key) : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$key</h4>
+<code>string</code><p>The key being added.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>True if the key is non-repeatable and already in the</div>
+</div></div>
+</div>
+<a id="method_trimLower"></a><div class="element clickable method private method_trimLower " data-toggle="collapse" data-target=".method_trimLower .collapse" title="private">
+<h2>Return a trimmed and lowercase version of text.</h2>
+<pre>trimLower(string $text) : string</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$text</h4>
+<code>string</code><p>The original text.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The lowercase trimmed text.</div>
+</div></div>
+</div>
+<a id="method_uncompressBag"></a><div class="element clickable method private method_uncompressBag " data-toggle="collapse" data-target=".method_uncompressBag .collapse" title="private">
+<h2>Uncompress a BagIt archive file.</h2>
+<pre>uncompressBag(string $filepath) : string</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>The full path to the archive file.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems accessing/extracting the archive file.</td>
+</tr></table>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The full path to extracted bag.</div>
+</div></div>
+</div>
+<a id="method_untarBag"></a><div class="element clickable method private method_untarBag " data-toggle="collapse" data-target=".method_untarBag .collapse" title="private">
+<h2>Untar a tar file.</h2>
+<pre>untarBag(string $filename, string $extension) : string</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filename</h4>
+<code>string</code><p>The fullpath to the tar file.</p></div>
+<div class="subelement argument">
+<h4>$extension</h4>
+<code>string</code><p>The extension pulled from the filename.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems extracting the zip file.</td>
+</tr></table>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The path the archive file was extracted to.</div>
+</div></div>
+</div>
+<a id="method_unzipBag"></a><div class="element clickable method private method_unzipBag " data-toggle="collapse" data-target=".method_unzipBag .collapse" title="private">
+<h2>Unzip a zip file.</h2>
+<pre>unzipBag(string $filename) : string</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filename</h4>
+<code>string</code><p>The full path to the zip file.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Problems extracting the zip file.</td>
+</tr></table>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The path the archive file was extracted to.</div>
+</div></div>
+</div>
+<a id="method_updateBagInfo"></a><div class="element clickable method private method_updateBagInfo " data-toggle="collapse" data-target=".method_updateBagInfo .collapse" title="private">
+<h2>Write the contents of the bag-info array to disk.</h2>
+<pre>updateBagInfo() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Can't write the file to disk.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_updateBagInfoIndex"></a><div class="element clickable method private method_updateBagInfoIndex " data-toggle="collapse" data-target=".method_updateBagInfoIndex .collapse" title="private">
+<h2>Generate a faster index of Bag-Info tags.</h2>
+<pre>updateBagInfoIndex() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_updateBagIt"></a><div class="element clickable method private method_updateBagIt " data-toggle="collapse" data-target=".method_updateBagIt .collapse" title="private">
+<h2>Update the bagit.txt on disk.</h2>
+<pre>updateBagIt() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_updateCalculateBagInfoFields"></a><div class="element clickable method private method_updateCalculateBagInfoFields " data-toggle="collapse" data-target=".method_updateCalculateBagInfoFields .collapse" title="private">
+<h2>Update the calculated bag-info fields</h2>
+<pre>updateCalculateBagInfoFields() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_updateFetch"></a><div class="element clickable method private method_updateFetch " data-toggle="collapse" data-target=".method_updateFetch .collapse" title="private">
+<h2>Update a fetch.txt if it exists.</h2>
+<pre>updateFetch() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td></td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_updatePayloadManifests"></a><div class="element clickable method private method_updatePayloadManifests " data-toggle="collapse" data-target=".method_updatePayloadManifests .collapse" title="private">
+<h2>Run update against the payload manifests.</h2>
+<pre>updatePayloadManifests() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_updateTagManifests"></a><div class="element clickable method private method_updateTagManifests " data-toggle="collapse" data-target=".method_updateTagManifests .collapse" title="private">
+<h2>Run update against the tag manifests.</h2>
+<pre>updateTagManifests() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_wrapAtLength"></a><div class="element clickable method private method_wrapAtLength " data-toggle="collapse" data-target=".method_wrapAtLength .collapse" title="private">
+<h2>Utility to remove newline characters, wrap the string and return an array of the rows.</h2>
+<pre>wrapAtLength(string $text, integer $length) : array</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$text</h4>
+<code>string</code><p>The text to wrap.</p></div>
+<div class="subelement argument">
+<h4>$length</h4>
+<code>integer</code><p>The length to wrap at.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>Rows of text.</div>
+</div></div>
+</div>
+<a id="method_wrapBagInfoText"></a><div class="element clickable method private method_wrapBagInfoText " data-toggle="collapse" data-target=".method_wrapBagInfoText .collapse" title="private">
+<h2>Wrap bagInfo lines to 79 characters if possible</h2>
+<pre>wrapBagInfoText(string $text) : array</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$text</h4>
+<code>string</code><p>The whole tag and value as one.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>The text as an array.</div>
+</div></div>
+</div>
+<h3>
+<i title="Properties" class="icon-custom icon-property"></i> Properties</h3>
+<a id="property_bagErrors"> </a><div class="element clickable property private property_bagErrors" data-toggle="collapse" data-target=".property_bagErrors .collapse" title="private">
+<h2>Errors when validating a bag.</h2>
+<pre>$bagErrors : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_bagInfoData"> </a><div class="element clickable property private property_bagInfoData" data-toggle="collapse" data-target=".property_bagInfoData .collapse" title="private">
+<h2>Bag Info data.</h2>
+<pre>$bagInfoData : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"><code>array()</code></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_bagInfoTagIndex"> </a><div class="element clickable property private property_bagInfoTagIndex" data-toggle="collapse" data-target=".property_bagInfoTagIndex .collapse" title="private">
+<h2>Unique array of all Bag info tags/values. Tags are stored once in lower case with an array of all instances
+of values. This index does not save order.</h2>
+<pre>$bagInfoTagIndex : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"><code>array()</code></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_bagRoot"> </a><div class="element clickable property private property_bagRoot" data-toggle="collapse" data-target=".property_bagRoot .collapse" title="private">
+<h2>The absolute path to the root of the bag, all other file paths are
+relative to this. This path is stored with / as directory separator
+regardless of the OS.</h2>
+<pre>$bagRoot : string</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_bagWarnings"> </a><div class="element clickable property private property_bagWarnings" data-toggle="collapse" data-target=".property_bagWarnings .collapse" title="private">
+<h2>Warnings when validating a bag.</h2>
+<pre>$bagWarnings : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_changed"> </a><div class="element clickable property private property_changed" data-toggle="collapse" data-target=".property_changed .collapse" title="private">
+<h2>Have we changed the bag and not written it to disk?</h2>
+<pre>$changed : boolean</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"><code>false</code></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_currentFileEncoding"> </a><div class="element clickable property private property_currentFileEncoding" data-toggle="collapse" data-target=".property_currentFileEncoding .collapse" title="private">
+<h2>Current bag file encoding.</h2>
+<pre>$currentFileEncoding : string</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_currentVersion"> </a><div class="element clickable property private property_currentVersion" data-toggle="collapse" data-target=".property_currentVersion .collapse" title="private">
+<h2>Array of current bag version with keys 'major' and 'minor'.</h2>
+<pre>$currentVersion : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_fetchFile"> </a><div class="element clickable property private property_fetchFile" data-toggle="collapse" data-target=".property_fetchFile .collapse" title="private">
+<h2>Reference to a Fetch file or null if not used.</h2>
+<pre>$fetchFile : \whikloj\BagItTools\Fetch</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"><code>null</code></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_isExtended"> </a><div class="element clickable property private property_isExtended" data-toggle="collapse" data-target=".property_isExtended .collapse" title="private">
+<h2>Is this an extended bag?</h2>
+<pre>$isExtended : boolean</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_loaded"> </a><div class="element clickable property private property_loaded" data-toggle="collapse" data-target=".property_loaded .collapse" title="private">
+<h2>Did we load this from disk.</h2>
+<pre>$loaded : boolean</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"><code>false</code></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_packageExtensions"> </a><div class="element clickable property private property_packageExtensions" data-toggle="collapse" data-target=".property_packageExtensions .collapse" title="private">
+<h2>All the extensions in one array.</h2>
+<pre>$packageExtensions : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_payloadFiles"> </a><div class="element clickable property private property_payloadFiles" data-toggle="collapse" data-target=".property_payloadFiles .collapse" title="private">
+<h2>List of relative file paths for all files.</h2>
+<pre>$payloadFiles : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_payloadManifests"> </a><div class="element clickable property private property_payloadManifests" data-toggle="collapse" data-target=".property_payloadManifests .collapse" title="private">
+<h2>Array of payload manifests.</h2>
+<pre>$payloadManifests : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_tagManifests"> </a><div class="element clickable property private property_tagManifests" data-toggle="collapse" data-target=".property_tagManifests .collapse" title="private">
+<h2>Array of tag manifests.</h2>
+<pre>$tagManifests : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_validHashAlgorithms"> </a><div class="element clickable property private property_validHashAlgorithms" data-toggle="collapse" data-target=".property_validHashAlgorithms .collapse" title="private">
+<h2>The valid algorithms from the current version of PHP filtered to those
+supported by the BagIt specification. Stored to avoid extraneous calls
+to hash_algos().</h2>
+<pre>$validHashAlgorithms : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<h3>
+<i title="Constants" class="icon-custom icon-constant"></i> Constants</h3>
+<a id="constant_BAG_INFO_GENERATED_ELEMENTS"> </a><div class="element clickable constant  constant_BAG_INFO_GENERATED_ELEMENTS" data-toggle="collapse" data-target=".constant_BAG_INFO_GENERATED_ELEMENTS .collapse" title="">
+<h2>Fields you can't set because we generate them on $bag-&gt;update().</h2>
+<pre>BAG_INFO_GENERATED_ELEMENTS = array('payload-oxum', 'bagging-date') </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="constant_BAG_INFO_MUST_NOT_REPEAT"> </a><div class="element clickable constant  constant_BAG_INFO_MUST_NOT_REPEAT" data-toggle="collapse" data-target=".constant_BAG_INFO_MUST_NOT_REPEAT .collapse" title="">
+<h2>Bag-info fields that MUST not be repeated.</h2>
+<pre>BAG_INFO_MUST_NOT_REPEAT = array('payload-oxum') </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="constant_BAG_INFO_RESERVED_ELEMENTS"> </a><div class="element clickable constant  constant_BAG_INFO_RESERVED_ELEMENTS" data-toggle="collapse" data-target=".constant_BAG_INFO_RESERVED_ELEMENTS .collapse" title="">
+<h2>Reserved element names for Bag-info fields.</h2>
+<pre>BAG_INFO_RESERVED_ELEMENTS = array('source-organization', 'organization-address', 'contact-name', 'contact-phone', 'contact-email', 'external-description', 'bagging-date', 'external-identifier', 'payload-oxum', 'bag-size', 'bag-group-identifier', 'bag-count', 'internal-sender-identifier', 'internal-sender-description') </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="constant_BAG_INFO_SHOULD_NOT_REPEAT"> </a><div class="element clickable constant  constant_BAG_INFO_SHOULD_NOT_REPEAT" data-toggle="collapse" data-target=".constant_BAG_INFO_SHOULD_NOT_REPEAT .collapse" title="">
+<h2>Bag-info fields that SHOULD NOT be repeated.</h2>
+<pre>BAG_INFO_SHOULD_NOT_REPEAT = array('bagging-date', 'bag-size', 'bag-group-identifer', 'bag-count') </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="constant_DEFAULT_BAGIT_VERSION"> </a><div class="element clickable constant  constant_DEFAULT_BAGIT_VERSION" data-toggle="collapse" data-target=".constant_DEFAULT_BAGIT_VERSION .collapse" title="">
+<h2>The default bagit version.</h2>
+<pre>DEFAULT_BAGIT_VERSION = array('major' =&gt; 1, 'minor' =&gt; 0) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="constant_DEFAULT_FILE_ENCODING"> </a><div class="element clickable constant  constant_DEFAULT_FILE_ENCODING" data-toggle="collapse" data-target=".constant_DEFAULT_FILE_ENCODING .collapse" title="">
+<h2>The default file encoding if one is not specified.</h2>
+<pre>DEFAULT_FILE_ENCODING = 'UTF-8' </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="constant_DEFAULT_HASH_ALGORITHM"> </a><div class="element clickable constant  constant_DEFAULT_HASH_ALGORITHM" data-toggle="collapse" data-target=".constant_DEFAULT_HASH_ALGORITHM .collapse" title="">
+<h2>The default algorithm to use if one is not specified.</h2>
+<pre>DEFAULT_HASH_ALGORITHM = 'sha512' </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="constant_HASH_ALGORITHMS"> </a><div class="element clickable constant  constant_HASH_ALGORITHMS" data-toggle="collapse" data-target=".constant_HASH_ALGORITHMS .collapse" title="">
+<h2>Array of BagIt approved names of hash algorithms to the PHP names of
+those hash algorithms for use with hash_file().</h2>
+<pre>HASH_ALGORITHMS = array('md5' =&gt; 'md5', 'sha1' =&gt; 'sha1', 'sha224' =&gt; 'sha224', 'sha256' =&gt; 'sha256', 'sha384' =&gt; 'sha384', 'sha512' =&gt; 'sha512', 'sha3224' =&gt; 'sha3-224', 'sha3256' =&gt; 'sha3-256', 'sha3384' =&gt; 'sha3-384', 'sha3512' =&gt; 'sha3-512') : array</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<table class="table table-bordered"><tr>
+<th>see</th>
+<td><a href="https://tools.ietf.org/html/rfc8493#section-2.4"></a></td>
+</tr></table>
+</div></div>
+</div>
+<a id="constant_TAR_EXTENSIONS"> </a><div class="element clickable constant  constant_TAR_EXTENSIONS" data-toggle="collapse" data-target=".constant_TAR_EXTENSIONS .collapse" title="">
+<h2>Extensions which map to a tar file.</h2>
+<pre>TAR_EXTENSIONS = array('tar', 'tgz', 'tar.gz', 'tar.bz2') </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="constant_WINDOWS_PATH_CHARACTERS"> </a><div class="element clickable constant  constant_WINDOWS_PATH_CHARACTERS" data-toggle="collapse" data-target=".constant_WINDOWS_PATH_CHARACTERS .collapse" title="">
+<h2>WINDOWS_PATH_CHARACTERS</h2>
+<pre>WINDOWS_PATH_CHARACTERS = array('&lt;', '&gt;', ':', '"', '/', '|', '?', '*') </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="constant_WINDOWS_RESERVED_NAMES"> </a><div class="element clickable constant  constant_WINDOWS_RESERVED_NAMES" data-toggle="collapse" data-target=".constant_WINDOWS_RESERVED_NAMES .collapse" title="">
+<h2>File names that are not allowed on windows, should be disallowed in bags for interoperability.</h2>
+<pre>WINDOWS_RESERVED_NAMES = array('CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9') </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="constant_ZIP_EXTENSIONS"> </a><div class="element clickable constant  constant_ZIP_EXTENSIONS" data-toggle="collapse" data-target=".constant_ZIP_EXTENSIONS .collapse" title="">
+<h2>Extensions which map to a zip file.</h2>
+<pre>ZIP_EXTENSIONS = array('zip') </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="row"><footer class="span12">
+            Template is built using <a href="http://twitter.github.com/bootstrap/">Twitter Bootstrap 2</a> and icons provided by <a href="http://glyphicons.com/">Glyphicons</a>.<br>
+            Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor 2.8.5</a> and<br>
+            generated on 2019-12-17T15:33:53-06:00.<br></footer></div>
+</div>
+</body>
+</html>

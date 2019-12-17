@@ -1,0 +1,266 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+<meta charset="utf-8">
+<title>BagItTools » \whikloj\BagItTools\BagUtils</title>
+<meta name="author" content="Mike van Riel">
+<meta name="description" content="">
+<link href="../css/template.css" rel="stylesheet" media="all">
+<script src="../js/jquery-1.7.1.min.js" type="text/javascript"></script><script src="../js/jquery-ui-1.8.2.custom.min.js" type="text/javascript"></script><script src="../js/jquery.mousewheel.min.js" type="text/javascript"></script><script src="../js/bootstrap.js" type="text/javascript"></script><script src="../js/template.js" type="text/javascript"></script><script src="../js/prettify/prettify.min.js" type="text/javascript"></script><link rel="shortcut icon" href="../img/favicon.ico">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="72x72" href="../img/apple-touch-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="114x114" href="../img/apple-touch-icon-114x114.png">
+</head>
+<body>
+<div class="navbar navbar-fixed-top">
+<div class="navbar-inner"><div class="container">
+<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a><a class="brand" href="../index.html">BagItTools</a><div class="nav-collapse"><ul class="nav">
+<li class="dropdown">
+<a href="#api" class="dropdown-toggle" data-toggle="dropdown">
+                                    API Documentation <b class="caret"></b></a><ul class="dropdown-menu">
+<li><a>Namespaces</a></li>
+<li><a href="../namespaces/global.html"><i class="icon-th"></i> global</a></li>
+<li><a href="../namespaces/whikloj.html"><i class="icon-th"></i> whikloj</a></li>
+<li><a>Packages</a></li>
+<li><a href="../packages/Default.html"><i class="icon-folder-open"></i> Default</a></li>
+<li><a href="../packages/whikloj.html"><i class="icon-folder-open"></i> whikloj</a></li>
+</ul>
+</li>
+<li class="dropdown" id="charts-menu">
+<a href="#charts" class="dropdown-toggle" data-toggle="dropdown">
+                                    Charts <b class="caret"></b></a><ul class="dropdown-menu"><li><a href="../graph_class.html"><i class="icon-list-alt"></i> Class hierarchy diagram</a></li></ul>
+</li>
+<li class="dropdown" id="reports-menu">
+<a href="#reports" class="dropdown-toggle" data-toggle="dropdown">
+                                    Reports <b class="caret"></b></a><ul class="dropdown-menu">
+<li><a href="../errors.html"><i class="icon-remove-sign"></i> Errors 
+                <span class="label label-info">7</span></a></li>
+<li><a href="../markers.html"><i class="icon-map-marker"></i> Markers 
+                <ul></ul></a></li>
+<li><a href="../deprecated.html"><i class="icon-stop"></i> Deprecated elements 
+                <span class="label label-info">0</span></a></li>
+</ul>
+</li>
+</ul></div>
+</div></div>
+<div class="go_to_top"><a href="#___" style="color: inherit">Back to top  <i class="icon-upload icon-white"></i></a></div>
+</div>
+<div id="___" class="container">
+<noscript><div class="alert alert-warning">
+                            Javascript is disabled; several features are only available
+                            if Javascript is enabled.
+                        </div></noscript>
+<div class="row">
+<div class="span4">
+<div xmlns:php="http://php.net/xsl" class="btn-toolbar">
+<div class="btn-group visibility" data-toggle="buttons-checkbox">
+<button class="btn public active" title="Show public elements">Public</button><button class="btn protected" title="Show protected elements">Protected</button><button class="btn private" title="Show private elements">Private</button><button class="btn inherited active" title="Show inherited elements">Inherited</button>
+</div>
+<div class="btn-group view pull-right" data-toggle="buttons-radio">
+<button class="btn details" title="Show descriptions and method names"><i class="icon-list"></i></button><button class="btn simple" title="Show only method names"><i class="icon-align-justify"></i></button>
+</div>
+</div>
+<ul xmlns:php="http://php.net/xsl" class="side-nav nav nav-list">
+<li class="nav-header">
+<i title="Methods" class="icon-custom icon-method"></i> Methods
+                    <ul>
+<li class="method public "><a href="#method_baseInData" title="baseInData() :: Rebase the path in the data directory as payloads only deal in there."><span class="description">Rebase the path in the data directory as payloads only deal in there.</span><pre>baseInData()</pre></a></li>
+<li class="method public "><a href="#method_findAllByPattern" title="findAllByPattern() :: Return all files that match the pattern, or an empty array."><span class="description">Return all files that match the pattern, or an empty array.</span><pre>findAllByPattern()</pre></a></li>
+<li class="method public "><a href="#method_getAbsolute" title="getAbsolute() :: There is a method that deal with Sven Arduwie proposal https://www.php.net/manual/en/function.realpath.php#84012
+And runeimp at gmail dot com proposal https://www.php.net/manual/en/function.realpath.php#112367"><span class="description">There is a method that deal with Sven Arduwie proposal https://www.php.net/manual/en/function.realpath.php#84012
+And runeimp at gmail dot com proposal https://www.php.net/manual/en/function.realpath.php#112367</span><pre>getAbsolute()</pre></a></li>
+<li class="method public "><a href="#method_getAllFiles" title="getAllFiles() :: Recursively list all files in a directory, except dot files."><span class="description">Recursively list all files in a directory, except dot files.</span><pre>getAllFiles()</pre></a></li>
+<li class="method public "><a href="#method_getValidCharset" title="getValidCharset() :: Check the provided lower case name of a character set against our list. If we have it, return the proper MIME
+name."><span class="description">Check the provided lower case name of a character set against our list. If we have it, return the proper MIME
+name.</span><pre>getValidCharset()</pre></a></li>
+<li class="method public "><a href="#method_invalidPathCharacters" title="invalidPathCharacters() :: Paths for new and existing files should not have these conditions."><span class="description">Paths for new and existing files should not have these conditions.</span><pre>invalidPathCharacters()</pre></a></li>
+<li class="method public "><a href="#method_isDotDir" title="isDotDir() :: Utility to test a filename as . or ."><span class="description">Utility to test a filename as . or .</span><pre>isDotDir()</pre></a></li>
+</ul>
+</li>
+<li class="nav-header private">» Private
+                    <ul><li class="method private "><a href="#method___construct" title="__construct() :: BagUtils constructor."><span class="description">BagUtils constructor.</span><pre>__construct()</pre></a></li></ul>
+</li>
+<li class="nav-header">
+<i title="Constants" class="icon-custom icon-constant"></i> Constants
+                    <ul><li class="constant  "><a href="#constant_CHARACTER_SETS" title="CHARACTER_SETS() :: Valid character set MIME names from IANA."><span class="description">Valid character set MIME names from IANA.</span><pre>CHARACTER_SETS</pre></a></li></ul>
+</li>
+</ul>
+</div>
+<div class="span8">
+<a xmlns:php="http://php.net/xsl" id="\whikloj\BagItTools\BagUtils"></a><ul xmlns:php="http://php.net/xsl" class="breadcrumb">
+<li>
+<a href="../index.html"><i title="Classes" class="icon-custom icon-class"></i></a><span class="divider">\</span>
+</li>
+<li><a href="../namespaces/whikloj.html">whikloj</a></li>
+<li>
+<span class="divider">\</span><a href="../namespaces/whikloj.BagItTools.html">BagItTools</a>
+</li>
+<li class="active">
+<span class="divider">\</span><a href="../classes/whikloj.BagItTools.BagUtils.html">BagUtils</a>
+</li>
+</ul>
+<div xmlns:php="http://php.net/xsl" class="element class">
+<p class="short_description">Utility class to hold static functions.</p>
+<div class="details">
+<div class="long_description"></div>
+<table class="table table-bordered">
+<tr>
+<th>package</th>
+<td><a href="../packages/whikloj.BagItTools.html">whikloj\BagItTools</a></td>
+</tr>
+<tr>
+<th>author</th>
+<td><a href="">whikloj</a></td>
+</tr>
+<tr>
+<th>since</th>
+<td>1.0.0</td>
+</tr>
+</table>
+<h3>
+<i title="Methods" class="icon-custom icon-method"></i> Methods</h3>
+<a id="method_baseInData"></a><div class="element clickable method public method_baseInData " data-toggle="collapse" data-target=".method_baseInData .collapse" title="public">
+<h2>Rebase the path in the data directory as payloads only deal in there.</h2>
+<pre>baseInData(string $path) : string</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$path</h4>
+<code>string</code><p>The provided path.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The (possibly) rebased path.</div>
+</div></div>
+</div>
+<a id="method_findAllByPattern"></a><div class="element clickable method public method_findAllByPattern " data-toggle="collapse" data-target=".method_findAllByPattern .collapse" title="public">
+<h2>Return all files that match the pattern, or an empty array.</h2>
+<pre>findAllByPattern(string $pattern) : array</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$pattern</h4>
+<code>string</code><p>The pattern to search for.</p></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Error in matching pattern.</td>
+</tr></table>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>Array of matches.</div>
+</div></div>
+</div>
+<a id="method_getAbsolute"></a><div class="element clickable method public method_getAbsolute " data-toggle="collapse" data-target=".method_getAbsolute .collapse" title="public">
+<h2>There is a method that deal with Sven Arduwie proposal https://www.php.net/manual/en/function.realpath.php#84012
+And runeimp at gmail dot com proposal https://www.php.net/manual/en/function.realpath.php#112367</h2>
+<pre>getAbsolute(string $path) : string</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<table class="table table-bordered"><tr>
+<th>author</th>
+<td><a href="">moreau.marc.web@gmail.com</a></td>
+</tr></table>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$path</h4>
+<code>string</code>
+</div>
+<h3>Returns</h3>
+<div class="subelement response"><code>string</code></div>
+</div></div>
+</div>
+<a id="method_getAllFiles"></a><div class="element clickable method public method_getAllFiles " data-toggle="collapse" data-target=".method_getAllFiles .collapse" title="public">
+<h2>Recursively list all files in a directory, except dot files.</h2>
+<pre>getAllFiles(string $directory, array $exclusions<code> = array()</code>) : array</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$directory</h4>
+<code>string</code><p>The starting full path.</p></div>
+<div class="subelement argument">
+<h4>$exclusions</h4>
+<code>array</code><p>Array with directory names to skip.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>List of files with absolute path.</div>
+</div></div>
+</div>
+<a id="method_getValidCharset"></a><div class="element clickable method public method_getValidCharset " data-toggle="collapse" data-target=".method_getValidCharset .collapse" title="public">
+<h2>Check the provided lower case name of a character set against our list. If we have it, return the proper MIME
+name.</h2>
+<pre>getValidCharset(string $charset) : string | null</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$charset</h4>
+<code>string</code><p>The trimmed lowercase version of the character set MIME name.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code><code>null</code>The proper name or null if we don't have it.</div>
+</div></div>
+</div>
+<a id="method_invalidPathCharacters"></a><div class="element clickable method public method_invalidPathCharacters " data-toggle="collapse" data-target=".method_invalidPathCharacters .collapse" title="public">
+<h2>Paths for new and existing files should not have these conditions.</h2>
+<pre>invalidPathCharacters(string $path) : boolean</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$path</h4>
+<code>string</code><p>The relative path from an existing bag file or as a destination for a new file.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>True if invalid characters/character sequences exist.</div>
+</div></div>
+</div>
+<a id="method_isDotDir"></a><div class="element clickable method public method_isDotDir " data-toggle="collapse" data-target=".method_isDotDir .collapse" title="public">
+<h2>Utility to test a filename as . or .</h2>
+<pre>isDotDir(string $filename) : boolean</pre>
+<div class="labels"><span class="label">Static</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"><p>.</p></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filename</h4>
+<code>string</code><p>Basename of a file or directory.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>True if it is a dot directory name.</div>
+</div></div>
+</div>
+<a id="method___construct"></a><div class="element clickable method private method___construct " data-toggle="collapse" data-target=".method___construct .collapse" title="private">
+<h2>BagUtils constructor.</h2>
+<pre>__construct() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<h3>
+<i title="Constants" class="icon-custom icon-constant"></i> Constants</h3>
+<a id="constant_CHARACTER_SETS"> </a><div class="element clickable constant  constant_CHARACTER_SETS" data-toggle="collapse" data-target=".constant_CHARACTER_SETS .collapse" title="">
+<h2>Valid character set MIME names from IANA.</h2>
+<pre>CHARACTER_SETS = array("utf-8" =&gt; "UTF-8", "utf-16" =&gt; "UTF-16", "us-ascii" =&gt; "US-ASCII", "iso-8859-1" =&gt; "ISO-8859-1", "iso-8859-2" =&gt; "ISO-8859-2", "iso-8859-3" =&gt; "ISO-8859-3", "iso-8859-4" =&gt; "ISO-8859-4", "iso-8859-5" =&gt; "ISO-8859-5", "iso-8859-6" =&gt; "ISO-8859-6", "iso-8859-7" =&gt; "ISO-8859-7", "iso-8859-8" =&gt; "ISO-8859-8", "iso-8859-9" =&gt; "ISO-8859-9", "iso-8859-10" =&gt; "ISO-8859-10", "shift_jis" =&gt; "Shift_JIS", "euc-jp" =&gt; "EUC-JP", "iso-2022-kr" =&gt; "ISO-2022-KR", "euc-kr" =&gt; "EUC-KR", "iso-2022-jp" =&gt; "ISO-2022-JP", "iso-2022-jp-2" =&gt; "ISO-2022-JP-2", "iso-8859-6-e" =&gt; "ISO-8859-6-E", "iso-8859-6-i" =&gt; "ISO-8859-6-I", "iso-8859-8-e" =&gt; "ISO-8859-8-E", "iso-8859-8-i" =&gt; "ISO-8859-8-I", "gb2312" =&gt; "GB2312", "big5" =&gt; "Big5", "koi8-r" =&gt; "KOI8-R") </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="row"><footer class="span12">
+            Template is built using <a href="http://twitter.github.com/bootstrap/">Twitter Bootstrap 2</a> and icons provided by <a href="http://glyphicons.com/">Glyphicons</a>.<br>
+            Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor 2.8.5</a> and<br>
+            generated on 2019-12-17T15:33:53-06:00.<br></footer></div>
+</div>
+</body>
+</html>

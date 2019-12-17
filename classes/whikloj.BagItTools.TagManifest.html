@@ -1,0 +1,611 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+<meta charset="utf-8">
+<title>BagItTools » \whikloj\BagItTools\TagManifest</title>
+<meta name="author" content="Mike van Riel">
+<meta name="description" content="">
+<link href="../css/template.css" rel="stylesheet" media="all">
+<script src="../js/jquery-1.7.1.min.js" type="text/javascript"></script><script src="../js/jquery-ui-1.8.2.custom.min.js" type="text/javascript"></script><script src="../js/jquery.mousewheel.min.js" type="text/javascript"></script><script src="../js/bootstrap.js" type="text/javascript"></script><script src="../js/template.js" type="text/javascript"></script><script src="../js/prettify/prettify.min.js" type="text/javascript"></script><link rel="shortcut icon" href="../img/favicon.ico">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="72x72" href="../img/apple-touch-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="114x114" href="../img/apple-touch-icon-114x114.png">
+</head>
+<body>
+<div class="navbar navbar-fixed-top">
+<div class="navbar-inner"><div class="container">
+<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a><a class="brand" href="../index.html">BagItTools</a><div class="nav-collapse"><ul class="nav">
+<li class="dropdown">
+<a href="#api" class="dropdown-toggle" data-toggle="dropdown">
+                                    API Documentation <b class="caret"></b></a><ul class="dropdown-menu">
+<li><a>Namespaces</a></li>
+<li><a href="../namespaces/global.html"><i class="icon-th"></i> global</a></li>
+<li><a href="../namespaces/whikloj.html"><i class="icon-th"></i> whikloj</a></li>
+<li><a>Packages</a></li>
+<li><a href="../packages/Default.html"><i class="icon-folder-open"></i> Default</a></li>
+<li><a href="../packages/whikloj.html"><i class="icon-folder-open"></i> whikloj</a></li>
+</ul>
+</li>
+<li class="dropdown" id="charts-menu">
+<a href="#charts" class="dropdown-toggle" data-toggle="dropdown">
+                                    Charts <b class="caret"></b></a><ul class="dropdown-menu"><li><a href="../graph_class.html"><i class="icon-list-alt"></i> Class hierarchy diagram</a></li></ul>
+</li>
+<li class="dropdown" id="reports-menu">
+<a href="#reports" class="dropdown-toggle" data-toggle="dropdown">
+                                    Reports <b class="caret"></b></a><ul class="dropdown-menu">
+<li><a href="../errors.html"><i class="icon-remove-sign"></i> Errors 
+                <span class="label label-info">7</span></a></li>
+<li><a href="../markers.html"><i class="icon-map-marker"></i> Markers 
+                <ul></ul></a></li>
+<li><a href="../deprecated.html"><i class="icon-stop"></i> Deprecated elements 
+                <span class="label label-info">0</span></a></li>
+</ul>
+</li>
+</ul></div>
+</div></div>
+<div class="go_to_top"><a href="#___" style="color: inherit">Back to top  <i class="icon-upload icon-white"></i></a></div>
+</div>
+<div id="___" class="container">
+<noscript><div class="alert alert-warning">
+                            Javascript is disabled; several features are only available
+                            if Javascript is enabled.
+                        </div></noscript>
+<div class="row">
+<div class="span4">
+<div xmlns:php="http://php.net/xsl" class="btn-toolbar">
+<div class="btn-group visibility" data-toggle="buttons-checkbox">
+<button class="btn public active" title="Show public elements">Public</button><button class="btn protected" title="Show protected elements">Protected</button><button class="btn private" title="Show private elements">Private</button><button class="btn inherited active" title="Show inherited elements">Inherited</button>
+</div>
+<div class="btn-group view pull-right" data-toggle="buttons-radio">
+<button class="btn details" title="Show descriptions and method names"><i class="icon-list"></i></button><button class="btn simple" title="Show only method names"><i class="icon-align-justify"></i></button>
+</div>
+</div>
+<ul xmlns:php="http://php.net/xsl" class="side-nav nav nav-list">
+<li class="nav-header">
+<i title="Methods" class="icon-custom icon-method"></i> Methods
+                    <ul>
+<li class="method public "><a href="#method___construct" title="__construct() :: PayloadManifest constructor."><span class="description">PayloadManifest constructor.</span><pre>__construct()</pre></a></li>
+<li class="method public inherited"><a href="#method_getAlgorithm" title="getAlgorithm() :: Return the algorithm for this manifest."><span class="description">Return the algorithm for this manifest.</span><pre>getAlgorithm()</pre></a></li>
+<li class="method public inherited"><a href="#method_getErrors" title="getErrors() :: Return the array of errors."><span class="description">Return the array of errors.</span><pre>getErrors()</pre></a></li>
+<li class="method public inherited"><a href="#method_getFilename" title="getFilename() :: Return the filename of this manifest."><span class="description">Return the filename of this manifest.</span><pre>getFilename()</pre></a></li>
+<li class="method public inherited"><a href="#method_getHashes" title="getHashes() :: Return the payload and hashes as an associative array."><span class="description">Return the payload and hashes as an associative array.</span><pre>getHashes()</pre></a></li>
+<li class="method public inherited"><a href="#method_getWarnings" title="getWarnings() :: Return the array of warnings."><span class="description">Return the array of warnings.</span><pre>getWarnings()</pre></a></li>
+<li class="method public "><a href="#method_update" title="update() :: Update the hashes for each path."><span class="description">Update the hashes for each path.</span><pre>update()</pre></a></li>
+<li class="method public inherited"><a href="#method_update" title="update() :: Update the hashes for each path."><span class="description">Update the hashes for each path.</span><pre>update()</pre></a></li>
+<li class="method public "><a href="#method_validate" title="validate() :: Compare file hashes against what is on disk."><span class="description">Compare file hashes against what is on disk.</span><pre>validate()</pre></a></li>
+<li class="method public inherited"><a href="#method_validate" title="validate() :: Compare file hashes against what is on disk."><span class="description">Compare file hashes against what is on disk.</span><pre>validate()</pre></a></li>
+</ul>
+</li>
+<li class="nav-header protected">» Protected
+                    <ul>
+<li class="method protected inherited"><a href="#method___construct" title="__construct() :: Manifest constructor."><span class="description">Manifest constructor.</span><pre>__construct()</pre></a></li>
+<li class="method protected inherited"><a href="#method_addError" title="addError() :: Add an error using the current filename."><span class="description">Add an error using the current filename.</span><pre>addError()</pre></a></li>
+<li class="method protected inherited"><a href="#method_addWarning" title="addWarning() :: Add a warning using the current filename."><span class="description">Add a warning using the current filename.</span><pre>addWarning()</pre></a></li>
+<li class="method protected inherited"><a href="#method_calculateHash" title="calculateHash() :: Calculate the hash of the file."><span class="description">Calculate the hash of the file.</span><pre>calculateHash()</pre></a></li>
+<li class="method protected inherited"><a href="#method_getPhpHashName" title="getPhpHashName() :: Needed to account for differences in PHP hash to BagIt hash naming."><span class="description">Needed to account for differences in PHP hash to BagIt hash naming.</span><pre>getPhpHashName()</pre></a></li>
+<li class="method protected inherited"><a href="#method_loadFile" title="loadFile() :: Load the paths and hashes from the file on disk, does not validate."><span class="description">Load the paths and hashes from the file on disk, does not validate.</span><pre>loadFile()</pre></a></li>
+<li class="method protected inherited"><a href="#method_validatePath" title="validatePath() :: Common checks for paths being added to a manifest."><span class="description">Common checks for paths being added to a manifest.</span><pre>validatePath()</pre></a></li>
+<li class="method protected inherited"><a href="#method_writeToDisk" title="writeToDisk() :: Utility to recreate the manifest file using the currently stored hashes."><span class="description">Utility to recreate the manifest file using the currently stored hashes.</span><pre>writeToDisk()</pre></a></li>
+</ul>
+</li>
+<li class="nav-header private">» Private
+                    <ul>
+<li class="method private inherited"><a href="#method_addLoadError" title="addLoadError() :: Add a load error using the current filename. This is only erased on a new load."><span class="description">Add a load error using the current filename. This is only erased on a new load.</span><pre>addLoadError()</pre></a></li>
+<li class="method private inherited"><a href="#method_addLoadWarning" title="addLoadWarning() :: Add a load warning using the current filename. This is only erased on a new load."><span class="description">Add a load warning using the current filename. This is only erased on a new load.</span><pre>addLoadWarning()</pre></a></li>
+<li class="method private inherited"><a href="#method_addToNormalizedList" title="addToNormalizedList() :: Add a path to the list of normalized paths."><span class="description">Add a path to the list of normalized paths.</span><pre>addToNormalizedList()</pre></a></li>
+<li class="method private inherited"><a href="#method_cleanUpAbsPath" title="cleanUpAbsPath() :: Clean up file paths to remove extraneous period, double period and slashes"><span class="description">Clean up file paths to remove extraneous period, double period and slashes</span><pre>cleanUpAbsPath()</pre></a></li>
+<li class="method private inherited"><a href="#method_cleanUpRelPath" title="cleanUpRelPath() :: Clean up file paths to remove extraneous periods, double periods and slashes"><span class="description">Clean up file paths to remove extraneous periods, double periods and slashes</span><pre>cleanUpRelPath()</pre></a></li>
+<li class="method private "><a href="#method_isTagManifest" title="isTagManifest() :: Is the filename match a tag manifest file?"><span class="description">Is the filename match a tag manifest file?</span><pre>isTagManifest()</pre></a></li>
+<li class="method private inherited"><a href="#method_matchNormalizedList" title="matchNormalizedList() :: Compare a path against a list of normalized paths and look for matches."><span class="description">Compare a path against a list of normalized paths and look for matches.</span><pre>matchNormalizedList()</pre></a></li>
+<li class="method private inherited"><a href="#method_normalizePath" title="normalizePath() :: Normalize a path for character representation and case."><span class="description">Normalize a path for character representation and case.</span><pre>normalizePath()</pre></a></li>
+<li class="method private inherited"><a href="#method_resetLoadIssues" title="resetLoadIssues() :: Utility to reset the load issues construct."><span class="description">Utility to reset the load issues construct.</span><pre>resetLoadIssues()</pre></a></li>
+</ul>
+</li>
+<li class="nav-header">
+<i title="Properties" class="icon-custom icon-property"></i> Properties
+                    <ul></ul>
+</li>
+<li class="nav-header protected">» Protected
+                    <ul>
+<li class="property protected "><a href="#property_algorithm" title="$algorithm() :: The hash algorithm for this manifest."><span class="description"></span><pre>$algorithm</pre></a></li>
+<li class="property protected "><a href="#property_bag" title="$bag() :: The bag this manifest is part of."><span class="description"></span><pre>$bag</pre></a></li>
+<li class="property protected "><a href="#property_filename" title="$filename() :: The filename for this manifest."><span class="description"></span><pre>$filename</pre></a></li>
+<li class="property protected "><a href="#property_filesOnDisk" title="$filesOnDisk() :: Array of files on disk to validate against."><span class="description"></span><pre>$filesOnDisk</pre></a></li>
+<li class="property protected "><a href="#property_hashes" title="$hashes() :: Associative array where paths are keys and hashes are values."><span class="description"></span><pre>$hashes</pre></a></li>
+<li class="property protected "><a href="#property_loadIssues" title="$loadIssues() :: Errors/Warnings generated while loading."><span class="description"></span><pre>$loadIssues</pre></a></li>
+<li class="property protected "><a href="#property_manifestErrors" title="$manifestErrors() :: Errors while validating this manifest."><span class="description"></span><pre>$manifestErrors</pre></a></li>
+<li class="property protected "><a href="#property_manifestWarnings" title="$manifestWarnings() :: Warnings generated while validating this manifest."><span class="description"></span><pre>$manifestWarnings</pre></a></li>
+<li class="property protected "><a href="#property_normalizedPaths" title="$normalizedPaths() :: Array of the same paths as in $hashes but normalized for case and characters to check for duplication."><span class="description"></span><pre>$normalizedPaths</pre></a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="span8">
+<a xmlns:php="http://php.net/xsl" id="\whikloj\BagItTools\TagManifest"></a><ul xmlns:php="http://php.net/xsl" class="breadcrumb">
+<li>
+<a href="../index.html"><i title="Classes" class="icon-custom icon-class"></i></a><span class="divider">\</span>
+</li>
+<li><a href="../namespaces/whikloj.html">whikloj</a></li>
+<li>
+<span class="divider">\</span><a href="../namespaces/whikloj.BagItTools.html">BagItTools</a>
+</li>
+<li class="active">
+<span class="divider">\</span><a href="../classes/whikloj.BagItTools.TagManifest.html">TagManifest</a>
+</li>
+</ul>
+<div xmlns:php="http://php.net/xsl" class="element class">
+<p class="short_description">Tag Manifest extension of AbstractManifest class.</p>
+<div class="details">
+<div class="long_description"></div>
+<table class="table table-bordered">
+<tr>
+<th>package</th>
+<td><a href="../packages/whikloj.BagItTools.html">whikloj\BagItTools</a></td>
+</tr>
+<tr>
+<th>author</th>
+<td><a href="">whikloj</a></td>
+</tr>
+<tr>
+<th>since</th>
+<td>1.0.0</td>
+</tr>
+<tr>
+<th>inherited_from</th>
+<td>\whikloj\BagItTools\AbstractManifest</td>
+</tr>
+</table>
+<h3>
+<i title="Methods" class="icon-custom icon-method"></i> Methods</h3>
+<a id="method___construct"></a><div class="element clickable method public method___construct " data-toggle="collapse" data-target=".method___construct .collapse" title="public">
+<h2>PayloadManifest constructor.</h2>
+<pre>__construct(\whikloj\BagItTools\Bag $bag, string $algorithm, boolean $load<code> = false</code>) </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<table class="table table-bordered"><tr>
+<th>inherited_from</th>
+<td>\whikloj\BagItTools\AbstractManifest::__construct()</td>
+</tr></table>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$bag</h4>
+<code>\whikloj\BagItTools\Bag</code><p>The bag this manifest is part of.</p></div>
+<div class="subelement argument">
+<h4>$algorithm</h4>
+<code>string</code><p>The BagIt name of the hash algorithm.</p></div>
+<div class="subelement argument">
+<h4>$load</h4>
+<code>boolean</code><p>Whether we are loading an existing file</p></div>
+</div></div>
+</div>
+<a id="method_getAlgorithm"></a><div class="element clickable method public method_getAlgorithm inherited" data-toggle="collapse" data-target=".method_getAlgorithm .collapse" title="public">
+<h2>Return the algorithm for this manifest.</h2>
+<pre>getAlgorithm() : string</pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response"><code>string</code></div>
+</div></div>
+</div>
+<a id="method_getErrors"></a><div class="element clickable method public method_getErrors inherited" data-toggle="collapse" data-target=".method_getErrors .collapse" title="public">
+<h2>Return the array of errors.</h2>
+<pre>getErrors() : array</pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response"><code>array</code></div>
+</div></div>
+</div>
+<a id="method_getFilename"></a><div class="element clickable method public method_getFilename inherited" data-toggle="collapse" data-target=".method_getFilename .collapse" title="public">
+<h2>Return the filename of this manifest.</h2>
+<pre>getFilename() : string</pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response"><code>string</code></div>
+</div></div>
+</div>
+<a id="method_getHashes"></a><div class="element clickable method public method_getHashes inherited" data-toggle="collapse" data-target=".method_getHashes .collapse" title="public">
+<h2>Return the payload and hashes as an associative array.</h2>
+<pre>getHashes() : array</pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>array</code>Array of paths => hashes</div>
+</div></div>
+</div>
+<a id="method_getWarnings"></a><div class="element clickable method public method_getWarnings inherited" data-toggle="collapse" data-target=".method_getWarnings .collapse" title="public">
+<h2>Return the array of warnings.</h2>
+<pre>getWarnings() : array</pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Returns</h3>
+<div class="subelement response"><code>array</code></div>
+</div></div>
+</div>
+<a id="method_update"></a><div class="element clickable method public method_update " data-toggle="collapse" data-target=".method_update .collapse" title="public">
+<h2>Update the hashes for each path.</h2>
+<pre>update() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<table class="table table-bordered"><tr>
+<th>inherited_from</th>
+<td>\whikloj\BagItTools\AbstractManifest::update()</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_update"></a><div class="element clickable method public method_update inherited" data-toggle="collapse" data-target=".method_update .collapse" title="public">
+<h2>Update the hashes for each path.</h2>
+<pre>update() </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>Error writing the manifest file to disk.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_validate"></a><div class="element clickable method public method_validate " data-toggle="collapse" data-target=".method_validate .collapse" title="public">
+<h2>Compare file hashes against what is on disk.</h2>
+<pre>validate() </pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<table class="table table-bordered"><tr>
+<th>inherited_from</th>
+<td>\whikloj\BagItTools\AbstractManifest::validate()</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_validate"></a><div class="element clickable method public method_validate inherited" data-toggle="collapse" data-target=".method_validate .collapse" title="public">
+<h2>Compare file hashes against what is on disk.</h2>
+<pre>validate() </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method___construct"></a><div class="element clickable method protected method___construct inherited" data-toggle="collapse" data-target=".method___construct .collapse" title="protected">
+<h2>Manifest constructor.</h2>
+<pre>__construct(\whikloj\BagItTools\Bag $bag, string $algorithm, string $filename, boolean $load<code> = false</code>) </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$bag</h4>
+<code>\whikloj\BagItTools\Bag</code><p>The bag this manifest is part of.</p></div>
+<div class="subelement argument">
+<h4>$algorithm</h4>
+<code>string</code><p>The BagIt name of the hash algorithm.</p></div>
+<div class="subelement argument">
+<h4>$filename</h4>
+<code>string</code><p>The manifest filename.</p></div>
+<div class="subelement argument">
+<h4>$load</h4>
+<code>boolean</code><p>Whether we are loading an existing file</p></div>
+</div></div>
+</div>
+<a id="method_addError"></a><div class="element clickable method protected method_addError inherited" data-toggle="collapse" data-target=".method_addError .collapse" title="protected">
+<h2>Add an error using the current filename.</h2>
+<pre>addError(string $message) </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$message</h4>
+<code>string</code><p>The error text.</p></div>
+</div></div>
+</div>
+<a id="method_addWarning"></a><div class="element clickable method protected method_addWarning inherited" data-toggle="collapse" data-target=".method_addWarning .collapse" title="protected">
+<h2>Add a warning using the current filename.</h2>
+<pre>addWarning(string $message) </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$message</h4>
+<code>string</code><p>The error text.</p></div>
+</div></div>
+</div>
+<a id="method_calculateHash"></a><div class="element clickable method protected method_calculateHash inherited" data-toggle="collapse" data-target=".method_calculateHash .collapse" title="protected">
+<h2>Calculate the hash of the file.</h2>
+<pre>calculateHash(string $file) : string</pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$file</h4>
+<code>string</code><p>Absolute path to the file.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The hash.</div>
+</div></div>
+</div>
+<a id="method_getPhpHashName"></a><div class="element clickable method protected method_getPhpHashName inherited" data-toggle="collapse" data-target=".method_getPhpHashName .collapse" title="protected">
+<h2>Needed to account for differences in PHP hash to BagIt hash naming.</h2>
+<pre>getPhpHashName() : string</pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"><p>i.e. BagIt sha3512 -&gt; PHP sha3-512</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>the PHP hash name for the internal hash encoding.</div>
+</div></div>
+</div>
+<a id="method_loadFile"></a><div class="element clickable method protected method_loadFile inherited" data-toggle="collapse" data-target=".method_loadFile .collapse" title="protected">
+<h2>Load the paths and hashes from the file on disk, does not validate.</h2>
+<pre>loadFile() </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="method_validatePath"></a><div class="element clickable method protected method_validatePath inherited" data-toggle="collapse" data-target=".method_validatePath .collapse" title="protected">
+<h2>Common checks for paths being added to a manifest.</h2>
+<pre>validatePath(string $path, string $filepath) </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$path</h4>
+<code>string</code><p>The path relative to the bag root.</p></div>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>The absolute filepath.</p></div>
+</div></div>
+</div>
+<a id="method_writeToDisk"></a><div class="element clickable method protected method_writeToDisk inherited" data-toggle="collapse" data-target=".method_writeToDisk .collapse" title="protected">
+<h2>Utility to recreate the manifest file using the currently stored hashes.</h2>
+<pre>writeToDisk() </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Exceptions</h3>
+<table class="table table-bordered"><tr>
+<th><code>\whikloj\BagItTools\BagItException</code></th>
+<td>If we can't write the manifest files.</td>
+</tr></table>
+</div></div>
+</div>
+<a id="method_addLoadError"></a><div class="element clickable method private method_addLoadError inherited" data-toggle="collapse" data-target=".method_addLoadError .collapse" title="private">
+<h2>Add a load error using the current filename. This is only erased on a new load.</h2>
+<pre>addLoadError(string $message) </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$message</h4>
+<code>string</code><p>The error text.</p></div>
+</div></div>
+</div>
+<a id="method_addLoadWarning"></a><div class="element clickable method private method_addLoadWarning inherited" data-toggle="collapse" data-target=".method_addLoadWarning .collapse" title="private">
+<h2>Add a load warning using the current filename. This is only erased on a new load.</h2>
+<pre>addLoadWarning(string $message) </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$message</h4>
+<code>string</code><p>The error text.</p></div>
+</div></div>
+</div>
+<a id="method_addToNormalizedList"></a><div class="element clickable method private method_addToNormalizedList inherited" data-toggle="collapse" data-target=".method_addToNormalizedList .collapse" title="private">
+<h2>Add a path to the list of normalized paths.</h2>
+<pre>addToNormalizedList(string $path) </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$path</h4>
+<code>string</code><p>The normalized path.</p></div>
+</div></div>
+</div>
+<a id="method_cleanUpAbsPath"></a><div class="element clickable method private method_cleanUpAbsPath inherited" data-toggle="collapse" data-target=".method_cleanUpAbsPath .collapse" title="private">
+<h2>Clean up file paths to remove extraneous period, double period and slashes</h2>
+<pre>cleanUpAbsPath(string $filepath) : string</pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>The absolute file path</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The cleaned up absolute file path, not resolved on disk.</div>
+</div></div>
+</div>
+<a id="method_cleanUpRelPath"></a><div class="element clickable method private method_cleanUpRelPath inherited" data-toggle="collapse" data-target=".method_cleanUpRelPath .collapse" title="private">
+<h2>Clean up file paths to remove extraneous periods, double periods and slashes</h2>
+<pre>cleanUpRelPath(string $filepath) : boolean | string</pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>The relative file path.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code><code>string</code>The cleaned up relative file path or blank if not in the bag Root.</div>
+</div></div>
+</div>
+<a id="method_isTagManifest"></a><div class="element clickable method private method_isTagManifest " data-toggle="collapse" data-target=".method_isTagManifest .collapse" title="private">
+<h2>Is the filename match a tag manifest file?</h2>
+<pre>isTagManifest(string $filepath) : boolean</pre>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$filepath</h4>
+<code>string</code><p>The file path.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>True if it is a tagmanifest file.</div>
+</div></div>
+</div>
+<a id="method_matchNormalizedList"></a><div class="element clickable method private method_matchNormalizedList inherited" data-toggle="collapse" data-target=".method_matchNormalizedList .collapse" title="private">
+<h2>Compare a path against a list of normalized paths and look for matches.</h2>
+<pre>matchNormalizedList(string $path) : boolean</pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$path</h4>
+<code>string</code><p>The normalized path to look for.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>boolean</code>True if there is a match.</div>
+</div></div>
+</div>
+<a id="method_normalizePath"></a><div class="element clickable method private method_normalizePath inherited" data-toggle="collapse" data-target=".method_normalizePath .collapse" title="private">
+<h2>Normalize a path for character representation and case.</h2>
+<pre>normalizePath(string $path, boolean $toLower<code> = true</code>) : string</pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"></div>
+<h3>Parameters</h3>
+<div class="subelement argument">
+<h4>$path</h4>
+<code>string</code><p>The path.</p></div>
+<div class="subelement argument">
+<h4>$toLower</h4>
+<code>boolean</code><p>Whether to also lowercase the string.</p></div>
+<h3>Returns</h3>
+<div class="subelement response">
+<code>string</code>The normalized path.</div>
+</div></div>
+</div>
+<a id="method_resetLoadIssues"></a><div class="element clickable method private method_resetLoadIssues inherited" data-toggle="collapse" data-target=".method_resetLoadIssues .collapse" title="private">
+<h2>Utility to reset the load issues construct.</h2>
+<pre>resetLoadIssues() </pre>
+<div class="labels"><span class="label">Inherited</span></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<h3>
+<i title="Properties" class="icon-custom icon-property"></i> Properties</h3>
+<a id="property_algorithm"> </a><div class="element clickable property protected property_algorithm" data-toggle="collapse" data-target=".property_algorithm .collapse" title="protected">
+<h2>The hash algorithm for this manifest.</h2>
+<pre>$algorithm : string</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_bag"> </a><div class="element clickable property protected property_bag" data-toggle="collapse" data-target=".property_bag .collapse" title="protected">
+<h2>The bag this manifest is part of.</h2>
+<pre>$bag : \whikloj\BagItTools\Bag</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_filename"> </a><div class="element clickable property protected property_filename" data-toggle="collapse" data-target=".property_filename .collapse" title="protected">
+<h2>The filename for this manifest.</h2>
+<pre>$filename : string</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_filesOnDisk"> </a><div class="element clickable property protected property_filesOnDisk" data-toggle="collapse" data-target=".property_filesOnDisk .collapse" title="protected">
+<h2>Array of files on disk to validate against.</h2>
+<pre>$filesOnDisk : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"><code>array()</code></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_hashes"> </a><div class="element clickable property protected property_hashes" data-toggle="collapse" data-target=".property_hashes .collapse" title="protected">
+<h2>Associative array where paths are keys and hashes are values.</h2>
+<pre>$hashes : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"><code>array()</code></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_loadIssues"> </a><div class="element clickable property protected property_loadIssues" data-toggle="collapse" data-target=".property_loadIssues .collapse" title="protected">
+<h2>Errors/Warnings generated while loading.</h2>
+<pre>$loadIssues : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description">
+<div class="long_description"><p>Because of the path key in the hash array if there are multiple entries for a path we need to track it during
+load but present it at validate().</p></div>
+<table class="table table-bordered"><tr>
+<th>see</th>
+<td><a href="%5Cwhikloj%5CBagItTools%5CAbstractManifest::resetLoadIssues()"></a></td>
+</tr></table>
+</div></div>
+</div>
+<a id="property_manifestErrors"> </a><div class="element clickable property protected property_manifestErrors" data-toggle="collapse" data-target=".property_manifestErrors .collapse" title="protected">
+<h2>Errors while validating this manifest.</h2>
+<pre>$manifestErrors : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"><code>array()</code></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_manifestWarnings"> </a><div class="element clickable property protected property_manifestWarnings" data-toggle="collapse" data-target=".property_manifestWarnings .collapse" title="protected">
+<h2>Warnings generated while validating this manifest.</h2>
+<pre>$manifestWarnings : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"><code>array()</code></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+<a id="property_normalizedPaths"> </a><div class="element clickable property protected property_normalizedPaths" data-toggle="collapse" data-target=".property_normalizedPaths .collapse" title="protected">
+<h2>Array of the same paths as in $hashes but normalized for case and characters to check for duplication.</h2>
+<pre>$normalizedPaths : array</pre>
+<div class="row collapse"><div class="detail-description">
+<h3>Default</h3>
+<div class="subelement argument"><code>array()</code></div>
+</div></div>
+<div class="labels"></div>
+<div class="row collapse"><div class="detail-description"><div class="long_description"></div></div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="row"><footer class="span12">
+            Template is built using <a href="http://twitter.github.com/bootstrap/">Twitter Bootstrap 2</a> and icons provided by <a href="http://glyphicons.com/">Glyphicons</a>.<br>
+            Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor 2.8.5</a> and<br>
+            generated on 2019-12-17T15:33:53-06:00.<br></footer></div>
+</div>
+</body>
+</html>

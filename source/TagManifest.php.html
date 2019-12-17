@@ -1,0 +1,128 @@
+<html>
+    <head>
+        <script
+            type="text/javascript"
+            src="../js/jquery-1.4.2.min.js">
+        </script>
+        <script
+            type="text/javascript"
+            src="../syntax_highlighter/scripts/shCore.js">
+        </script>
+        <script
+            type="text/javascript"
+            src="../syntax_highlighter/scripts/shBrushJScript.js">
+        </script>
+        <script
+            type="text/javascript"
+            src="../syntax_highlighter/scripts/shBrushPhp.js">
+        </script>
+        <script
+            type="text/javascript"
+            src="../syntax_highlighter/scripts/shBrushXml.js">
+        </script>
+        <link
+            href="../syntax_highlighter/styles/shCore.css" rel="stylesheet"
+            type="text/css"
+        />
+        <link
+            href="../syntax_highlighter/styles/shCoreEclipse.css"
+            rel="stylesheet" type="text/css"
+        />
+        <link
+            href="../syntax_highlighter/styles/shThemeWordpress.css"
+            rel="stylesheet" type="text/css"
+        />
+    </head>
+    <body>
+        <pre class="brush: php">&lt;?php
+
+namespace whikloj\BagItTools;
+
+/**
+ * Tag Manifest extension of AbstractManifest class.
+ *
+ * @package whikloj\BagItTools
+ * @author whikloj
+ * @since 1.0.0
+ */
+class TagManifest extends AbstractManifest
+{
+
+  /**
+   * PayloadManifest constructor.
+   *
+   * @param \whikloj\BagItTools\Bag $bag
+   *   The bag this manifest is part of.
+   * @param string $algorithm
+   *   The BagIt name of the hash algorithm.
+   * @param boolean $load
+   *   Whether we are loading an existing file
+   */
+    public function __construct(Bag $bag, $algorithm, $load = false)
+    {
+        parent::__construct($bag, $algorithm, &quot;tagmanifest-{$algorithm}.txt&quot;, $load);
+    }
+
+  /**
+   * {@inheritdoc}
+   */
+    public function update()
+    {
+        $this-&gt;hashes = [];
+        $files = BagUtils::getAllFiles($this-&gt;bag-&gt;getBagRoot(), [&quot;data&quot;]);
+        foreach ($files as $file) {
+            if (!$this-&gt;isTagManifest($file)) {
+                $this-&gt;hashes[$this-&gt;bag-&gt;makeRelative($file)] = &quot;&quot;;
+            }
+        }
+        parent::update();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validate()
+    {
+        parent::validate();
+        $onDisk = BagUtils::getAllFiles($this-&gt;bag-&gt;getBagRoot(), [&quot;data&quot;]);
+        $onDisk = array_filter($onDisk, function ($o) {
+            return !$this-&gt;isTagManifest($o);
+        });
+        $tagfiles = array_filter(array_keys($this-&gt;hashes), function ($o) {
+            return $this-&gt;isTagManifest($o);
+        });
+        if (count($tagfiles) &gt; 0) {
+            $this-&gt;addError(&quot;MUST not list any tag files&quot;);
+        }
+        // 1.0 Spec says each manifest SHOULD list every file other than tagmanifests.
+        array_walk($onDisk, function (&amp;$item) {
+            $item = $this-&gt;bag-&gt;makeRelative($item);
+        });
+        $onDisk = array_diff($onDisk, array_keys($this-&gt;hashes));
+        if (count($onDisk) &gt; 0) {
+            $this-&gt;addWarning(&quot;There are files on disk not listed in this manifest file.&quot;);
+        }
+    }
+
+    /**
+     * Is the filename match a tag manifest file?
+     *
+     * @param string $filepath
+     *   The file path.
+     * @return bool
+     *   True if it is a tagmanifest file.
+     */
+    private function isTagManifest($filepath)
+    {
+        return (substr(basename($filepath), 0, 11) == &quot;tagmanifest&quot;);
+    }
+}
+</pre>
+        <script type="text/javascript">
+             SyntaxHighlighter.all();
+             jQuery('.gutter div').each(function(key, data){
+                jQuery(data).prepend('<a name="L'+jQuery(data).text()+'"/>');
+             });
+        </script>
+    </body>
+</html>
