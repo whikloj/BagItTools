@@ -59,6 +59,8 @@ The required extensions are:
 
 ## Usage
 
+[API Documentation](https://whikloj.github.io/BagItTools/namespaces/whikloj.html)
+
 ### Create a new bag
 
 As this is a v1.0 implementation, by default bags created use the UTF-8 file encoding and the SHA-512 hash algorithm.
