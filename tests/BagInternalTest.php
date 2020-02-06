@@ -145,4 +145,97 @@ class BagInternalTest extends BagItTestFramework
         $this->assertEquals(0, $method->invokeArgs($bag, ['1.0']));
         $this->assertEquals(1, $method->invokeArgs($bag, ['1.1']));
     }
+
+
+    /**
+     * @group Internal
+     * @covers \whikloj\BagItTools\Bag::resetErrorsAndWarnings
+     */
+    public function testResetErrorsAndWarnings()
+    {
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
+        $bag = Bag::load($this->tmpdir);
+        $this->assertEquals('0.97', $bag->getVersionString());
+        touch($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'oops.txt');
+        $this->assertFalse($bag->validate());
+        $this->assertCount(1, $bag->getErrors());
+        $this->assertCount(2, $bag->getWarnings());
+
+        $methodCall = $this->getReflectionMethod(
+            '\whikloj\BagItTools\Bag',
+            'resetErrorsAndWarnings'
+        );
+        $methodCall->invokeArgs($bag, []);
+
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(0, $bag->getWarnings());
+    }
+
+    /**
+     * @group Internal
+     * @covers \whikloj\BagItTools\Bag::addBagError
+     */
+    public function testAddBagError()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(0, $bag->getWarnings());
+        $methodCall = $this->getReflectionMethod(
+            '\whikloj\BagItTools\Bag',
+            'addBagError'
+        );
+        $methodCall->invokeArgs($bag, ['some_file', 'some_error']);
+        $this->assertCount(1, $bag->getErrors());
+        $this->assertCount(0, $bag->getWarnings());
+    }
+
+    /**
+     * @group Internal
+     * @covers \whikloj\BagItTools\Bag::addBagWarning
+     */
+    public function testAddBagWarning()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(0, $bag->getWarnings());
+        $methodCall = $this->getReflectionMethod(
+            '\whikloj\BagItTools\Bag',
+            'addBagWarning'
+        );
+        $methodCall->invokeArgs($bag, ['some_file', 'some_warning']);
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(1, $bag->getWarnings());
+    }
+
+    /**
+     * @group Internal
+     * @covers \whikloj\BagItTools\Bag::arrayKeyExistsNoCase
+     */
+    public function testArrayKeyExistsNoCase()
+    {
+        $test_array = [
+            ['name' => 'BOB'],
+        ];
+        $bag = Bag::create($this->tmpdir);
+        $methodCall = $this->getReflectionMethod(
+            '\whikloj\BagItTools\Bag',
+            'arrayKeyExistsNoCase'
+        );
+        $this->assertTrue($methodCall->invokeArgs(
+            $bag,
+            ['BOB', 'name', $test_array]
+        ));
+        $this->assertTrue($methodCall->invokeArgs(
+            $bag,
+            ['bob', 'name', $test_array]
+        ));
+        $this->assertTrue($methodCall->invokeArgs(
+            $bag,
+            ['boB', 'name', $test_array]
+        ));
+        $this->assertFalse($methodCall->invokeArgs(
+            $bag,
+            ['BOO', 'name', $test_array]
+        ));
+    }
 }
