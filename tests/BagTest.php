@@ -872,4 +872,40 @@ class BagTest extends BagItTestFramework
         $this->assertCount(0, $bag->getErrors());
         $this->assertCount(0, $bag->getWarnings());
     }
+
+    /**
+     * @group Bag
+     * @covers ::addBagError
+     */
+    public function testAddBagError()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(0, $bag->getWarnings());
+        $methodCall = $this->getReflectionMethod(
+            '\whikloj\BagItTools\Bag',
+            'addBagError'
+        );
+        $methodCall->invokeArgs($bag, ['some_file', 'some_error']);
+        $this->assertCount(1, $bag->getErrors());
+        $this->assertCount(0, $bag->getWarnings());
+    }
+
+    /**
+     * @group Bag
+     * @covers ::addBagWarning
+     */
+    public function testAddBagWarning()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(0, $bag->getWarnings());
+        $methodCall = $this->getReflectionMethod(
+            '\whikloj\BagItTools\Bag',
+            'addBagWarning'
+        );
+        $methodCall->invokeArgs($bag, ['some_file', 'some_warning']);
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(1, $bag->getWarnings());
+    }
 }
