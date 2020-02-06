@@ -848,4 +848,28 @@ class BagTest extends BagItTestFramework
         $bag = Bag::create($this->tmpdir);
         $this->assertTrue($bag->validate());
     }
+
+    /**
+     * @group Bag
+     * @covers ::resetErrorsAndWarnings
+     */
+    public function testResetErrorsAndWarnings()
+    {
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
+        $bag = Bag::load($this->tmpdir);
+        $this->assertEquals('0.97', $bag->getVersionString());
+        touch($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'oops.txt');
+        $this->assertFalse($bag->validate());
+        $this->assertCount(1, $bag->getErrors());
+        $this->assertCount(2, $bag->getWarnings());
+
+        $methodCall = $this->getReflectionMethod(
+            '\whikloj\BagItTools\Bag',
+            'resetErrorsAndWarnings'
+        );
+        $methodCall->invokeArgs($bag, []);
+
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(0, $bag->getWarnings());
+    }
 }

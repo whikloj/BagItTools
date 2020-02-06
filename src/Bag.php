@@ -321,12 +321,12 @@ class Bag
      */
     public function validate()
     {
-        if ($this->changed) {
-            // If we have changed stuff we need to write it.
+        if (!$this->loaded || $this->changed) {
+            // If we created this bag or have changed stuff we need to write it.
             $this->update();
-            // Reload the bag from disk.
-            $this->loadBag();
         }
+        // Reload the bag from disk.
+        $this->loadBag();
         if (isset($this->fetchFile)) {
             $this->fetchFile->downloadAll();
             $this->mergeErrors($this->fetchFile->getErrors());
@@ -1119,6 +1119,7 @@ class Bag
         // Reset these or we end up with double manifests in a validate() situation.
         $this->payloadManifests = [];
         unset($this->tagManifests);
+        $this->bagInfoData = [];
         $this->loadBagIt();
         $this->loadPayloadManifests();
         $bagInfo = $this->loadBagInfo();
