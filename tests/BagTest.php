@@ -848,4 +848,49 @@ class BagTest extends BagItTestFramework
         $bag = Bag::create($this->tmpdir);
         $this->assertTrue($bag->validate());
     }
+
+    /**
+     * Test when too many lines in bagit.txt
+     * @group Bag
+     * @covers ::loadBagIt
+     */
+    public function testBagItTooManyLines()
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $fp = fopen($this->tmpdir . DIRECTORY_SEPARATOR . 'bagit.txt', 'a');
+        fwrite($fp, "This is more stuff\n");
+        fclose($fp);
+        $bag = Bag::load($this->tmpdir);
+        $this->assertCount(1, $bag->getErrors());
+    }
+
+    /**
+     * Test when first line does not validate.
+     * @group Bag
+     * @covers ::loadBagIt
+     */
+    public function testBagItVersionLineInvalid()
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $fp = fopen($this->tmpdir . DIRECTORY_SEPARATOR . 'bagit.txt', 'w');
+        fwrite($fp, "BagIt-Version: M.N\nTag-File-Character-Encoding: UTF-8\n");
+        fclose($fp);
+        $bag = Bag::load($this->tmpdir);
+        $this->assertCount(1, $bag->getErrors());
+    }
+
+    /**
+     * Test when second line does not validate.
+     * @group Bag
+     * @covers ::loadBagIt
+     */
+    public function testBagItEncodingLineError()
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $fp = fopen($this->tmpdir . DIRECTORY_SEPARATOR . 'bagit.txt', 'w');
+        fwrite($fp, "BagIt-Version: 1.0\nTag-File-Encoding: UTF-8\n");
+        fclose($fp);
+        $bag = Bag::load($this->tmpdir);
+        $this->assertCount(1, $bag->getErrors());
+    }
 }
