@@ -1128,6 +1128,7 @@ class Bag
     private function createNewBag()
     {
         $this->bagErrors = [];
+        $this->bagWarnings = [];
         $this->bagRoot = BagUtils::getAbsolute($this->bagRoot);
         if (file_exists($this->bagRoot)) {
             throw new BagItException("New bag directory {$this->bagRoot} exists");

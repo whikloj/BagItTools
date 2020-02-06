@@ -829,4 +829,18 @@ class BagTest extends BagItTestFramework
         $this->assertFalse($bag->validate());
         $bag->upgrade();
     }
+
+    /**
+     * @group Bag
+     * @covers ::__construct
+     * @covers ::createNewBag
+     * @covers ::update
+     * @covers ::validate
+     */
+    public function testEmptyBagShouldValidate()
+    {
+        $this->assertFileNotExists($this->tmpdir);
+        $bag = Bag::create($this->tmpdir);
+        $this->assertTrue($bag->validate());
+    }
 }
