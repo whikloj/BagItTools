@@ -5,7 +5,9 @@ namespace whikloj\BagItTools\Commands;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\BagItException;
 
@@ -23,8 +25,11 @@ class ValidateCommand extends Command
         $this->setName('validate')
             ->setDescription('Validate a BagIt bag.')
             ->setHelp("Point at a bag file or directory, increase verbosity for more information.")
-            ->addArgument('bag-path', InputArgument::REQUIRED,
-                'Path to the bag directory or file');
+            ->addArgument(
+                'bag-path',
+                InputArgument::REQUIRED,
+                'Path to the bag directory or file'
+            );
     }
 
     /**
@@ -32,13 +37,21 @@ class ValidateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $io = new SymfonyStyle($input, $output);
+        // TODO: This is simplified in Console 5.0, remove this then.
+        if ($output instanceof ConsoleOutputInterface) {
+            $error_io = new SymfonyStyle($input, $output->getErrorOutput());
+        } else {
+            $error_io = $io;
+        }
+
         $path = $input->getArgument('bag-path');
         if ($path[0] !== DIRECTORY_SEPARATOR) {
             $path = getcwd() . DIRECTORY_SEPARATOR . $path;
             $realpath = realpath($path);
         }
         if ((isset($realpath) && $realpath === false) || !file_exists($path)) {
-            $output->writeln("Path {$path} does not exist, cannot validate.");
+            $error_io->error("Path {$path} does not exist, cannot validate.");
         } else {
             try {
                 if (isset($realpath) && $realpath !== false) {
@@ -47,26 +60,26 @@ class ValidateCommand extends Command
                 $bag = Bag::load($path);
                 $valid = $bag->validate();
                 $verbose = $output->getVerbosity();
-                if ($verbose >= OutputInterface::VERBOSITY_VERY_VERBOSE) {
+                if ($verbose >= OutputInterface::VERBOSITY_VERBOSE) {
                     // Print warnings
                     $warnings = $bag->getWarnings();
                     foreach ($warnings as $warning) {
-                        $output->writeln("Warning: {$warning['message']} -- file: {$warning['file']}");
+                        $error_io->warning("{$warning['message']} -- file: {$warning['file']}");
                     }
                 }
                 if ($verbose >= OutputInterface::VERBOSITY_VERBOSE) {
                     // Print errors
                     $errors = $bag->getErrors();
                     foreach ($errors as $error) {
-                        $output->writeln("Error: {$error['message']} -- file: {$error['file']}");
+                        $error_io->error("{$error['message']} -- file: {$error['file']}");
                     }
                 }
                 if ($verbose >= OutputInterface::VERBOSITY_NORMAL) {
-                    $output->writeln("Bag is" . (!$valid ? " NOT" : "") . " valid");
+                    $io->writeln("Bag is" . (!$valid ? " NOT" : "") . " valid");
                 }
                 exit($valid ? 0 : 1);
             } catch (BagItException $e) {
-                $output->writeln("Exception: {$e->getMessage()}");
+                $error_io->error("Exception: {$e->getMessage()}");
                 exit(1);
             }
         }
