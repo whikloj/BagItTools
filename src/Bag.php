@@ -1646,9 +1646,7 @@ class Bag
             if ($contents === false) {
                 throw new BagItException("Unable to read {$fullPath}");
             }
-            $contents = $this->decodeText($contents);
             $lines = explode(PHP_EOL, $contents);
-            //$lines = preg_split("~[\r\n]+~", $contents, null, PREG_SPLIT_NO_EMPTY);
             // remove blank lines.
             $lines = array_filter($lines);
             array_walk(
