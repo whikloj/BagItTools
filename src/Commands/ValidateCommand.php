@@ -75,12 +75,16 @@ class ValidateCommand extends Command
                     }
                 }
                 if ($verbose >= OutputInterface::VERBOSITY_NORMAL) {
-                    $io->writeln("Bag is" . (!$valid ? " NOT" : "") . " valid");
+                    if ($valid) {
+                        $io->success("Bag is valid");
+                    } else {
+                        $io->warning("Bag is NOT valid");
+                    }
                 }
-                exit($valid ? 0 : 1);
+                return($valid ? 0 : 1);
             } catch (BagItException $e) {
                 $error_io->error("Exception: {$e->getMessage()}");
-                exit(1);
+                return(1);
             }
         }
     }
