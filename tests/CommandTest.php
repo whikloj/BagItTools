@@ -1,0 +1,111 @@
+<?php
+
+namespace whikloj\BagItTools\Test;
+
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Tester\CommandTester;
+use whikloj\BagItTools\Commands\ValidateCommand;
+
+/**
+ * Class CommandTest
+ * @package whikloj\BagItTools\Test
+ * @coversDefaultClass \whikloj\BagItTools\Commands\ValidateCommand
+ */
+class CommandTest extends BagItTestFramework
+{
+
+    private $commandTester;
+
+
+    public function setUp()
+    {
+        parent::setUp();
+        $application = new Application();
+        $application->add(new ValidateCommand());
+        $command = $application->find('validate');
+        $this->commandTester = new CommandTester($command);
+    }
+
+    /**
+     * @covers ::configure
+     * @covers ::execute
+     */
+    public function testValidateInvalidPath()
+    {
+        $path = __DIR__ . DIRECTORY_SEPARATOR . 'DEVNULL';
+        $this->commandTester->execute([
+            'bag-path' => $path,
+        ]);
+        $output = $this->commandTester->getDisplay();
+        $this->assertContains("Path {$path} does not exist, cannot validate.", $output);
+    }
+
+    /**
+     * @covers ::configure
+     * @covers ::execute
+     */
+    public function testValidBag()
+    {
+        $path = __DIR__ . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . "TestBag";
+        $this->commandTester->execute([
+            'bag-path' => $path,
+        ]);
+        $output = $this->commandTester->getDisplay();
+        $this->assertContains("Bag is valid", $output);
+    }
+
+    /**
+     * @covers ::configure
+     * @covers ::execute
+     */
+    public function testInvalidBag()
+    {
+        $this->tmpdir = self::prepareBasicTestBag();
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt",
+            "BagIt-Version: M.N\nTag-File-Character-Encoding:\n"
+        );
+        $this->commandTester->execute([
+            'bag-path' => $this->tmpdir,
+        ]);
+        $output = $this->commandTester->getDisplay();
+        $this->assertContains("Bag is NOT valid", $output);
+    }
+
+    /**
+     * @covers ::configure
+     * @covers ::execute
+     */
+    public function testInvalidWithErrors()
+    {
+        $this->tmpdir = self::prepareBasicTestBag();
+        unlink($this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt");
+        $this->commandTester->execute([
+            'bag-path' => $this->tmpdir,
+        ], [
+            'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
+        ]);
+        $output = $this->commandTester->getDisplay();
+        $this->assertContains("Bag is NOT valid", $output);
+        $this->assertContains("[ERROR] Required file missing. -- file: bagit.txt", $output);
+    }
+
+    /**
+     * @covers ::configure
+     * @covers ::execute
+     */
+    public function testInvalidWithWarnings()
+    {
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
+        $this->commandTester->execute([
+            'bag-path' => $this->tmpdir,
+        ], [
+            'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
+        ]);
+        $output = $this->commandTester->getDisplay();
+        $this->assertContains("Bag is valid", $output);
+        $this->assertContains("[WARNING] This manifest is MD5, you should use setAlgorithm('sha512') to " .
+            "upgrade. -- file: manifest-md5.txt", $output);
+    }
+}
