@@ -893,4 +893,20 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $this->assertCount(1, $bag->getErrors());
     }
+
+    /**
+     * Test that we fail when a bagit.txt is not UTF-8 encoded.
+     * @group Bag
+     * @covers ::loadBagIt
+     */
+    public function testFailOnEncodedBagIt()
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $fp = fopen($this->tmpdir . DIRECTORY_SEPARATOR . 'bagit.txt', 'w');
+        $encoded_string = mb_convert_encoding("BagIt-Version: 1.0\nTag-File-Encoding: UTF-8\n", "byte4le");
+        fwrite($fp, $encoded_string);
+        fclose($fp);
+        $bag = Bag::load($this->tmpdir);
+        $this->assertCount(1, $bag->getErrors());
+    }
 }
