@@ -59,9 +59,34 @@ The required extensions are:
 
 ## Usage
 
+You can integrate BagItTools into your own code as a library using the [API](#api), or use the CLI commands for 
+some simple functionality.
+
+### Command line
+
+#### Validating a bag
+
+```bash
+./bin/console validate <path to bag>
+```
+
+This will output a message as to whether the bag is or is NOT valid. It will also respond with
+an appropriate exit code (0 == valid, 1 == invalid).
+
+If you add the `-v` flag it will also print any errors or warnings.
+
+This can command can be used with the [bagit-conformance-suite](https://github.com/LibraryOfCongress/bagit-conformance-suite)
+like this
+
+```bash
+./test-harness <path to BagItTools>/bin/console -- -v validate
+```
+
+### API 
+
 [API Documentation](https://whikloj.github.io/BagItTools/namespaces/whikloj.html)
 
-### Create a new bag
+#### Create a new bag
 
 As this is a v1.0 implementation, by default bags created use the UTF-8 file encoding and the SHA-512 hash algorithm.
 
