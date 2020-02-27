@@ -67,9 +67,10 @@ class ExtendedBagTest extends BagItTestFramework
     /**
      * Test loading an extended bag properly and adding payload-oxum
      * @group Extended
+     * @covers ::calculateTotalFileSizeAndAmountOfFiles
+     * @covers ::convertToHumanReadable
      * @covers ::loadBagInfo
      * @covers ::updateBagInfo
-     * @covers ::calculateOxum
      * @covers ::updateCalculateBagInfoFields
      * @covers ::update
      * @covers \whikloj\BagItTools\AbstractManifest::loadFile
@@ -96,12 +97,16 @@ class ExtendedBagTest extends BagItTestFramework
         $this->assertTrue($bag->hasBagInfoTag('contact-phone'));
 
         $this->assertFalse($bag->hasBagInfoTag('payload-oxum'));
+        $this->assertFalse($bag->hasBagInfoTag('bag-size'));
         $bag->update();
         $this->assertTrue($bag->hasBagInfoTag('payload-oxum'));
         $this->assertTrue($bag ->hasBagInfoTag('bagging-date'));
         $oxums = $bag->getBagInfoByTag('payload-oxum');
         $this->assertCount(1, $oxums);
         $this->assertEquals('408183.2', $oxums[0]);
+        $bagSize = $bag->getBagInfoByTag('bag-size');
+        $this->assertCount(1, $bagSize);
+        $this->assertEquals('398.62 KB', $bagSize[0]);
     }
 
     /**
@@ -325,8 +330,8 @@ class ExtendedBagTest extends BagItTestFramework
         $this->assertFileNotExists($baginfo);
         $bag->update();
         $this->assertFileExists($baginfo);
-        $expected = 'Contact-NAME: Monty Hall' . PHP_EOL . 'Payload-Oxum: 0.0' . PHP_EOL . 'Bagging-Date: ' .
-            date('Y-m-d', time()) . PHP_EOL;
+        $expected = 'Contact-NAME: Monty Hall' . PHP_EOL . 'Payload-Oxum: 0.0' . PHP_EOL . 'Bag-Size: 0 B' .
+            PHP_EOL . 'Bagging-Date: ' . date('Y-m-d', time()) . PHP_EOL;
         $this->assertEquals($expected, file_get_contents($baginfo));
 
         $bag->addBagInfoTag('contact-nAME', 'Bob Barker');
@@ -335,7 +340,7 @@ class ExtendedBagTest extends BagItTestFramework
 
         $bag->update();
         $expected = 'Contact-NAME: Monty Hall' . PHP_EOL . 'contact-nAME: Bob Barker' . PHP_EOL . 'Payload-Oxum: 0.0' .
-            PHP_EOL . 'Bagging-Date: ' . date('Y-m-d', time()) . PHP_EOL;
+            PHP_EOL . 'Bag-Size: 0 B' . PHP_EOL . 'Bagging-Date: ' . date('Y-m-d', time()) . PHP_EOL;
         $this->assertEquals($expected, file_get_contents($baginfo));
     }
 
@@ -435,9 +440,9 @@ class ExtendedBagTest extends BagItTestFramework
      * Test payload-oxum calculation is only done once independent of how
      * many hash algorithm are used.
      * @group Extended
-     * @covers ::update
+     * @covers ::calculateTotalFileSizeAndAmountOfFiles
      * @covers ::getBagInfoByTag
-     * @covers ::calculateOxum
+     * @covers ::update
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testOxumCalculationForManyHashAlogrithm()
@@ -452,5 +457,39 @@ class ExtendedBagTest extends BagItTestFramework
         $oxums = $bag->getBagInfoByTag('payload-oxum');
         $this->assertCount(1, $oxums);
         $this->assertEquals('408183.2', $oxums[0]);
+    }
+
+    /**
+     * Test setting of bag-size tag.
+     * @group Extended
+     * @covers ::calculateTotalFileSizeAndAmountOfFiles
+     * @covers ::convertToHumanReadable
+     * @covers ::getBagInfoByTag
+     * @covers ::update
+     * @throws \whikloj\BagItTools\BagItException
+     */
+    public function testCalculatedBagSize()
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        $bag = Bag::load($this->tmpdir);
+
+        $bag->addFile(self::TEST_IMAGE['filename'], 'data/image1.jpg');
+        $bag->update();
+        $bagsize = $bag->getBagInfoByTag('bag-size');
+        $this->assertCount(1, $bagsize);
+        $this->assertEquals('787.53 KB', $bagsize[0]);
+        $oxums = $bag->getBagInfoByTag('payload-oxum');
+        $this->assertCount(1, $oxums);
+        $this->assertEquals('806429.3', $oxums[0]);
+
+        $bag->addFile(self::TEST_IMAGE['filename'], 'data/subdir/image1.jpg');
+        $bag->addFile(self::TEST_IMAGE['filename'], 'data/subdir/image2.jpg');
+        $bag->update();
+        $bagsize = $bag->getBagInfoByTag('bag-size');
+        $this->assertCount(1, $bagsize);
+        $this->assertEquals('1.53 MB', $bagsize[0]);
+        $oxums = $bag->getBagInfoByTag('payload-oxum');
+        $this->assertCount(1, $oxums);
+        $this->assertEquals('1602921.5', $oxums[0]);
     }
 }
