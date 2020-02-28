@@ -72,6 +72,7 @@ class Bag
      */
     const BAG_INFO_GENERATED_ELEMENTS = [
         'payload-oxum',
+        'bag-size',
         'bagging-date',
     ];
 
@@ -1316,11 +1317,15 @@ class Bag
             }
             $newInfo[] = $row;
         }
-        $oxum = $this->calculateOxum();
-        if (!is_null($oxum)) {
+        $calculated = $this->calculateTotalFileSizeAndAmountOfFiles();
+        if (!empty($calculated)) {
             $newInfo[] = [
                 'tag' => 'Payload-Oxum',
-                'value' => $oxum,
+                'value' => $calculated['totalFileSize'] . '.' . $calculated['totalFiles'],
+            ];
+            $newInfo[] = [
+                'tag' => 'Bag-Size',
+                'value' => $this->convertToHumanReadable($calculated['totalFileSize']),
             ];
         }
         $newInfo[] = [
@@ -1328,6 +1333,25 @@ class Bag
             'value' => date('Y-m-d', time()),
         ];
         $this->bagInfoData = $newInfo;
+    }
+
+    /**
+     * Convert given byte value to a human readable value.
+     *
+     * @param int $bytes
+     * @return string
+     */
+    private function convertToHumanReadable($bytes)
+    {
+        $symbols = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        if ($bytes > 0) {
+            $bytesInFloat = floatval($bytes);
+            $exp = floor(log($bytesInFloat) / log(1024));
+            $result =  sprintf('%.2f ' . $symbols[$exp], ($bytesInFloat / pow(1024, floor($exp))));
+        } else {
+            $result = '0 B';
+        }
+        return $result;
     }
 
     /**
@@ -1343,12 +1367,13 @@ class Bag
     }
 
     /**
-     * Calculate the payload-oxum value for all payload files.
+     * Calculate the total file size and amount of files of all payload files.
      *
-     * @return string|null
-     *   The payload-oxum or null if we couldn't read all the file sizes.
+     * @return array|null
+     *   The total file size and amount of all files or
+     *   null if we couldn't read all the file sizes.
      */
-    private function calculateOxum()
+    private function calculateTotalFileSizeAndAmountOfFiles()
     {
         $total_size = 0;
         $total_files = 0;
@@ -1364,7 +1389,10 @@ class Bag
                 $total_files += 1;
             }
         }
-        return "{$total_size}.{$total_files}";
+        return [
+            'totalFileSize' => $total_size,
+            'totalFiles' => $total_files
+            ];
     }
 
     /**
