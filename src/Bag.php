@@ -1190,12 +1190,16 @@ class Bag
             while (!feof($fp)) {
                 $line = fgets($fp);
                 $lineCount += 1;
-                if ($line == "") {
+                if (trim($line) == "") {
                     continue;
                 }
                 $line = $this->decodeText($line);
-
-                if (preg_match("~^(\s+)?([^:]+?)(\s+)?:\s+(.*)$~", $line, $matches)) {
+                if (!empty($line) && (substr($line, 0, 2) == "  " || $line[0] == "\t")) {
+                    // Continuation of a line
+                    if (count($bagData) > 0) {
+                        $bagData[count($bagData)-1]['value'] .= " " . trim($line);
+                    }
+                } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:\s+(.*)$~", $line, $matches)) {
                     // First line
                     $current_tag = $matches[2];
                     if ($this->mustNotRepeatBagInfoExists($current_tag)) {
@@ -1219,10 +1223,6 @@ class Bag
                         'tag' => $current_tag,
                         'value' => trim($matches[4]),
                     ];
-                } elseif (!empty($line) && ($line[0] == " " || $line[0] == "\t")) {
-                    if (count($bagData) > 0) {
-                        $bagData[count($bagData)-1]['value'] .= " " . trim($line);
-                    }
                 } elseif (!empty($line)) {
                     $this->addBagError($info_file, "Invalid tag.");
                 }
