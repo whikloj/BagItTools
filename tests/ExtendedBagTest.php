@@ -497,6 +497,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test that long tag lines might contain colons and should still validate if
      * @group Extended
      * @covers ::loadBagInfo
+     * @covers ::trimSpacesOnly
      */
     public function testLongBagInfoLinesWrap()
     {
@@ -514,6 +515,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test loading long lines with internal newlines from a bag-info.txt
      * @group Extended
      * @covers ::loadBagInfo
+     * @covers ::trimSpacesOnly
      */
     public function testLoadWrappedLines()
     {
