@@ -1197,9 +1197,9 @@ class Bag
                 if (!empty($line) && (substr($line, 0, 2) == "  " || $line[0] == "\t")) {
                     // Continuation of a line
                     if (count($bagData) > 0) {
-                        $bagData[count($bagData)-1]['value'] .= " " . trim($line);
+                        $bagData[count($bagData)-1]['value'] .= " " . Bag::trimSpacesOnly($line);
                     }
-                } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:\s+(.*)$~", $line, $matches)) {
+                } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:(.*)([\r\n]+)~", $line, $matches)) {
                     // First line
                     $current_tag = $matches[2];
                     if ($this->mustNotRepeatBagInfoExists($current_tag)) {
@@ -1221,13 +1221,18 @@ class Bag
                     }
                     $bagData[] = [
                         'tag' => $current_tag,
-                        'value' => trim($matches[4]),
+                        // Newline is removed by preg_match, re-add it here.
+                        'value' => Bag::trimSpacesOnly($matches[4] . $matches[5]),
                     ];
                 } elseif (!empty($line)) {
                     $this->addBagError($info_file, "Invalid tag.");
                 }
             }
             fclose($fp);
+            // We left newlines on the end of each tag value, those can be stripped.
+            array_walk($bagData, function (&$item) {
+                    $item['value'] = rtrim($item['value']);
+            });
             $this->bagInfoData = $bagData;
             $this->updateBagInfoIndex();
             return true;
@@ -1247,6 +1252,18 @@ class Bag
     {
         $text = strtolower($text);
         return trim($text);
+    }
+
+    /**
+     * Just trim spaces NOT newlines and carriage returns.
+     * @param $text
+     *   The original text
+     * @return string
+     *   The text with surrounding spaces trimmed away.
+     */
+    private static function trimSpacesOnly($text)
+    {
+        return trim($text, " \t\0\x0B");
     }
 
     /**

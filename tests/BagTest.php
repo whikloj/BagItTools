@@ -909,21 +909,4 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $this->assertCount(1, $bag->getErrors());
     }
-
-    /**
-     * Test that long tag lines might contain colons and should still validate if
-     * @group Bag
-     * @covers ::loadBagInfo
-     */
-    public function testLongBagInfoLinesWrap()
-    {
-        $bag = Bag::create($this->tmpdir);
-        $bag->setExtended(true);
-
-        $bag->addBagInfoTag('Title', 'A really long long long long long long long long long long long ' .
-            'title with a colon : between and more information are on the way');
-
-        $bag->update();
-        $this->assertTrue($bag->validate());
-    }
 }

@@ -93,7 +93,7 @@ class BagUtilsTest extends BagItTestFramework
     public function testGetAllFiles()
     {
         $files = BagUtils::getAllFiles(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos');
-        $this->assertCount(1, $files);
+        $this->assertCount(2, $files);
 
         $files = BagUtils::getAllFiles(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'fetchFiles');
         $this->assertCount(4, $files);

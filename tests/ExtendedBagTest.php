@@ -492,4 +492,39 @@ class ExtendedBagTest extends BagItTestFramework
         $this->assertCount(1, $oxums);
         $this->assertEquals('1602921.5', $oxums[0]);
     }
+
+    /**
+     * Test that long tag lines might contain colons and should still validate if
+     * @group Extended
+     * @covers ::loadBagInfo
+     */
+    public function testLongBagInfoLinesWrap()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->setExtended(true);
+
+        $bag->addBagInfoTag('Title', 'A really long long long long long long long long long long long ' .
+            'title with a colon : between and more information are on the way');
+
+        $bag->update();
+        $this->assertTrue($bag->validate());
+    }
+
+    /**
+     * Test loading long lines with internal newlines from a bag-info.txt
+     * @group Extended
+     * @covers ::loadBagInfo
+     */
+    public function testLoadWrappedLines()
+    {
+        $bag = Bag::create($this->tmpdir);
+        copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
+            'long-lines-and-line-returns.txt', $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt');
+        touch($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt');
+
+        $testbag = Bag::load($this->tmpdir);
+        $this->assertCount(0, $testbag->getErrors());
+        $this->assertEquals("This is some crazy information\n about a new way of searching for : the " .
+            "stuff.\n Why do this? Because we can", $testbag->getBagInfoByTag('External-Description')[0]);
+    }
 }
