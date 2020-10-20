@@ -127,6 +127,16 @@ class Bag
     ];
 
     /**
+     * Length we start trying to wrap at.
+     */
+    const BAGINFO_AUTOWRAP_START = 77;
+
+    /**
+     * The length of a line over which we assume the line has been auto-wrapped.
+     */
+    const BAGINFO_AUTOWRAP_GUESS_LENGTH = 70;
+
+    /**
      * All the extensions in one array.
      *
      * @var array
@@ -1170,6 +1180,9 @@ class Bag
     /**
      * Read in the bag-info.txt file.
      *
+     * To support newlines in bag-info.txt any line that is less than 70 characters will have the newline at the end
+     * maintained. Otherwise, the newline is considered an auto-wrap and is removed to not interfere with the text.
+     *
      * @return boolean
      *   Does bag-info.txt exists.
      *
@@ -1194,38 +1207,57 @@ class Bag
                     continue;
                 }
                 $line = $this->decodeText($line);
-                if (!empty($line) && (substr($line, 0, 2) == "  " || $line[0] == "\t")) {
-                    // Continuation of a line
-                    if (count($bagData) > 0) {
-                        $bagData[count($bagData)-1]['value'] .= " " . Bag::trimSpacesOnly($line);
+                if (!empty($line)) {
+                    $lineLength = strlen($line);
+                    if (substr($line, 0, 2) == "  " || $line[0] == "\t") {
+                        // Continuation of a line
+                        if (count($bagData) > 0) {
+                            $previousValue = $bagData[count($bagData)-1]['value'];
+                            // Add a space only if the previous character was not a line break.
+                            $lastChar = substr($previousValue, -1);
+                            $previousValue .= ($lastChar != "\r" && $lastChar != "\n" ? " " :"");
+                            $previousValue .= Bag::trimSpacesOnly($line);
+                            if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
+                                // Line is max length or longer, should be autowrapped
+                                $previousValue = rtrim($previousValue, "\r\n");
+                            }
+                            $bagData[count($bagData)-1]['value'] = $previousValue;
+                        }
+                    } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:(.*)([\r\n]+)~", $line, $matches)) {
+                        // First line
+                        $current_tag = $matches[2];
+                        if ($this->mustNotRepeatBagInfoExists($current_tag)) {
+                            $this->addBagError(
+                                $info_file,
+                                "Tag {$current_tag} MUST not be repeated. (Line {$lineCount})"
+                            );
+                        } elseif ($this->shouldNotRepeatBagInfoExists($current_tag)) {
+                            $this->addBagWarning(
+                                $info_file,
+                                "Tag {$current_tag} SHOULD NOT be repeated. (Line {$lineCount})"
+                            );
+                        }
+                        if (($this->compareVersion('1.0') <=0) && (!empty($matches[1]) || !empty($matches[3]))) {
+                            $this->addBagError(
+                                $info_file,
+                                "Labels cannot begin or end with a whitespace. (Line {$lineCount})"
+                            );
+                        }
+                        if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
+                            // Line is max length or longer, should be autowrapped
+                            $value = $matches[4];
+                        } else {
+                            // Shorter line, save the newline.
+                            $value = $matches[4] . $matches[5];
+                        }
+                        $bagData[] = [
+                            'tag' => $current_tag,
+                            // Newline is removed by preg_match, re-add it here.
+                            'value' => Bag::trimSpacesOnly($value),
+                        ];
+                    } elseif (!empty($line)) {
+                        $this->addBagError($info_file, "Invalid tag.");
                     }
-                } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:(.*)([\r\n]+)~", $line, $matches)) {
-                    // First line
-                    $current_tag = $matches[2];
-                    if ($this->mustNotRepeatBagInfoExists($current_tag)) {
-                        $this->addBagError(
-                            $info_file,
-                            "Tag {$current_tag} MUST not be repeated. (Line {$lineCount})"
-                        );
-                    } elseif ($this->shouldNotRepeatBagInfoExists($current_tag)) {
-                        $this->addBagWarning(
-                            $info_file,
-                            "Tag {$current_tag} SHOULD NOT be repeated. (Line {$lineCount})"
-                        );
-                    }
-                    if (($this->compareVersion('1.0') <=0) && (!empty($matches[1]) || !empty($matches[3]))) {
-                        $this->addBagError(
-                            $info_file,
-                            "Labels cannot begin or end with a whitespace. (Line {$lineCount})"
-                        );
-                    }
-                    $bagData[] = [
-                        'tag' => $current_tag,
-                        // Newline is removed by preg_match, re-add it here.
-                        'value' => Bag::trimSpacesOnly($matches[4] . $matches[5]),
-                    ];
-                } elseif (!empty($line)) {
-                    $this->addBagError($info_file, "Invalid tag.");
                 }
             }
             fclose($fp);
@@ -1313,6 +1345,9 @@ class Bag
         foreach ($this->bagInfoData as $bag_info_datum) {
             $tag = $bag_info_datum['tag'];
             $value = $bag_info_datum['value'];
+            // We don't guarantee newlines remain once you edit a bag.
+            $value = str_replace("\r\n", " ", $value);
+            $value = str_replace("\n", " ", $value);
             $data = self::wrapBagInfoText("{$tag}: {$value}");
             foreach ($data as $line) {
                 $line = $this->encodeText($line);
@@ -1422,21 +1457,21 @@ class Bag
      */
     private static function wrapBagInfoText($text)
     {
-        // Start at 78 for some leeway.
-        $length = 78;
+        // Start short of 79 for some leeway.
+        $length = Bag::BAGINFO_AUTOWRAP_START;
         do {
             $rows = self::wrapAtLength($text, $length);
             $too_long = array_filter(
                 $rows,
                 function ($o) {
-                    return strlen($o) > 78;
+                    return strlen($o) > Bag::BAGINFO_AUTOWRAP_START;
                 }
             );
             $length -= 1;
         } while ($length > 0 && count($too_long) > 0);
         if (count($too_long) > 0) {
             // No matter the size we couldn't get it to fit in 79 characters. So we give up.
-            $rows = self::wrapAtLength($text, 78);
+            $rows = self::wrapAtLength($text, Bag::BAGINFO_AUTOWRAP_START);
         }
         for ($foo = 1; $foo < count($rows); $foo += 1) {
             $rows[$foo] = "  " . $rows[$foo];
