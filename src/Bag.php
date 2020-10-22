@@ -15,17 +15,17 @@ class Bag
     /**
      * The default algorithm to use if one is not specified.
      */
-    const DEFAULT_HASH_ALGORITHM = 'sha512';
+    private const DEFAULT_HASH_ALGORITHM = 'sha512';
 
     /**
      * The default file encoding if one is not specified.
      */
-    const DEFAULT_FILE_ENCODING = 'UTF-8';
+    private const DEFAULT_FILE_ENCODING = 'UTF-8';
 
     /**
      * The default bagit version.
      */
-    const DEFAULT_BAGIT_VERSION = [
+    private const DEFAULT_BAGIT_VERSION = [
         'major' => 1,
         'minor' => 0,
     ];
@@ -33,14 +33,14 @@ class Bag
     /**
      * Bag-info fields that MUST not be repeated.
      */
-    const BAG_INFO_MUST_NOT_REPEAT = [
+    private const BAG_INFO_MUST_NOT_REPEAT = [
         'payload-oxum',
     ];
 
     /**
      * Bag-info fields that SHOULD NOT be repeated.
      */
-    const BAG_INFO_SHOULD_NOT_REPEAT = [
+    private const BAG_INFO_SHOULD_NOT_REPEAT = [
         'bagging-date',
         'bag-size',
         'bag-group-identifer',
@@ -50,7 +50,7 @@ class Bag
     /**
      * Reserved element names for Bag-info fields.
      */
-    const BAG_INFO_RESERVED_ELEMENTS = [
+    private const BAG_INFO_RESERVED_ELEMENTS = [
         'source-organization',
         'organization-address',
         'contact-name',
@@ -70,7 +70,7 @@ class Bag
     /**
      * Fields you can't set because we generate them on $bag->update().
      */
-    const BAG_INFO_GENERATED_ELEMENTS = [
+    private const BAG_INFO_GENERATED_ELEMENTS = [
         'payload-oxum',
         'bag-size',
         'bagging-date',
@@ -84,7 +84,7 @@ class Bag
      *
      * @var array
      */
-    const HASH_ALGORITHMS = array(
+    private const HASH_ALGORITHMS = array(
         'md5' => 'md5',
         'sha1' => 'sha1',
         'sha224' => 'sha224',
@@ -100,19 +100,19 @@ class Bag
     /**
      * File names that are not allowed on windows, should be disallowed in bags for interoperability.
      */
-    const WINDOWS_RESERVED_NAMES = [
+    private const WINDOWS_RESERVED_NAMES = [
         'CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1',
         'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9',
     ];
 
-    const WINDOWS_PATH_CHARACTERS = [
+    private const WINDOWS_PATH_CHARACTERS = [
         '<', '>', ':', '"', '/', '|', '?', '*',
     ];
 
     /**
      * Extensions which map to a tar file.
      */
-    const TAR_EXTENSIONS = [
+    private const TAR_EXTENSIONS = [
         'tar',
         'tgz',
         'tar.gz',
@@ -122,7 +122,7 @@ class Bag
     /**
      * Extensions which map to a zip file.
      */
-    const ZIP_EXTENSIONS = [
+    private const ZIP_EXTENSIONS = [
         'zip',
     ];
 
@@ -296,7 +296,7 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *   If we can't create the directory.
      */
-    public static function create($rootPath)
+    public static function create($rootPath) : Bag
     {
         return new Bag($rootPath, true);
     }
@@ -311,7 +311,7 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *   If we can't read files in the bag.
      */
-    public static function load($rootPath)
+    public static function load($rootPath) : Bag
     {
         if ($rootPath[0] !== DIRECTORY_SEPARATOR) {
             $rootPath = getcwd() . DIRECTORY_SEPARATOR . $rootPath;
@@ -330,7 +330,7 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *   Problems writing to disk.
      */
-    public function validate()
+    public function validate() : bool
     {
         if (!$this->loaded || $this->changed) {
             // If we created this bag or have changed stuff we need to write it.
@@ -506,7 +506,7 @@ class Bag
      * @return string
      *   The absolute path.
      */
-    public function makeAbsolute($path)
+    public function makeAbsolute($path) : string
     {
         $length = strlen($this->bagRoot);
         $path = $this->internalPath($path);
@@ -527,7 +527,7 @@ class Bag
      * @return string
      *   The shortened path or blank if it is outside bag root.
      */
-    public function makeRelative($path)
+    public function makeRelative($path) : string
     {
         $path = $this->internalPath($path);
         $path = BagUtils::getAbsolute($path);
@@ -545,7 +545,7 @@ class Bag
      * @return array
      *   Bag Info data.
      */
-    public function getBagInfoData()
+    public function getBagInfoData() : array
     {
         return $this->bagInfoData;
     }
@@ -558,7 +558,7 @@ class Bag
      * @return bool
      *   Does the tag exist.
      */
-    public function hasBagInfoTag($tag)
+    public function hasBagInfoTag($tag) : bool
     {
         $tag = self::trimLower($tag);
         return $this->bagInfoTagExists($tag);
@@ -572,7 +572,7 @@ class Bag
      * @return array
      *   Array of values for the tag.
      */
-    public function getBagInfoByTag($tag)
+    public function getBagInfoByTag($tag) : array
     {
         $tag = self::trimLower($tag);
         if ($this->bagInfoTagExists($tag)) {
@@ -697,7 +697,7 @@ class Bag
      * @return string
      *   Current file encoding.
      */
-    public function getFileEncoding()
+    public function getFileEncoding() : string
     {
         if (isset($this->currentFileEncoding)) {
             return $this->currentFileEncoding;
@@ -711,7 +711,7 @@ class Bag
      * @return array
      *   Internal hash names for current manifests.
      */
-    public function getAlgorithms()
+    public function getAlgorithms() : array
     {
         return array_keys($this->payloadManifests);
     }
@@ -724,7 +724,7 @@ class Bag
      *
      * @return boolean Do we already have this payload manifest.
      */
-    public function hasAlgorithm($hashAlgorithm)
+    public function hasAlgorithm($hashAlgorithm) : bool
     {
         $internal_name = $this->getHashName($hashAlgorithm);
         if ($this->hashIsSupported($internal_name)) {
@@ -741,7 +741,7 @@ class Bag
      * @return boolean
      *   Whether it is supported by our PHP.
      */
-    public function algorithmIsSupported($algorithm)
+    public function algorithmIsSupported($algorithm) : bool
     {
         $internal_name = $this->getHashName($algorithm);
         return $this->hashIsSupported($internal_name);
@@ -869,7 +869,7 @@ class Bag
      *
      * @return array
      */
-    public function listFetchFiles()
+    public function listFetchFiles() : array
     {
         return (!isset($this->fetchFile) ? [] : $this->fetchFile->getData());
     }
@@ -906,7 +906,7 @@ class Bag
      * @return array
      *   Current version.
      */
-    public function getVersion()
+    public function getVersion() : array
     {
         if (isset($this->currentVersion)) {
             return $this->currentVersion;
@@ -920,7 +920,7 @@ class Bag
      * @return string
      *   Current version in M.N format.
      */
-    public function getVersionString()
+    public function getVersionString() : string
     {
         $version = $this->getVersion();
         return $version['major'] . "." . $version['minor'];
@@ -932,7 +932,7 @@ class Bag
      * @return string
      *   The bag root path.
      */
-    public function getBagRoot()
+    public function getBagRoot() : string
     {
         return $this->bagRoot;
     }
@@ -943,7 +943,7 @@ class Bag
      * @return string
      *   The bag data directory path.
      */
-    public function getDataDirectory()
+    public function getDataDirectory() : string
     {
         return $this->makeAbsolute("data");
     }
@@ -954,7 +954,7 @@ class Bag
      * @return boolean
      *   Does the bag use extended features?
      */
-    public function isExtended()
+    public function isExtended() : bool
     {
         return $this->isExtended;
     }
@@ -978,7 +978,7 @@ class Bag
      * @return array
      *   The errors.
      */
-    public function getErrors()
+    public function getErrors() : array
     {
         return $this->bagErrors;
     }
@@ -989,7 +989,7 @@ class Bag
      * @return array
      *   The warnings.
      */
-    public function getWarnings()
+    public function getWarnings() : array
     {
         return $this->bagWarnings;
     }
@@ -1000,7 +1000,7 @@ class Bag
      * @return array
      *   hash algorithm => Payload manifests
      */
-    public function getPayloadManifests()
+    public function getPayloadManifests() : array
     {
         return $this->payloadManifests;
     }
@@ -1024,7 +1024,7 @@ class Bag
      * @return string
      *   The converted text.
      */
-    public function decodeText($text)
+    public function decodeText($text) : string
     {
         return mb_convert_encoding($text, self::DEFAULT_FILE_ENCODING, $this->getFileEncoding());
     }
@@ -1037,7 +1037,7 @@ class Bag
      * @return string
      *   The converted text.
      */
-    public function encodeText($text)
+    public function encodeText($text) : string
     {
         return mb_convert_encoding($text, $this->getFileEncoding(), self::DEFAULT_FILE_ENCODING);
     }
@@ -1050,7 +1050,7 @@ class Bag
      * @return boolean
      *   Path is inside the data/ directory.
      */
-    public function pathInBagData($filepath)
+    public function pathInBagData($filepath) : bool
     {
         $external = $this->makeAbsolute($filepath);
         $external = trim($external);
@@ -1280,7 +1280,7 @@ class Bag
      * @return string
      *   The lowercase trimmed text.
      */
-    private static function trimLower($text)
+    private static function trimLower($text) : string
     {
         $text = strtolower($text);
         return trim($text);
@@ -1322,7 +1322,7 @@ class Bag
      * @return bool
      *   Does it exist in the index.
      */
-    private function bagInfoTagExists($internal_tag)
+    private function bagInfoTagExists($internal_tag) : bool
     {
         return array_key_exists($internal_tag, $this->bagInfoTagIndex);
     }
@@ -1393,7 +1393,7 @@ class Bag
      * @param int $bytes
      * @return string
      */
-    private function convertToHumanReadable($bytes)
+    private function convertToHumanReadable($bytes) : string
     {
         $symbols = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         if ($bytes > 0) {
@@ -1455,7 +1455,7 @@ class Bag
      * @return array
      *   The text as an array.
      */
-    private static function wrapBagInfoText($text)
+    private static function wrapBagInfoText($text) : array
     {
         // Start short of 79 for some leeway.
         $length = Bag::BAGINFO_AUTOWRAP_START;
@@ -1489,7 +1489,7 @@ class Bag
      * @return array
      *   Rows of text.
      */
-    private static function wrapAtLength($text, $length)
+    private static function wrapAtLength($text, $length) : array
     {
         $text = str_replace("\n", "", $text);
         $wrapped = wordwrap($text, $length, "\n");
@@ -1505,7 +1505,7 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *   Problems with glob() pattern or loading manifest.
      */
-    private function loadTagManifests()
+    private function loadTagManifests() : bool
     {
         $tagManifests = [];
         $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-*.txt";
@@ -1888,7 +1888,7 @@ class Bag
      * @return string
      *   The parent directory.
      */
-    private function getParentDir()
+    private function getParentDir() : string
     {
         $fullPath = $this->bagRoot;
         return dirname($fullPath);
@@ -1904,7 +1904,7 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *   Problems accessing/extracting the archive file.
      */
-    private static function uncompressBag($filepath)
+    private static function uncompressBag($filepath) : string
     {
         if (file_exists($filepath)) {
             $extension = self::getExtensions($filepath);
@@ -1931,7 +1931,7 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *   Problems extracting the zip file.
      */
-    private static function unzipBag($filename)
+    private static function unzipBag($filename) : string
     {
         $zip = new \ZipArchive;
         $res = $zip->open($filename);
@@ -1956,7 +1956,7 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *   Problems extracting the zip file.
      */
-    private static function untarBag($filename, $extension)
+    private static function untarBag($filename, $extension) : string
     {
         $compression = self::extensionTarCompression($extension);
         $directory = self::extractDir();
@@ -1988,7 +1988,7 @@ class Bag
      * @return string
      *   The path to a new temporary directory.
      */
-    private static function extractDir()
+    private static function extractDir() : string
     {
         $temp = tempnam('', '');
         unlink($temp);
@@ -2004,7 +2004,7 @@ class Bag
      * @return bool
      *   True if compressed file (we support).
      */
-    private static function isCompressed($filepath)
+    private static function isCompressed($filepath) : bool
     {
         return (in_array(
             self::getExtensions($filepath),
@@ -2023,7 +2023,7 @@ class Bag
      * @return string
      *   The extension or an empty string.
      */
-    private static function getExtensions($filepath)
+    private static function getExtensions($filepath) : string
     {
         $filename = strtolower(basename($filepath));
         if (strpos($filename, '.') !== false) {
@@ -2042,7 +2042,7 @@ class Bag
      * @throws \whikloj\BagItTools\BagItException
      *   Find more or less than one directory (not including . and ..)
      */
-    private static function getDirectory($filepath)
+    private static function getDirectory($filepath) : string
     {
         $files = scandir($filepath);
         $dirs = [];
@@ -2123,7 +2123,7 @@ class Bag
      * @return string
      *   The modified path.
      */
-    private function internalPath($path)
+    private function internalPath($path) : string
     {
         return str_replace(DIRECTORY_SEPARATOR, "/", $path);
     }
@@ -2145,10 +2145,10 @@ class Bag
      * @param string $item
      *   A hash algorithm name.
      *
-     * @return bool
+     * @return boolean
      *   True if allowed by the specification.
      */
-    private static function filterPhpHashAlgorithms($item)
+    private static function filterPhpHashAlgorithms($item) : bool
     {
         return in_array($item, array_values(self::HASH_ALGORITHMS));
     }
@@ -2158,14 +2158,14 @@ class Bag
      *
      * @param  string $algorithm
      *   A algorithm name
-     * @return string|null
-     *   The sanitized version of algorithm or null if invalid.
+     * @return string
+     *   The sanitized version of algorithm or an empty string if invalid.
      */
-    private function getHashName($algorithm)
+    public static function getHashName($algorithm) : string
     {
-        $algorithm = self::trimLower($algorithm);
+        $algorithm = Bag::trimLower($algorithm);
         $algorithm = preg_replace("/[^a-z0-9]/", "", $algorithm);
-        if (in_array($algorithm, array_keys(self::HASH_ALGORITHMS))) {
+        if (in_array($algorithm, array_keys(Bag::HASH_ALGORITHMS))) {
             return $algorithm;
         }
         return "";
@@ -2176,10 +2176,10 @@ class Bag
      *
      * @param  string $internal_name
      *   Internal name from getHashName.
-     * @return bool
+     * @return boolean
      *   Already have this algorithm.
      */
-    private function hasHash($internal_name)
+    private function hasHash($internal_name) : bool
     {
         return (in_array($internal_name, array_keys($this->payloadManifests)));
     }
@@ -2189,10 +2189,10 @@ class Bag
      *
      * @param  string $internal_name
      *   Output of getHashName
-     * @return bool
+     * @return boolean
      *   Do we support the algorithm
      */
-    private function hashIsSupported($internal_name)
+    private function hashIsSupported($internal_name) : bool
     {
         return ($internal_name != null && in_array($internal_name, $this->validHashAlgorithms));
     }
@@ -2205,7 +2205,7 @@ class Bag
      * @param  array      $map    The associative array to search.
      * @return boolean True if the key exists regardless of case.
      */
-    private static function arrayKeyExistsNoCase($search, $key, array $map)
+    private static function arrayKeyExistsNoCase($search, $key, array $map) : bool
     {
         $keys = array_column($map, $key);
         array_walk(
@@ -2225,7 +2225,7 @@ class Bag
      * @return boolean
      *   True if the key is non-repeatable and already in the
      */
-    private function mustNotRepeatBagInfoExists($key)
+    private function mustNotRepeatBagInfoExists($key) : bool
     {
         return (in_array(strtolower($key), self::BAG_INFO_MUST_NOT_REPEAT) &&
             self::arrayKeyExistsNoCase($key, 'tag', $this->bagInfoData));
@@ -2239,7 +2239,7 @@ class Bag
      * @return boolean
      *   True if the key is non-repeatable and already in the
      */
-    private function shouldNotRepeatBagInfoExists($key)
+    private function shouldNotRepeatBagInfoExists($key) : bool
     {
         return (in_array(strtolower($key), self::BAG_INFO_SHOULD_NOT_REPEAT) &&
             self::arrayKeyExistsNoCase($key, 'tag', $this->bagInfoData));
@@ -2270,7 +2270,7 @@ class Bag
      * @return boolean
      *   True if a reserved filename.
      */
-    private function reservedFilename($filepath)
+    private function reservedFilename($filepath) : bool
     {
         $filename = substr($filepath, strrpos($filepath, '/') + 1);
         return (in_array(strtoupper($filename), self::WINDOWS_RESERVED_NAMES));
@@ -2284,7 +2284,7 @@ class Bag
      * @return int
      *   returns -1 $version < current, 0  $version == current, and 1 $version > current.
      */
-    private function compareVersion($version)
+    private function compareVersion($version) : int
     {
         return version_compare($version, $this->getVersionString());
     }

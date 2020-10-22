@@ -76,7 +76,7 @@ class TagManifest extends AbstractManifest
      * @return bool
      *   True if it is a tagmanifest file.
      */
-    private function isTagManifest($filepath)
+    private function isTagManifest($filepath) : bool
     {
         return (substr(basename($filepath), 0, 11) == "tagmanifest");
     }

@@ -413,6 +413,7 @@ class ExtendedBagTest extends BagItTestFramework
         $this->tmpdir = $this->prepareBasicTestBag();
         $bag = Bag::load($this->tmpdir);
         $payloads = $bag->getPayloadManifests();
+        $this->assertTrue(is_array($payloads));
         $this->assertCount(1, $payloads);
         $tags = $bag->getTagManifests();
         $this->assertNull($tags);
@@ -431,8 +432,10 @@ class ExtendedBagTest extends BagItTestFramework
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
         $payloads = $bag->getPayloadManifests();
+        $this->assertTrue(is_array($payloads));
         $this->assertCount(1, $payloads);
         $tags = $bag->getTagManifests();
+        $this->assertTrue(is_array($tags));
         $this->assertCount(1, $tags);
     }
 

@@ -16,27 +16,27 @@ class BagItTestFramework extends TestCase
     /**
      * Path to the test resources directory.
      */
-    const TEST_RESOURCES = __DIR__ . DIRECTORY_SEPARATOR . "resources";
+    protected const TEST_RESOURCES = __DIR__ . DIRECTORY_SEPARATOR . "resources";
 
     /**
      * Location of the Test Bag
      */
-    const TEST_BAG_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestBag";
+    protected const TEST_BAG_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestBag";
 
     /**
      * Location of the Test Bag
      */
-    const TEST_EXTENDED_BAG_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestExtendedBag";
+    protected const TEST_EXTENDED_BAG_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestExtendedBag";
 
     /**
      * Location of manifests.
      */
-    const TEST_MANIFEST_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "manifests";
+    protected const TEST_MANIFEST_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "manifests";
 
     /**
      * Location and hashes of the test image.
      */
-    const TEST_IMAGE = [
+    protected const TEST_IMAGE = [
         'filename' => self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "images" . DIRECTORY_SEPARATOR .
             "scenic-landscape.jpg",
         'checksums' => [
@@ -51,7 +51,7 @@ class BagItTestFramework extends TestCase
     /**
      * Location and hashes of a test text file.
      */
-    const TEST_TEXT = [
+    protected const TEST_TEXT = [
         'filename' => self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "text" . DIRECTORY_SEPARATOR . "empty.txt",
         'checksums' => [
             'md5' => 'd41d8cd98f00b204e9800998ecf8427e',
@@ -132,7 +132,7 @@ class BagItTestFramework extends TestCase
      *
      * @return string The temporary directory with the copy of the test bag.
      */
-    protected function prepareBasicTestBag()
+    protected function prepareBasicTestBag() : string
     {
         return $this->copyTestBag(self::TEST_BAG_DIR);
     }
@@ -143,7 +143,7 @@ class BagItTestFramework extends TestCase
      * @return string
      *   The temporary directory with the test bag.
      */
-    protected function prepareExtendedTestBag()
+    protected function prepareExtendedTestBag() : string
     {
         return $this->copyTestBag(self::TEST_EXTENDED_BAG_DIR);
     }
@@ -156,7 +156,7 @@ class BagItTestFramework extends TestCase
      * @return string
      *   The path to the copy of the bag.
      */
-    protected function copyTestBag($testDir)
+    protected function copyTestBag($testDir) : string
     {
         $tmp = $this->getTempName();
         mkdir($tmp);
@@ -216,7 +216,7 @@ class BagItTestFramework extends TestCase
      *
      * @throws \ReflectionException
      */
-    protected static function getReflectionMethod($class, $method)
+    protected static function getReflectionMethod($class, $method) : \ReflectionMethod
     {
         $class = new \ReflectionClass($class);
         $methodCall = $class->getMethod($method);

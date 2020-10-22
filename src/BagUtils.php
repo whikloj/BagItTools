@@ -15,7 +15,7 @@ class BagUtils
     /**
      * Valid character set MIME names from IANA.
      */
-    const CHARACTER_SETS = [
+    private const CHARACTER_SETS = [
         "utf-8" => "UTF-8",
         "utf-16" => "UTF-16",
         "us-ascii" => "US-ASCII",
@@ -60,7 +60,7 @@ class BagUtils
      * @return bool
      *    True if it is a dot directory name.
      */
-    public static function isDotDir($filename)
+    public static function isDotDir($filename) : bool
     {
         return ($filename == "." || $filename == "..");
     }
@@ -73,7 +73,7 @@ class BagUtils
      * @return string
      *   The (possibly) rebased path.
      */
-    public static function baseInData($path)
+    public static function baseInData($path) : string
     {
         if (substr($path, 0, 5) !== 'data/') {
             $path = "data/" . ltrim($path, "/");
@@ -93,7 +93,7 @@ class BagUtils
      * @throws \whikloj\BagItTools\BagItException
      *   Error in matching pattern.
      */
-    public static function findAllByPattern($pattern)
+    public static function findAllByPattern($pattern) : array
     {
         $matches=glob($pattern);
         if ($matches === false) {
@@ -125,7 +125,7 @@ class BagUtils
      * @param string $path
      * @return string
      */
-    public static function getAbsolute($path)
+    public static function getAbsolute($path) : string
     {
         // Cleaning path regarding OS
         $path = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $path, 'msr');
@@ -177,7 +177,7 @@ class BagUtils
      * @return bool
      *   True if invalid characters/character sequences exist.
      */
-    public static function invalidPathCharacters($path)
+    public static function invalidPathCharacters($path) : bool
     {
         $path = urldecode($path);
         return ($path[0] === DIRECTORY_SEPARATOR || strpos($path, "~") !== false ||
@@ -194,7 +194,7 @@ class BagUtils
      * @return array
      *   List of files with absolute path.
      */
-    public static function getAllFiles($directory, $exclusions = [])
+    public static function getAllFiles($directory, $exclusions = []) : array
     {
         $paths = [$directory];
         $found_files = [];

@@ -1,6 +1,6 @@
 # BagItTools
 
-[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%205.6-8892BF.svg?style=flat-square)](https://php.net/)
+[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.2-8892BF.svg?style=flat-square)](https://php.net/)
 [![Build Status](https://travis-ci.com/whikloj/BagItTools.svg?branch=master)](https://travis-ci.com/whikloj/BagItTools)
 [![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](./LICENSE)
 [![codecov](https://codecov.io/gh/whikloj/BagItTools/branch/master/graph/badge.svg)](https://codecov.io/gh/whikloj/BagItTools)
@@ -8,8 +8,6 @@
 ## Introduction
 
 BagItTools is a PHP implementation of the BagIt v1.0 specification ([RFC-8493](https://tools.ietf.org/html/rfc8493)).
-
-It is currently in active development see [Development](#development).
 
 Features:
 
@@ -157,11 +155,6 @@ $bag->package('./archive.tar.bz2');
 
 ## Development
 
-This is still a work in progress, if you have a use case or discover a problem please open an [issue](https://github.com/whikloj/BagItTools/issues)
-
-### Roadmap-ish
-
 To-Do:
 
-* Allow insert of bag-info.txt tags
-* CLI interface to handle simple validation functions.
+* CLI interface to handle simple bag CRUD (CReate/Update/Delete) functions.

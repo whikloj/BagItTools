@@ -15,7 +15,7 @@ class Fetch
     /**
      * The fetch filename.
      */
-    const FILENAME = "fetch.txt";
+    private const FILENAME = "fetch.txt";
 
     /**
      * The bag this fetch file is part of
@@ -94,7 +94,7 @@ class Fetch
      *
      * @return array
      */
-    public function getData()
+    public function getData() : array
     {
         return $this->files;
     }
@@ -258,7 +258,7 @@ class Fetch
      * @return array
      *   Array of errors.
      */
-    public function getErrors()
+    public function getErrors() : array
     {
         return $this->fetchErrors;
     }
@@ -271,7 +271,7 @@ class Fetch
      * @return bool
      *   True if the destination is in the fetch.txt
      */
-    public function reservedPath($dest)
+    public function reservedPath($dest) : bool
     {
         $dest = BagUtils::baseInData($dest);
         return $this->destinationExistsInFile($dest);
@@ -449,7 +449,7 @@ class Fetch
      * @return bool
      *   True if we can process it.
      */
-    private function validateUrl($url)
+    private function validateUrl($url) : bool
     {
         $parts = parse_url($url);
         if (!isset($parts['scheme']) || !isset($parts['host'])) {
@@ -466,7 +466,7 @@ class Fetch
      * @return bool
      *   True if we can process it.
      */
-    private function internalValidateUrl($url)
+    private function internalValidateUrl($url) : bool
     {
         $parts = parse_url($url);
         if ($parts['scheme'] !== 'http' && $parts['scheme'] !== 'https') {
@@ -483,7 +483,7 @@ class Fetch
      * @return bool
      *   True if it is valid.
      */
-    private function validatePath($dest)
+    private function validatePath($dest) : bool
     {
         // You can't have any encoded characters in the destination string except LF, CR, CRLF and % itself.
         if (strpos($dest, '%') !== false) {
@@ -507,7 +507,7 @@ class Fetch
      * @return bool
      *   True if a duplicate.
      */
-    private function urlExistsInFile($url)
+    private function urlExistsInFile($url) : bool
     {
         $uris = array_column($this->files, 'uri');
         array_walk($uris, function (&$item) {
@@ -524,7 +524,7 @@ class Fetch
      * @return bool
      *   True if a duplicate.
      */
-    private function destinationExistsInFile($dest)
+    private function destinationExistsInFile($dest) : bool
     {
         $paths = array_column($this->files, 'destination');
         array_walk($paths, function (&$item) {

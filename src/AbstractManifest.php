@@ -108,7 +108,7 @@ abstract class AbstractManifest
      *
      * @return string
      */
-    public function getAlgorithm()
+    public function getAlgorithm() : string
     {
         return $this->algorithm;
     }
@@ -118,7 +118,7 @@ abstract class AbstractManifest
      *
      * @return string
      */
-    public function getFilename()
+    public function getFilename() : string
     {
         return $this->filename;
     }
@@ -128,7 +128,7 @@ abstract class AbstractManifest
      *
      * @return array
      */
-    public function getErrors()
+    public function getErrors() : array
     {
         return $this->manifestErrors;
     }
@@ -138,7 +138,7 @@ abstract class AbstractManifest
      *
      * @return array
      */
-    public function getWarnings()
+    public function getWarnings() : array
     {
         return $this->manifestWarnings;
     }
@@ -190,7 +190,7 @@ abstract class AbstractManifest
      * @return array
      *   Array of paths => hashes
      */
-    public function getHashes()
+    public function getHashes() : array
     {
         return $this->hashes;
     }
@@ -293,7 +293,7 @@ abstract class AbstractManifest
      * @return string
      *   The hash.
      */
-    protected function calculateHash($file)
+    protected function calculateHash($file) : string
     {
         return hash_file($this->getPhpHashName(), $file);
     }
@@ -333,9 +333,9 @@ abstract class AbstractManifest
      *
      * @return string the PHP hash name for the internal hash encoding.
      */
-    protected function getPhpHashName()
+    protected function getPhpHashName() : string
     {
-        return Bag::HASH_ALGORITHMS[$this->algorithm];
+        return Bag::getHashName($this->algorithm);
     }
 
     /*
@@ -361,7 +361,7 @@ abstract class AbstractManifest
      * @return bool
      *   True if there is a match.
      */
-    private function matchNormalizedList($path)
+    private function matchNormalizedList($path) : bool
     {
         return (in_array($this->normalizePath($path), $this->normalizedPaths));
     }
@@ -396,7 +396,7 @@ abstract class AbstractManifest
      * @return string
      *   The cleaned up absolute file path, not resolved on disk.
      */
-    private function cleanUpAbsPath($filepath)
+    private function cleanUpAbsPath($filepath) : string
     {
         $filepath = trim($filepath);
         return BagUtils::getAbsolute($filepath);
@@ -407,10 +407,10 @@ abstract class AbstractManifest
      *
      * @param string $filepath
      *   The relative file path.
-     * @return bool|string
+     * @return string
      *   The cleaned up relative file path or blank if not in the bag Root.
      */
-    private function cleanUpRelPath($filepath)
+    private function cleanUpRelPath($filepath) : string
     {
         $filepath = $this->bag->makeAbsolute($filepath);
         $filepath = $this->cleanUpAbsPath($filepath);
