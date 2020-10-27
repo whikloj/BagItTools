@@ -3,7 +3,7 @@
 namespace whikloj\BagItTools;
 
 use whikloj\BagItTools\Exceptions\BagItException;
-use whikloj\BagItTools\Exceptions\SystemException;
+use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
  * Utility class to hold static functions.
@@ -93,14 +93,14 @@ class BagUtils
      * @return array
      *   Array of matches.
      *
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Error in matching pattern.
      */
     public static function findAllByPattern($pattern) : array
     {
         $matches=glob($pattern);
         if ($matches === false) {
-            throw new SystemException("Error matching pattern {$pattern}");
+            throw new FilesystemException("Error matching pattern {$pattern}");
         }
         return $matches;
     }
@@ -227,14 +227,14 @@ class BagUtils
      *   The source path.
      * @param string $destFile
      *   The destination path.
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   If the copy() call fails.
      * @see \copy()
      */
     public static function checkedCopy($sourceFile, $destFile)
     {
         if (!@copy($sourceFile, $destFile)) {
-            throw new SystemException("Unable to copy file ({$sourceFile}) to ({$destFile})");
+            throw new FilesystemException("Unable to copy file ({$sourceFile}) to ({$destFile})");
         }
     }
 
@@ -247,14 +247,14 @@ class BagUtils
      *   The permissions on the new directories.
      * @param bool $recursive
      *   Whether to create intermediate directories automatically.
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   If the mkdir() call fails.
      * @see \mkdir()
      */
     public static function checkedMkdir($path, $mode = 0777, $recursive = false)
     {
         if (!@mkdir($path, $mode, $recursive)) {
-            throw new SystemException("Unable to create directory {$path}");
+            throw new FilesystemException("Unable to create directory {$path}");
         }
     }
 
@@ -269,7 +269,7 @@ class BagUtils
      *   Flags to pass on to file_put_contents.
      * @return int
      *   Number of bytes written to the file.
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   On any error putting the contents to the file.
      * @see \file_put_contents()
      */
@@ -277,7 +277,7 @@ class BagUtils
     {
         $res = @file_put_contents($path, $contents, $flags);
         if ($res === false) {
-            throw new SystemException("Unable to put contents to file {$path}");
+            throw new FilesystemException("Unable to put contents to file {$path}");
         }
         return $res;
     }
@@ -287,14 +287,14 @@ class BagUtils
      *
      * @param string $path
      *   The path to remove.
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   If the call to unlink() fails.
      * @see \unlink()
      */
     public static function checkedUnlink($path)
     {
         if (!@unlink($path)) {
-            throw new SystemException("Unable to delete path {$path}");
+            throw new FilesystemException("Unable to delete path {$path}");
         }
     }
 
@@ -307,7 +307,7 @@ class BagUtils
      *   The prefix to the file.
      * @return string
      *   The path to the temporary filename.
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Issues creating the file.
      * @see \tempnam()
      */
@@ -315,7 +315,7 @@ class BagUtils
     {
         $res = @tempnam($directory, $prefix);
         if ($res === false) {
-            throw new SystemException("Unable to create a temporary file with directory ${directory}, prefix" .
+            throw new FilesystemException("Unable to create a temporary file with directory ${directory}, prefix" .
             " {$prefix}");
         }
         return $res;
@@ -328,14 +328,14 @@ class BagUtils
      *   The file pointer.
      * @param string $content
      *   The content to write.
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Problem writing to file.
      */
     public static function checkedFwrite($fp, $content)
     {
         $res = @fwrite($fp, $content);
         if ($res === false) {
-            throw new SystemException("Error writing to file");
+            throw new FilesystemException("Error writing to file");
         }
     }
 }

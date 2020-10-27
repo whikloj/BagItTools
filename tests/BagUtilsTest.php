@@ -109,7 +109,7 @@ class BagUtilsTest extends BagItTestFramework
 
     /**
      * @covers ::checkedUnlink
-     * @expectedException \whikloj\BagItTools\Exceptions\SystemException
+     * @expectedException \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedUnlink()
     {
@@ -119,7 +119,7 @@ class BagUtilsTest extends BagItTestFramework
 
     /**
      * @covers ::checkedMkdir
-     * @expectedException  \whikloj\BagItTools\Exceptions\SystemException
+     * @expectedException  \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedMkdir()
     {
@@ -131,7 +131,7 @@ class BagUtilsTest extends BagItTestFramework
 
     /**
      * @covers ::checkedCopy
-     * @expectedException  \whikloj\BagItTools\Exceptions\SystemException
+     * @expectedException  \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedCopyNoSource()
     {
@@ -142,7 +142,7 @@ class BagUtilsTest extends BagItTestFramework
 
     /**
      * @covers ::checkedCopy
-     * @expectedException  \whikloj\BagItTools\Exceptions\SystemException
+     * @expectedException  \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedCopyNoDest()
     {
@@ -154,7 +154,7 @@ class BagUtilsTest extends BagItTestFramework
 
     /**
      * @covers ::checkedFilePut
-     * @expectedException \whikloj\BagItTools\Exceptions\SystemException
+     * @expectedException \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedFilePut()
     {
@@ -163,7 +163,7 @@ class BagUtilsTest extends BagItTestFramework
 
     /**
      * @covers ::checkedFwrite
-     * @expectedException  \whikloj\BagItTools\Exceptions\SystemException
+     * @expectedException  \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedFwrite()
     {

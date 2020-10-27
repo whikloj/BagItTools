@@ -3,7 +3,7 @@
 namespace whikloj\BagItTools;
 
 use whikloj\BagItTools\Exceptions\BagItException;
-use whikloj\BagItTools\Exceptions\SystemException;
+use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
  * Class for holding and interacting with fetch.txt data.
@@ -79,7 +79,7 @@ class Fetch
      *   The bag this fetch is part of.
      * @param bool $load
      *   Whether to load a fetch.txt
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Unable to read fetch.txt for existing bag.
      */
     public function __construct(Bag $bag, $load = false)
@@ -201,7 +201,7 @@ class Fetch
      *
      * @param string $url
      *   The url to remove.
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Issues removing the file from the filesystem.
      */
     public function removeFile($url)
@@ -225,7 +225,7 @@ class Fetch
     /**
      * Update the fetch.txt on disk with the fetch file records.
      *
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   If we can't write to disk.
      */
     public function update()
@@ -237,7 +237,7 @@ class Fetch
      * Remove any downloaded files referenced in fetch.txt. This is called before we package up the Bag or finalize the
      * directory.
      *
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Problems removing file from filesystem.
      */
     public function cleanup()
@@ -255,7 +255,7 @@ class Fetch
     /**
      * Clean up any downloaded files and then wipe the internal data array.
      *
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Problems removing file from filesystem.
      */
     public function clearData()
@@ -299,7 +299,7 @@ class Fetch
     /**
      * Load an existing fetch.txt
      *
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Unable to read the fetch.txt file.
      */
     private function loadFiles()
@@ -308,7 +308,7 @@ class Fetch
         if (file_exists($this->filename)) {
             $fp = fopen($this->filename, "rb");
             if ($fp === false) {
-                throw new SystemException("Unable to read file {$this->filename}");
+                throw new FilesystemException("Unable to read file {$this->filename}");
             }
             $lineCount = 0;
             while (!feof($fp)) {
@@ -346,7 +346,7 @@ class Fetch
      *   The content from curl.
      * @param string $destination
      *   The relative path to the final file.
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Trouble writing to disk.
      */
     private function saveFileData($content, $destination)
@@ -449,7 +449,7 @@ class Fetch
     /**
      * Download files using Curl.
      *
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Unable to open a file handle to download to.
      */
     private function downloadFiles()
@@ -499,7 +499,7 @@ class Fetch
     /**
      * Utility to recreate the fetch file using the currently stored files.
      *
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   If we can't write the fetch file.
      */
     private function writeToDisk()
@@ -510,7 +510,7 @@ class Fetch
         if (count($this->files) > 0) {
             $fp = fopen($this->filename, "wb");
             if ($fp === false) {
-                throw new SystemException("Unable to write {$this->filename}");
+                throw new FilesystemException("Unable to write {$this->filename}");
             }
             foreach ($this->files as $fileData) {
                 $line = "{$fileData['uri']} {$fileData['size']} {$fileData['destination']}" . PHP_EOL;

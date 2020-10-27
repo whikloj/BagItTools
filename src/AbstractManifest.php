@@ -3,7 +3,7 @@
 namespace whikloj\BagItTools;
 
 use whikloj\BagItTools\Exceptions\BagItException;
-use whikloj\BagItTools\Exceptions\SystemException;
+use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
  * Abstract manifest class to hold common elements between Payload and Tag manifests.
@@ -149,7 +149,7 @@ abstract class AbstractManifest
     /**
      * Update the hashes for each path.
      *
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Error writing the manifest file to disk.
      */
     public function update()
@@ -222,7 +222,7 @@ abstract class AbstractManifest
     /**
      * Load the paths and hashes from the file on disk, does not validate.
      *
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Unable to read manifest file.
      */
     protected function loadFile()
@@ -233,7 +233,7 @@ abstract class AbstractManifest
         if (file_exists($fullPath)) {
             $fp = fopen($fullPath, "rb");
             if ($fp === false) {
-                throw new SystemException("Unable to read file {$fullPath}");
+                throw new FilesystemException("Unable to read file {$fullPath}");
             }
             $lineCount = 0;
             while (!feof($fp)) {
@@ -272,7 +272,7 @@ abstract class AbstractManifest
     /**
      * Utility to recreate the manifest file using the currently stored hashes.
      *
-     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   If we can't write the manifest files.
      */
     protected function writeToDisk()
@@ -283,7 +283,7 @@ abstract class AbstractManifest
         }
         $fp = fopen(addslashes($fullPath), "w");
         if ($fp === false) {
-            throw new SystemException("Unable to write {$fullPath}");
+            throw new FilesystemException("Unable to write {$fullPath}");
         }
         foreach ($this->hashes as $path => $hash) {
             $line = "{$hash} {$path}" . PHP_EOL;

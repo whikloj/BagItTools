@@ -9,7 +9,7 @@ namespace whikloj\BagItTools\Exceptions;
  * @author whikloj
  * @since 2.1.0
  */
-class SystemException extends BagItException
+class FilesystemException extends BagItException
 {
 
 }
