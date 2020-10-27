@@ -2,6 +2,9 @@
 
 namespace whikloj\BagItTools;
 
+use whikloj\BagItTools\Exceptions\BagItException;
+use whikloj\BagItTools\Exceptions\SystemException;
+
 /**
  * Class for holding and interacting with fetch.txt data.
  *
@@ -76,6 +79,8 @@ class Fetch
      *   The bag this fetch is part of.
      * @param bool $load
      *   Whether to load a fetch.txt
+     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     *   Unable to read fetch.txt for existing bag.
      */
     public function __construct(Bag $bag, $load = false)
     {
@@ -102,7 +107,7 @@ class Fetch
     /**
      * Download the files.
      *
-     * @throws \whikloj\BagItTools\BagItException
+     * @throws \whikloj\BagItTools\Exceptions\BagItException
      *   Unable to open file handle to save to.
      */
     public function downloadAll()
@@ -127,7 +132,7 @@ class Fetch
      * @param array $fetchData
      *   Array with mandatory keys 'uri' and 'destination' and optional key 'size'.
      *
-     * @throws \whikloj\BagItTools\BagItException
+     * @throws \whikloj\BagItTools\Exceptions\BagItException
      *   For all validation errors.
      */
     private function validateData(array $fetchData)
@@ -156,7 +161,8 @@ class Fetch
      * @param array $fetchData
      *   Array of data with keys 'uri', 'destination' and optionally 'size'.
      *
-     * @throws \whikloj\BagItTools\BagItException
+     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     *   Problems downloading the file.
      */
     public function download($fetchData)
     {
@@ -195,6 +201,8 @@ class Fetch
      *
      * @param string $url
      *   The url to remove.
+     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     *   Issues removing the file from the filesystem.
      */
     public function removeFile($url)
     {
@@ -206,7 +214,7 @@ class Fetch
                 } else {
                     $fullFile = $this->bag->makeAbsolute($file['destination']);
                     if (file_exists($fullFile)) {
-                        unlink($fullFile);
+                        BagUtils::checkedUnlink($fullFile);
                     }
                 }
             }
@@ -217,7 +225,7 @@ class Fetch
     /**
      * Update the fetch.txt on disk with the fetch file records.
      *
-     * @throws \whikloj\BagItTools\BagItException
+     * @throws \whikloj\BagItTools\Exceptions\SystemException
      *   If we can't write to disk.
      */
     public function update()
@@ -228,6 +236,9 @@ class Fetch
     /**
      * Remove any downloaded files referenced in fetch.txt. This is called before we package up the Bag or finalize the
      * directory.
+     *
+     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     *   Problems removing file from filesystem.
      */
     public function cleanup()
     {
@@ -235,7 +246,7 @@ class Fetch
             $fullPath = BagUtils::getAbsolute($this->bag->makeAbsolute($file['destination']));
             if (file_exists($fullPath)) {
                 // Remove the file because we are being packaged or finalized.
-                unlink($fullPath);
+                BagUtils::checkedUnlink($fullPath);
                 $this->bag->checkForEmptyDir($fullPath);
             }
         }
@@ -243,13 +254,16 @@ class Fetch
 
     /**
      * Clean up any downloaded files and then wipe the internal data array.
+     *
+     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     *   Problems removing file from filesystem.
      */
     public function clearData()
     {
         $this->cleanup();
         $this->files = [];
         if (file_exists($this->filename)) {
-            unlink($this->filename);
+            BagUtils::checkedUnlink($this->filename);
         }
     }
 
@@ -284,12 +298,18 @@ class Fetch
 
     /**
      * Load an existing fetch.txt
+     *
+     * @throws \whikloj\BagItTools\Exceptions\SystemException
+     *   Unable to read the fetch.txt file.
      */
     private function loadFiles()
     {
         $this->resetErrors();
         if (file_exists($this->filename)) {
             $fp = fopen($this->filename, "rb");
+            if ($fp === false) {
+                throw new SystemException("Unable to read file {$this->filename}");
+            }
             $lineCount = 0;
             while (!feof($fp)) {
                 $lineCount += 1;
@@ -326,7 +346,7 @@ class Fetch
      *   The content from curl.
      * @param string $destination
      *   The relative path to the final file.
-     * @throws \whikloj\BagItTools\BagItException
+     * @throws \whikloj\BagItTools\Exceptions\SystemException
      *   Trouble writing to disk.
      */
     private function saveFileData($content, $destination)
@@ -338,13 +358,10 @@ class Fetch
             if (substr($this->bag->makeRelative($dirname), 0, 5) == "data/") {
                 // Create any missing missing directories inside data.
                 if (!file_exists($dirname)) {
-                    mkdir($dirname, 0777, true);
+                    BagUtils::checkedMkdir($dirname, 0777, true);
                 }
             }
-            $res = file_put_contents($fullDest, $content, LOCK_EX);
-            if ($res === false) {
-                throw new BagItException("Unable to write to file {$fullDest}");
-            }
+            BagUtils::checkedFilePut($fullDest, $content, LOCK_EX);
         }
     }
 
@@ -432,7 +449,7 @@ class Fetch
     /**
      * Download files using Curl.
      *
-     * @throws \whikloj\BagItTools\BagItException
+     * @throws \whikloj\BagItTools\Exceptions\SystemException
      *   Unable to open a file handle to download to.
      */
     private function downloadFiles()
@@ -482,23 +499,23 @@ class Fetch
     /**
      * Utility to recreate the fetch file using the currently stored files.
      *
-     * @throws \whikloj\BagItTools\BagItException
+     * @throws \whikloj\BagItTools\Exceptions\SystemException
      *   If we can't write the fetch file.
      */
     private function writeToDisk()
     {
         if (file_exists($this->filename)) {
-            unlink($this->filename);
+            BagUtils::checkedUnlink($this->filename);
         }
         if (count($this->files) > 0) {
             $fp = fopen($this->filename, "wb");
             if ($fp === false) {
-                throw new BagItException("Unable to write {$this->filename}");
+                throw new SystemException("Unable to write {$this->filename}");
             }
             foreach ($this->files as $fileData) {
                 $line = "{$fileData['uri']} {$fileData['size']} {$fileData['destination']}" . PHP_EOL;
                 $line = $this->bag->encodeText($line);
-                fwrite($fp, $line);
+                BagUtils::checkedFwrite($fp, $line);
             }
             fclose($fp);
         }

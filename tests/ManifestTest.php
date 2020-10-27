@@ -19,7 +19,6 @@ class ManifestTest extends BagItTestFramework
    * @covers \whikloj\BagItTools\PayloadManifest::__construct
    * @covers ::getFilename
    * @covers ::getAlgorithm
-   * @throws \whikloj\BagItTools\BagItException
    */
     public function testCreateManifest()
     {
@@ -40,7 +39,6 @@ class ManifestTest extends BagItTestFramework
      * @covers ::update
      * @covers \whikloj\BagItTools\TagManifest::update
      * @covers \whikloj\BagItTools\PayloadManifest::update
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testCheckManifests()
     {
@@ -96,7 +94,6 @@ class ManifestTest extends BagItTestFramework
      * @covers ::addToNormalizedList
      * @covers \whikloj\BagItTools\TagManifest::validate
      * @covers \whikloj\BagItTools\PayloadManifest::validate
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testValidateManifests()
     {
@@ -114,7 +111,6 @@ class ManifestTest extends BagItTestFramework
      * @covers ::loadFile
      * @covers ::addLoadWarning
      * @covers ::normalizePath
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testRelativeManifestPaths()
     {
@@ -131,7 +127,6 @@ class ManifestTest extends BagItTestFramework
      * @covers ::loadFile
      * @covers ::addLoadError
      * @covers ::normalizePath
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testDuplicateManifestPaths()
     {
@@ -148,7 +143,6 @@ class ManifestTest extends BagItTestFramework
      * @covers ::loadFile
      * @covers ::addLoadWarning
      * @covers ::normalizePath
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testDuplicateCaseInsensitiveManifestPaths()
     {

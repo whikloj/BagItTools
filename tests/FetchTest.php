@@ -109,7 +109,7 @@ class FetchTest extends BagItTestFramework
      *   The name of the file in the FETCH_FILES directory.
      * @return \whikloj\BagItTools\Fetch
      *   The Fetch object.
-     * @throws \whikloj\BagItTools\BagItException
+     * @throws \whikloj\BagItTools\Exceptions\BagItException
      *   If we can't read the fetch.txt
      */
     private function setupBag($fetchFile)
@@ -130,7 +130,6 @@ class FetchTest extends BagItTestFramework
      * @covers ::downloadAll
      * @covers ::downloadFiles
      * @covers ::validateData
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testDestinationOutsideData()
     {
@@ -148,7 +147,6 @@ class FetchTest extends BagItTestFramework
      * @covers ::downloadFiles
      * @covers ::validateData
      * @covers ::validatePath
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testDestinationOtherEncodedCharacters()
     {
@@ -166,7 +164,6 @@ class FetchTest extends BagItTestFramework
      * @covers ::downloadFiles
      * @covers ::validateData
      * @covers ::internalValidateUrl
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testNotHttpUrl()
     {
@@ -192,7 +189,7 @@ class FetchTest extends BagItTestFramework
      * @group Fetch
      * @covers \whikloj\BagItTools\Bag::addFetchFile
      * @covers ::download
-     * @throws \whikloj\BagItTools\BagItException
+     * @covers ::update
      */
     public function testAddFetchFile()
     {
@@ -216,7 +213,7 @@ class FetchTest extends BagItTestFramework
      * @group Fetch
      * @covers \whikloj\BagItTools\Bag::addFetchFile
      * @covers ::download
-     * @expectedException  \whikloj\BagItTools\BagItException
+     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testAddFetchUrlTwice()
     {
@@ -235,7 +232,7 @@ class FetchTest extends BagItTestFramework
      * @group Fetch
      * @covers \whikloj\BagItTools\Bag::addFetchFile
      * @covers ::download
-     * @expectedException  \whikloj\BagItTools\BagItException
+     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testAddFetchDestTwice()
     {
@@ -250,7 +247,8 @@ class FetchTest extends BagItTestFramework
      * @group Fetch
      * @covers \whikloj\BagItTools\Bag::addFetchFile
      * @covers ::download
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @covers ::createCurl
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testDownloadToExistingPath()
     {
@@ -266,7 +264,7 @@ class FetchTest extends BagItTestFramework
      * @group Fetch
      * @covers ::reservedPath
      * @covers \whikloj\BagItTools\Bag::addFile
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testAddBagFileWithDestOfFetchFile()
     {
@@ -286,7 +284,6 @@ class FetchTest extends BagItTestFramework
      * @covers ::download
      * @covers ::removeFile
      * @covers ::getData
-     * @throws  \whikloj\BagItTools\BagItException
      */
     public function testRemoveFetchFile()
     {
@@ -336,8 +333,8 @@ class FetchTest extends BagItTestFramework
      * @covers \whikloj\BagItTools\Bag::listFetchFiles
      * @covers ::download
      * @covers ::clearData
+     * @covers ::cleanup
      * @covers ::getData
-     * @throws  \whikloj\BagItTools\BagItException
      */
     public function testClearFetch()
     {
@@ -370,6 +367,34 @@ class FetchTest extends BagItTestFramework
     }
 
     /**
+     * @covers ::cleanup
+     * @covers ::clearData
+     * @covers ::update
+     * @covers ::writeToDisk
+
+     */
+    public function testClearFetchFile()
+    {
+        $file_one_dest = 'data/dir1/dir2/first_text.txt';
+        $expected_with_both = [
+            [
+                'uri' => self::$remote_urls[0],
+                'size' => '-',
+                'destination' => $file_one_dest,
+            ],
+        ];
+        $bag = Bag::create($this->tmpdir);
+        $bag->addFetchFile(self::$remote_urls[0], $file_one_dest);
+        $this->assertFileExists($bag->makeAbsolute($file_one_dest));
+        $this->assertEquals($expected_with_both, $bag->listFetchFiles());
+        $bag->update();
+        $this->assertFileExists($bag->makeAbsolute("fetch.txt"));
+        $bag->clearFetch();
+        $this->assertFileNotExists($bag->makeAbsolute("fetch.txt"));
+        $this->assertFileNotExists($bag->makeAbsolute($file_one_dest));
+    }
+
+    /**
      * Test downloading multiple files at once defined in the fetch.txt
      * @group Fetch
      * @covers ::downloadAll
@@ -378,7 +403,6 @@ class FetchTest extends BagItTestFramework
      * @covers ::saveFileData
      * @covers \whikloj\BagItTools\Bag::finalize
      * @covers \whikloj\BagItTools\Bag::loadFetch
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testMultipleDownloadsSuccess()
     {
@@ -433,7 +457,7 @@ class FetchTest extends BagItTestFramework
      * Test exception when adding a file we can't access.
      * @group Fetch
      * @covers ::download
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testRemoteFailure()
     {
@@ -452,7 +476,6 @@ class FetchTest extends BagItTestFramework
      * @covers ::downloadFiles
      * @covers ::createMultiCurl
      * @covers ::createCurl
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testMultiDownloadPartialFailure()
     {
@@ -525,7 +548,7 @@ class FetchTest extends BagItTestFramework
      * @covers ::validateUrl
      * @covers ::validateData
      * @throws \ReflectionException
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testUriNoScheme()
     {
@@ -551,7 +574,7 @@ class FetchTest extends BagItTestFramework
      * @covers ::validateUrl
      * @covers ::validateData
      * @throws \ReflectionException
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testUriNoHost()
     {
@@ -571,7 +594,7 @@ class FetchTest extends BagItTestFramework
      * @covers ::validateData
      * @covers ::internalValidateUrl
      * @throws \ReflectionException
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testUriInvalidScheme()
     {

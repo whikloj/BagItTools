@@ -19,7 +19,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers \whikloj\BagItTools\AbstractManifest::getErrors
      * @covers ::getWarnings
      * @covers \whikloj\BagItTools\AbstractManifest::getWarnings
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testValidateExtendedBag()
     {
@@ -37,7 +36,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers \whikloj\BagItTools\TagManifest::update
      * @covers \whikloj\BagItTools\AbstractManifest::update
      * @covers \whikloj\BagItTools\AbstractManifest::writeToDisk
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testNoTagManifest()
     {
@@ -74,7 +72,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::updateCalculateBagInfoFields
      * @covers ::update
      * @covers \whikloj\BagItTools\AbstractManifest::loadFile
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testLoadExtendedBag()
     {
@@ -115,7 +112,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::hasBagInfoTag
      * @covers ::getBagInfoByTag
      * @covers ::bagInfoTagExists
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetBagInfoByKey()
     {
@@ -139,7 +135,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::getBagInfoByTag
      * @covers ::removeBagInfoTag
      * @covers ::bagInfoTagExists
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testRemoveBagInfoByTag()
     {
@@ -161,7 +156,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::getBagInfoByTag
      * @covers ::removeBagInfoTagIndex
      * @covers ::bagInfoTagExists
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testRemoveBagInfoByTagIndex()
     {
@@ -200,7 +194,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::updateTagManifests
      * @covers ::updatePayloadManifests
      * @covers ::ensureTagManifests
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetHashesCommon()
     {
@@ -349,7 +342,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @group Extended
      * @covers ::addBagInfoTag
      * @covers ::setExtended
-     * @expectedException  \whikloj\BagItTools\BagItException
+     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testSetGeneratedField()
     {
@@ -367,7 +360,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @group Extended
      * @covers ::loadBagInfo
      * @covers ::compareVersion
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testInvalidBagInfov1()
     {
@@ -384,7 +376,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @group Extended
      * @covers ::loadBagInfo
      * @covers ::compareVersion
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testInvalidBagInfov097()
     {
@@ -406,7 +397,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::load
      * @covers ::getPayloadManifests
      * @covers ::getTagManifests
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetManifests()
     {
@@ -425,7 +415,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::load
      * @covers ::getPayloadManifests
      * @covers ::getTagManifests
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetManifestsExtended()
     {
@@ -446,7 +435,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::calculateTotalFileSizeAndAmountOfFiles
      * @covers ::getBagInfoByTag
      * @covers ::update
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testOxumCalculationForManyHashAlogrithm()
     {
@@ -469,7 +457,6 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::convertToHumanReadable
      * @covers ::getBagInfoByTag
      * @covers ::update
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testCalculatedBagSize()
     {

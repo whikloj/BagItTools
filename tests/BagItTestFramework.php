@@ -98,8 +98,11 @@ class BagItTestFramework extends TestCase
     protected function getTempName()
     {
         $tempname = tempnam("", "bagit_");
-        unlink($tempname);
-        return $tempname;
+        if ($tempname !== false) {
+            if (unlink($tempname)) {
+                return $tempname;
+            }
+        }
     }
 
     /**

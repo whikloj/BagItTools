@@ -37,7 +37,6 @@ class BagUtilsTest extends BagItTestFramework
 
     /**
      * @covers ::findAllByPattern
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testFindAllByPattern()
     {
@@ -106,5 +105,76 @@ class BagUtilsTest extends BagItTestFramework
 
         $files = BagUtils::getAllFiles(self::TEST_EXTENDED_BAG_DIR, ['data', 'alt_tags']);
         $this->assertCount(4, $files);
+    }
+
+    /**
+     * @covers ::checkedUnlink
+     * @expectedException \whikloj\BagItTools\Exceptions\SystemException
+     */
+    public function testCheckedUnlink()
+    {
+        // try to delete a non-existant file.
+        BagUtils::checkedUnlink($this->tmpdir);
+    }
+
+    /**
+     * @covers ::checkedMkdir
+     * @expectedException  \whikloj\BagItTools\Exceptions\SystemException
+     */
+    public function testCheckedMkdir()
+    {
+        // Create a directory
+        touch($this->tmpdir);
+        // Try to create a directory with the same name.
+        BagUtils::checkedMkdir($this->tmpdir);
+    }
+
+    /**
+     * @covers ::checkedCopy
+     * @expectedException  \whikloj\BagItTools\Exceptions\SystemException
+     */
+    public function testCheckedCopyNoSource()
+    {
+        $destFile = $this->getTempName();
+        // Source file does not exist.
+        BagUtils::checkedCopy($this->tmpdir, $destFile);
+    }
+
+    /**
+     * @covers ::checkedCopy
+     * @expectedException  \whikloj\BagItTools\Exceptions\SystemException
+     */
+    public function testCheckedCopyNoDest()
+    {
+        // Real source file
+        $sourceFile = self::TEST_IMAGE['filename'];
+        // Directory of destination does not exist.
+        BagUtils::checkedCopy($sourceFile, $this->tmpdir . DIRECTORY_SEPARATOR . "someotherfile");
+    }
+
+    /**
+     * @covers ::checkedFilePut
+     * @expectedException \whikloj\BagItTools\Exceptions\SystemException
+     */
+    public function testCheckedFilePut()
+    {
+        BagUtils::checkedFilePut($this->tmpdir . DIRECTORY_SEPARATOR . "someotherfile", "some content");
+    }
+
+    /**
+     * @covers ::checkedFwrite
+     * @expectedException  \whikloj\BagItTools\Exceptions\SystemException
+     */
+    public function testCheckedFwrite()
+    {
+        // Open a pointer to a new file.
+        $fp = fopen($this->tmpdir, "w+");
+        if ($fp === false) {
+            throw new \Exception("Couldn't open file ({$this->tmpdir}).");
+        }
+        // Close the file pointer.
+        fclose($fp);
+        // Write to the file.
+        BagUtils::checkedFwrite($fp, "Some example text");
     }
 }
