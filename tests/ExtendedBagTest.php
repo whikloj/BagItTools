@@ -492,4 +492,51 @@ class ExtendedBagTest extends BagItTestFramework
         $this->assertCount(1, $oxums);
         $this->assertEquals('1602921.5', $oxums[0]);
     }
+
+    /**
+     * Test that long tag lines might contain colons and should still validate if
+     * @group Extended
+     * @covers ::loadBagInfo
+     * @covers ::trimSpacesOnly
+     */
+    public function testLongBagInfoLinesWrap()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->setExtended(true);
+
+        $bag->addBagInfoTag('Title', 'A really long long long long long long long long long long long ' .
+            'title with a colon : between and more information are on the way');
+        $bag->update();
+
+        $testbag = Bag::load($this->tmpdir);
+        $this->assertTrue($testbag->validate());
+        $this->assertEquals('A really long long long long long long long long long long long title with a ' .
+            'colon : between and more information are on the way', $testbag->getBagInfoByTag('Title')[0]);
+    }
+
+    /**
+     * Test loading long lines with internal newlines from a bag-info.txt
+     * @group Extended
+     * @covers ::loadBagInfo
+     */
+    public function testLoadWrappedLines()
+    {
+        $bag = Bag::create($this->tmpdir);
+        copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
+            'long-lines-and-line-returns.txt', $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt');
+        touch($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt');
+
+        // Load tag values as they exist on disk. Long lines (over 70 characters) get the newline removed
+        $testbag = Bag::load($this->tmpdir);
+        $this->assertCount(0, $testbag->getErrors());
+        $this->assertEquals("This is some crazy information about a new way of searching for : the stuff. " .
+            "Why do this?\nBecause we can.", $testbag->getBagInfoByTag('External-Description')[0]);
+        $testbag->update();
+
+        // We wrote the bag info again, so now it is stripped of
+        $testbag2 = Bag::load($this->tmpdir);
+        $this->assertCount(0, $testbag2->getErrors());
+        $this->assertEquals("This is some crazy information about a new way of searching for : the stuff. " .
+            "Why do this? Because we can.", $testbag2->getBagInfoByTag('External-Description')[0]);
+    }
 }
