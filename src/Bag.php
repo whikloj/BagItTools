@@ -853,7 +853,7 @@ class Bag
             'uri' => $url,
             'destination' => $destination,
         ];
-        if (!is_null($size)) {
+        if (!is_null($size) && is_int($size)) {
             $fetchData['size'] = $size;
         }
         if (!isset($this->fetchFile)) {
