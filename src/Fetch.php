@@ -386,6 +386,15 @@ class Fetch
         return $ch;
     }
 
+    /**
+     * Compares current download size versus expected for cUrl progress.
+     * @param int $expectDl
+     *   The expected download size (bytes).
+     * @param int $currDl
+     *   The current download size (bytes).
+     * @return int
+     *   1 if current download size is greater than 105% of the expected size.
+     */
     private static function curlXferInfo($expectDl, $currDl)
     {
         // Allow a 5% variance in size.
@@ -406,9 +415,13 @@ class Fetch
             $curl_handles = [];
             $destinations = [];
             if ($mh !== false) {
-                if (version_compare('7.62.0', $this->curlVersion) > 0) {
+                if (version_compare('7.62.0', $this->curlVersion) > 0 &&
+                    version_compare('7.43.0', $this->curlVersion) <= 0) {
                     // Try enabling HTTP/1.1 pipelining and HTTP/2 multiplexing if our version is less than 7.62
-                    curl_multi_setopt($mh, CURLMOPT_PIPELINING, CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX);
+                    // CURLPIPE_HTTP1 is deprecated in PHP 7.4
+                    $values = (version_compare('7.4', PHP_VERSION) < 0  ?
+                        CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX : CURLPIPE_MULTIPLEX);
+                    curl_multi_setopt($mh, CURLMOPT_PIPELINING, $values);
                 }
                 if (version_compare('7.30.0', $this->curlVersion) <= 0) {
                     // Set a limit to how many connections can be opened.
