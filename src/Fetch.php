@@ -419,8 +419,11 @@ class Fetch
                     version_compare('7.43.0', $this->curlVersion) <= 0) {
                     // Try enabling HTTP/1.1 pipelining and HTTP/2 multiplexing if our version is less than 7.62
                     // CURLPIPE_HTTP1 is deprecated in PHP 7.4
-                    $values = (version_compare('7.4', PHP_VERSION) < 0  ?
-                        CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX : CURLPIPE_MULTIPLEX);
+                    if (version_compare('7.4', PHP_VERSION) < 0) {
+                        $values = CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX;
+                    } else {
+                        $values = CURLPIPE_MULTIPLEX;
+                    }
                     curl_multi_setopt($mh, CURLMOPT_PIPELINING, $values);
                 }
                 if (version_compare('7.30.0', $this->curlVersion) <= 0) {
