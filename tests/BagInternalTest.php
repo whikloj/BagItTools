@@ -16,7 +16,6 @@ class BagInternalTest extends BagItTestFramework
    * @group BagInternal
    * @covers \whikloj\BagItTools\Bag::makeRelative
    * @throws \ReflectionException
-   * @throws \whikloj\BagItTools\BagItException
    */
     public function testMakeRelativePlain()
     {
@@ -57,7 +56,6 @@ class BagInternalTest extends BagItTestFramework
    * @group BagInternal
    * @covers \whikloj\BagItTools\Bag::pathInBagData
    * @throws \ReflectionException
-   * @throws \whikloj\BagItTools\BagItException
    */
     public function testPathInBagData()
     {
@@ -95,7 +93,6 @@ class BagInternalTest extends BagItTestFramework
      * @covers \whikloj\BagItTools\Bag::wrapBagInfoText
      * @covers \whikloj\BagItTools\Bag::wrapAtLength
      * @throws \ReflectionException
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testWrapBagInfo()
     {
@@ -133,7 +130,6 @@ class BagInternalTest extends BagItTestFramework
      * @group Internal
      * @covers \whikloj\BagItTools\Bag::compareVersion
      * @throws \ReflectionException
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testVersionCompare()
     {

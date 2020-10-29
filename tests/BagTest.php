@@ -18,8 +18,7 @@ class BagTest extends BagItTestFramework
    * @covers ::__construct
    * @covers ::createNewBag
    * @covers ::updateBagIt
-   * @throws \whikloj\BagItTools\BagItException
-   */
+      */
     public function testConstructNewBag()
     {
         $this->assertFileNotExists($this->tmpdir);
@@ -44,8 +43,7 @@ class BagTest extends BagItTestFramework
    * @covers \whikloj\BagItTools\AbstractManifest::loadFile
    * @covers \whikloj\BagItTools\AbstractManifest::cleanUpRelPath
    * @covers \whikloj\BagItTools\AbstractManifest::addToNormalizedList
-   * @throws \whikloj\BagItTools\BagItException
-   */
+      */
     public function testOpenBag()
     {
         $this->tmpdir = $this->prepareBasicTestBag();
@@ -62,7 +60,6 @@ class BagTest extends BagItTestFramework
      * Test the getVersion function.
      * @group Bag
      * @covers ::getVersion
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetVersion()
     {
@@ -87,7 +84,6 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::getDataDirectory
      * @covers ::getBagRoot
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testBagDirs()
     {
@@ -101,8 +97,7 @@ class BagTest extends BagItTestFramework
    * Test adding a file to a bag.
    * @group Bag
    * @covers ::addFile
-   * @throws \whikloj\BagItTools\BagItException
-   */
+      */
     public function testAddFile()
     {
         $source_file = self::TEST_IMAGE['filename'];
@@ -118,7 +113,7 @@ class BagTest extends BagItTestFramework
    * Test adding a file that doesn't exist.
    * @group Bag
    * @covers ::addFile
-   * @expectedException \whikloj\BagItTools\BagItException
+   * @expectedException \whikloj\BagItTools\Exceptions\BagItException
    */
     public function testAddFileNoSource()
     {
@@ -131,7 +126,7 @@ class BagTest extends BagItTestFramework
    * Test adding a file with an invalid destination directory.
    * @group Bag
    * @covers ::addFile
-   * @expectedException \whikloj\BagItTools\BagItException
+   * @expectedException \whikloj\BagItTools\Exceptions\BagItException
    */
     public function testAddFileInvalidDestination()
     {
@@ -144,7 +139,7 @@ class BagTest extends BagItTestFramework
      * Test adding a file to a bag twice.
      * @group Bag
      * @covers ::addFile
-     * @expectedException  \whikloj\BagItTools\BagItException
+     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testAddFileTwice()
     {
@@ -162,7 +157,6 @@ class BagTest extends BagItTestFramework
      * Test removing a file from a bag.
      * @group Bag
      * @covers ::removeFile
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testRemoveFile()
     {
@@ -178,7 +172,6 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::addFile
      * @covers ::createFile
-     * @throws  \whikloj\BagItTools\BagItException
      */
     public function testCreateFile()
     {
@@ -203,7 +196,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::addFile
      * @covers ::createFile
-     * @expectedException  \whikloj\BagItTools\BagItException
+     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testCreateFileTwice()
     {
@@ -222,7 +215,6 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::removeFile
      * @covers ::checkForEmptyDir
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testRemoveEmptyDirectories()
     {
@@ -260,7 +252,6 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::removeFile
      * @covers ::checkForEmptyDir
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testKeepDirectoryWithHiddenFile()
     {
@@ -289,7 +280,6 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::update
      * @covers \whikloj\BagItTools\AbstractManifest::getHashes
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testUpdateOnDisk()
     {
@@ -330,7 +320,6 @@ class BagTest extends BagItTestFramework
      * @covers ::setFileEncoding
      * @covers ::getFileEncoding
      * @covers \whikloj\BagItTools\BagUtils::getValidCharset
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testSetFileEncodingSuccess()
     {
@@ -359,7 +348,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::setFileEncoding
      * @covers \whikloj\BagItTools\BagUtils::getValidCharset
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testSetFileEncodingFailure()
     {
@@ -382,7 +371,6 @@ class BagTest extends BagItTestFramework
      * @covers ::addAlgorithm
      * @covers ::removeAlgorithm
      * @covers ::getAlgorithms
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetHashesNames()
     {
@@ -412,7 +400,6 @@ class BagTest extends BagItTestFramework
      * @covers ::getAlgorithms
      * @covers ::hasAlgorithm
      * @covers ::hasHash
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testGetHashesCommon()
     {
@@ -450,7 +437,7 @@ class BagTest extends BagItTestFramework
      *
      * @group Bag
      * @covers ::removeAlgorithm
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testRemoveLastHash()
     {
@@ -464,7 +451,6 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::algorithmIsSupported
      * @covers ::hashIsSupported
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testIsSupportedHash()
     {
@@ -479,7 +465,6 @@ class BagTest extends BagItTestFramework
      * @covers ::setAlgorithm
      * @covers ::removeAllPayloadManifests
      * @covers ::removePayloadManifest
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testSetAlgorithm()
     {
@@ -496,7 +481,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::addFile
      * @covers ::reservedFilename
-     * @expectedException  \whikloj\BagItTools\BagItException
+     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testUseReservedFilename()
     {
@@ -509,7 +494,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::create
      * @covers ::addFile
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      *
      *
      * Need to review, we currently rebase things NOT in data/ into data/
@@ -527,7 +512,6 @@ class BagTest extends BagItTestFramework
      * @covers ::validate
      * @covers \whikloj\BagItTools\AbstractManifest::loadFile
      * @covers \whikloj\BagItTools\AbstractManifest::validate
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testWarningOnMd5()
     {
@@ -548,7 +532,7 @@ class BagTest extends BagItTestFramework
      * @covers ::load
      * @covers ::getExtensions
      * @covers ::isCompressed
-     * @expectedException  \whikloj\BagItTools\BagItException
+     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testNonExistantCompressed()
     {
@@ -564,7 +548,6 @@ class BagTest extends BagItTestFramework
      * @covers ::uncompressBag
      * @covers ::getExtensions
      * @covers ::untarBag
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testUncompressTarGz()
     {
@@ -589,7 +572,6 @@ class BagTest extends BagItTestFramework
      * @covers ::uncompressBag
      * @covers ::getExtensions
      * @covers ::untarBag
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testUncompressTarBzip()
     {
@@ -613,7 +595,6 @@ class BagTest extends BagItTestFramework
      * @covers ::uncompressBag
      * @covers ::getExtensions
      * @covers ::unzipBag
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testUncompressZip()
     {
@@ -638,7 +619,6 @@ class BagTest extends BagItTestFramework
      * @covers ::package
      * @covers ::makePackage
      * @covers ::makeZip
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testZipBag()
     {
@@ -667,7 +647,6 @@ class BagTest extends BagItTestFramework
      * @covers ::package
      * @covers ::makePackage
      * @covers ::makeTar
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testTarBag()
     {
@@ -696,7 +675,6 @@ class BagTest extends BagItTestFramework
      * @covers ::package
      * @covers ::makePackage
      * @covers ::makeTar
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testTarGzBag()
     {
@@ -725,7 +703,6 @@ class BagTest extends BagItTestFramework
      * @covers ::package
      * @covers ::makePackage
      * @covers ::makeTar
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testTarBzipBag()
     {
@@ -751,7 +728,6 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::upgrade()
      * @covers ::getVersionString
-     * @throws \whikloj\BagItTools\BagItException
      */
     public function testUpdateV07()
     {
@@ -795,7 +771,7 @@ class BagTest extends BagItTestFramework
      *
      * @group Bag
      * @covers ::upgrade
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testUpgradeCreatedBag()
     {
@@ -808,7 +784,7 @@ class BagTest extends BagItTestFramework
      *
      * @group Bag
      * @covers ::upgrade
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testUpgradeV1Bag()
     {
@@ -823,7 +799,7 @@ class BagTest extends BagItTestFramework
      *
      * @group Bag
      * @covers ::upgrade
-     * @expectedException \whikloj\BagItTools\BagItException
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testUpgradeInvalid()
     {

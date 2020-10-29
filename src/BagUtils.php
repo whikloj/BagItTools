@@ -2,6 +2,9 @@
 
 namespace whikloj\BagItTools;
 
+use whikloj\BagItTools\Exceptions\BagItException;
+use whikloj\BagItTools\Exceptions\FilesystemException;
+
 /**
  * Utility class to hold static functions.
  *
@@ -90,14 +93,14 @@ class BagUtils
      * @return array
      *   Array of matches.
      *
-     * @throws \whikloj\BagItTools\BagItException
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Error in matching pattern.
      */
     public static function findAllByPattern($pattern) : array
     {
         $matches=glob($pattern);
         if ($matches === false) {
-            throw new BagItException("Error matching pattern {$pattern}");
+            throw new FilesystemException("Error matching pattern {$pattern}");
         }
         return $matches;
     }
@@ -215,5 +218,124 @@ class BagUtils
             }
         }
         return $found_files;
+    }
+
+    /**
+     * Copy a file and check that the copy succeeded.
+     *
+     * @param string $sourceFile
+     *   The source path.
+     * @param string $destFile
+     *   The destination path.
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   If the copy() call fails.
+     * @see \copy()
+     */
+    public static function checkedCopy($sourceFile, $destFile)
+    {
+        if (!@copy($sourceFile, $destFile)) {
+            throw new FilesystemException("Unable to copy file ({$sourceFile}) to ({$destFile})");
+        }
+    }
+
+    /**
+     * Make a directory (or directories) and check it succeeds.
+     *
+     * @param string $path
+     *   The path to create.
+     * @param int $mode
+     *   The permissions on the new directories.
+     * @param bool $recursive
+     *   Whether to create intermediate directories automatically.
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   If the mkdir() call fails.
+     * @see \mkdir()
+     */
+    public static function checkedMkdir($path, $mode = 0777, $recursive = false)
+    {
+        if (!@mkdir($path, $mode, $recursive)) {
+            throw new FilesystemException("Unable to create directory {$path}");
+        }
+    }
+
+    /**
+     * Put contents to a file and check it succeeded.
+     *
+     * @param string $path
+     *   The path of the file.
+     * @param mixed $contents
+     *   The contents to put
+     * @param int $flags
+     *   Flags to pass on to file_put_contents.
+     * @return int
+     *   Number of bytes written to the file.
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   On any error putting the contents to the file.
+     * @see \file_put_contents()
+     */
+    public static function checkedFilePut($path, $contents, $flags = 0)
+    {
+        $res = @file_put_contents($path, $contents, $flags);
+        if ($res === false) {
+            throw new FilesystemException("Unable to put contents to file {$path}");
+        }
+        return $res;
+    }
+
+    /**
+     * Delete a file/directory and check it succeeded.
+     *
+     * @param string $path
+     *   The path to remove.
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   If the call to unlink() fails.
+     * @see \unlink()
+     */
+    public static function checkedUnlink($path)
+    {
+        if (!@unlink($path)) {
+            throw new FilesystemException("Unable to delete path {$path}");
+        }
+    }
+
+    /**
+     * Create a temporary file and check it succeeded.
+     *
+     * @param string $directory
+     *   The directory to create the file in.
+     * @param string $prefix
+     *   The prefix to the file.
+     * @return string
+     *   The path to the temporary filename.
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   Issues creating the file.
+     * @see \tempnam()
+     */
+    public static function checkedTempnam($directory = "", $prefix = "") : string
+    {
+        $res = @tempnam($directory, $prefix);
+        if ($res === false) {
+            throw new FilesystemException("Unable to create a temporary file with directory ${directory}, prefix" .
+            " {$prefix}");
+        }
+        return $res;
+    }
+
+    /**
+     * Write to a file resource and check it succeeded.
+     *
+     * @param Resource $fp
+     *   The file pointer.
+     * @param string $content
+     *   The content to write.
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   Problem writing to file.
+     */
+    public static function checkedFwrite($fp, $content)
+    {
+        $res = @fwrite($fp, $content);
+        if ($res === false) {
+            throw new FilesystemException("Error writing to file");
+        }
     }
 }

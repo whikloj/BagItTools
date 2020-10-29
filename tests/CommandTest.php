@@ -108,4 +108,21 @@ class CommandTest extends BagItTestFramework
         $this->assertContains("[WARNING] This manifest is MD5, you should use setAlgorithm('sha512') to " .
             "upgrade. -- file: manifest-md5.txt", $output);
     }
+
+    /**
+     * @covers ::configure
+     * @covers ::execute
+     */
+    public function testRelativeDirectoryToNoBag()
+    {
+        $this->commandTester->execute([
+            'bag-path' => "subdirectory/to/bag",
+        ], [
+            'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
+        ]);
+        $output = $this->commandTester->getDisplay();
+        // Split this in two as we don't know what the actual root directory with be
+        $this->assertContains("[ERROR] Path", $output);
+        $this->assertContains("/subdirectory/to/bag does not exist, cannot validate.", $output);
+    }
 }
