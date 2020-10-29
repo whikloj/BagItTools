@@ -81,7 +81,7 @@ class Fetch
     {
         $this->bag = $bag;
         $this->files = [];
-        $this->curlVersion = curl_version()['version_number'];
+        $this->curlVersion = curl_version()['version'];
         $this->filename = $this->bag->makeAbsolute(self::FILENAME);
         $this->setupCurl();
         if ($load) {
@@ -174,7 +174,8 @@ class Fetch
         if (file_exists($fullDest)) {
             throw new BagItException("File already exists at the destination path {$dest}");
         }
-        $ch = $this->createCurl($uri, true);
+        $size = isset($fetchData['size']) ? $fetchData['size'] : null;
+        $ch = $this->createCurl($uri, true, $size);
         $output = curl_exec($ch);
         $error = curl_error($ch);
         curl_close($ch);
@@ -302,6 +303,9 @@ class Fetch
                     // We just store what you give us, we'll validate when you load the contents to validate the bag.
                     $uri = $matches[1];
                     $filesize = $matches[2];
+                    if ($filesize != "-") {
+                        $filesize = (int)$filesize;
+                    }
                     $destination = BagUtils::baseInData($matches[3]);
                     $this->files[] = [
                         'uri' => $uri,
@@ -345,16 +349,45 @@ class Fetch
     }
 
     /**
-     * Initiate a curl handler
+     * Create a cUrl multi handler.
+     *
+     * @return false|resource
+     *   False on error, otherwise the cUrl resource
+     */
+    private function createMultiCurl()
+    {
+        $mh = curl_multi_init();
+        if (version_compare('7.62.0', $this->curlVersion) > 0 &&
+            version_compare('7.43.0', $this->curlVersion) <= 0) {
+            // Try enabling HTTP/1.1 pipelining and HTTP/2 multiplexing if our version is less than 7.62
+            // CURLPIPE_HTTP1 is deprecated in PHP 7.4
+            if (version_compare('7.4', PHP_VERSION) > 0) {
+                $values = CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX;
+            } else {
+                $values = CURLPIPE_MULTIPLEX;
+            }
+            curl_multi_setopt($mh, CURLMOPT_PIPELINING, $values);
+        }
+        if (version_compare('7.30.0', $this->curlVersion) <= 0) {
+            // Set a limit to how many connections can be opened.
+            curl_multi_setopt($mh, CURLMOPT_MAX_TOTAL_CONNECTIONS, 10);
+        }
+        return $mh;
+    }
+
+    /**
+     * Initiate a cUrl handler
      *
      * @param string $url
      *   The URL to download.
      * @param bool $single
      *   If this is a download() call versus a downloadAll() call.
+     * @param int|null size
+     *   Expected download size or null if unknown
      * @return false|resource
-     *   False on error, otherwise a Curl resource.
+     *   False on error, otherwise the cUl resource.
      */
-    private function createCurl($url, $single = false)
+    private function createCurl($url, $single = false, $size = null)
     {
         $ch = curl_init($url);
         $options = $this->curlOptions;
@@ -362,8 +395,38 @@ class Fetch
             // If this is set during curl_multi_exec, it swallows error messages.
             $options[CURLOPT_FAILONERROR] = true;
         }
+        if (!is_null($size) && is_int($size)) {
+            $options[CURLOPT_NOPROGRESS] = 0;
+            $options[CURLOPT_PROGRESSFUNCTION] = function ($a, $b, $c, $d, $e) use ($size) {
+                // PROGRESSFUNCTION variables are
+                // $a -> curl_handle
+                // $b -> expected download size (bytes)
+                // $c -> current download size (bytes)
+                // $d -> expected upload size (bytes)
+                // $e -> current upload size (bytes)
+                return self::curlXferInfo($size, $c);
+            };
+        } else {
+            $options[CURLOPT_NOPROGRESS] = 1;
+        }
         curl_setopt_array($ch, $options);
         return $ch;
+    }
+
+    /**
+     * Compares current download size versus expected for cUrl progress.
+     * @param int $expectDl
+     *   The expected download size (bytes).
+     * @param int $currDl
+     *   The current download size (bytes).
+     * @return int
+     *   1 if current download size is greater than 105% of the expected size.
+     */
+    private static function curlXferInfo($expectDl, $currDl)
+    {
+        // Allow a 5% variance in size.
+        $variance = $expectDl * 1.05;
+        return ($currDl > $variance ? 1 : 0);
     }
 
     /**
@@ -375,35 +438,35 @@ class Fetch
     private function downloadFiles()
     {
         if (count($this->downloadQueue) > 0) {
-            $mh = curl_multi_init();
+            $mh = $this->createMultiCurl();
             $curl_handles = [];
             $destinations = [];
             if ($mh !== false) {
-                if (version_compare($this->curlVersion, '7.62.0') <= 0) {
-                    // Try enabling HTTP/1.1 pipelining and HTTP/2 multiplexing.
-                    curl_multi_setopt($mh, CURLMOPT_PIPELINING, CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX);
-                }
-                if (version_compare($this->curlVersion, '7.30.0') <= 0) {
-                    curl_multi_setopt($mh, CURLMOPT_MAX_TOTAL_CONNECTIONS, 10);
-                }
                 foreach ($this->downloadQueue as $key => $download) {
                     $fullPath = $this->bag->makeAbsolute($download['destination']);
                     // Don't download again.
                     if (!file_exists($fullPath)) {
                         $destinations[$key] = $fullPath;
-                        $curl_handles[$key] = $this->createCurl($download['uri']);
+                        $size = isset($download['size']) ? $download['size'] : null;
+                        $curl_handles[$key] = $this->createCurl($download['uri'], false, $size);
                         curl_multi_add_handle($mh, $curl_handles[$key]);
                     }
                 }
                 $running = null;
                 do {
-                    curl_multi_exec($mh, $running);
-                } while ($running);
+                    $status = curl_multi_exec($mh, $running);
+                    while (false !== ($info = curl_multi_info_read($mh))) {
+                        // Need to read the information or we lose any callback aborted messages.
+                    }
+                } while ($running && $status == CURLM_OK);
+                if ($status != CURLM_OK) {
+                    $this->addError("Problems with multifile download.");
+                }
                 for ($x = 0; $x < count($curl_handles); $x += 1) {
                     $error = curl_error($curl_handles[$x]);
                     $url = curl_getinfo($curl_handles[$x], CURLINFO_EFFECTIVE_URL);
                     if (!empty($error)) {
-                        $this->addError("Failed to fetch URL ({$url})");
+                        $this->addError("Failed to fetch URL ({$url}) : {$error}");
                     } else {
                         $content = curl_multi_getcontent($curl_handles[$x]);
                         $this->saveFileData($content, $destinations[$x]);
@@ -544,9 +607,8 @@ class Fetch
         if (!defined('CURL_PIPEWAIT')) {
             define('CURL_PIPEWAIT', 237);
         }
-        if (version_compare('7.0', PHP_VERSION) >= 0 &&
-            version_compare($this->curlVersion, '7.43.0') >= 0) {
-            // Add CURL_PIPEWAIT if we can, using the integer to avoid problems in PHP 5.6
+        if (version_compare('7.0', PHP_VERSION) <= 0 &&
+            version_compare('7.43.0', $this->curlVersion) <= 0) {
             $this->curlOptions[CURL_PIPEWAIT] = true;
         }
     }
