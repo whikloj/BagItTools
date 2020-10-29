@@ -349,7 +349,34 @@ class Fetch
     }
 
     /**
-     * Initiate a curl handler
+     * Create a cUrl multi handler.
+     *
+     * @return false|resource
+     *   False on error, otherwise the cUrl resource
+     */
+    private function createMultiCurl()
+    {
+        $mh = curl_multi_init();
+        if (version_compare('7.62.0', $this->curlVersion) > 0 &&
+            version_compare('7.43.0', $this->curlVersion) <= 0) {
+            // Try enabling HTTP/1.1 pipelining and HTTP/2 multiplexing if our version is less than 7.62
+            // CURLPIPE_HTTP1 is deprecated in PHP 7.4
+            if (version_compare('7.4', PHP_VERSION) > 0) {
+                $values = CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX;
+            } else {
+                $values = CURLPIPE_MULTIPLEX;
+            }
+            curl_multi_setopt($mh, CURLMOPT_PIPELINING, $values);
+        }
+        if (version_compare('7.30.0', $this->curlVersion) <= 0) {
+            // Set a limit to how many connections can be opened.
+            curl_multi_setopt($mh, CURLMOPT_MAX_TOTAL_CONNECTIONS, 10);
+        }
+        return $mh;
+    }
+
+    /**
+     * Initiate a cUrl handler
      *
      * @param string $url
      *   The URL to download.
@@ -358,7 +385,7 @@ class Fetch
      * @param int|null size
      *   Expected download size or null if unknown
      * @return false|resource
-     *   False on error, otherwise a Curl resource.
+     *   False on error, otherwise the cUl resource.
      */
     private function createCurl($url, $single = false, $size = null)
     {
@@ -411,25 +438,10 @@ class Fetch
     private function downloadFiles()
     {
         if (count($this->downloadQueue) > 0) {
-            $mh = curl_multi_init();
+            $mh = $this->createMultiCurl();
             $curl_handles = [];
             $destinations = [];
             if ($mh !== false) {
-                if (version_compare('7.62.0', $this->curlVersion) > 0 &&
-                    version_compare('7.43.0', $this->curlVersion) <= 0) {
-                    // Try enabling HTTP/1.1 pipelining and HTTP/2 multiplexing if our version is less than 7.62
-                    // CURLPIPE_HTTP1 is deprecated in PHP 7.4
-                    if (version_compare('7.4', PHP_VERSION) > 0) {
-                        $values = CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX;
-                    } else {
-                        $values = CURLPIPE_MULTIPLEX;
-                    }
-                    curl_multi_setopt($mh, CURLMOPT_PIPELINING, $values);
-                }
-                if (version_compare('7.30.0', $this->curlVersion) <= 0) {
-                    // Set a limit to how many connections can be opened.
-                    curl_multi_setopt($mh, CURLMOPT_MAX_TOTAL_CONNECTIONS, 10);
-                }
                 foreach ($this->downloadQueue as $key => $download) {
                     $fullPath = $this->bag->makeAbsolute($download['destination']);
                     // Don't download again.

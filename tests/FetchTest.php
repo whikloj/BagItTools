@@ -374,6 +374,7 @@ class FetchTest extends BagItTestFramework
      * @group Fetch
      * @covers ::downloadAll
      * @covers ::downloadFiles
+     * @covers ::createMultiCurl
      * @covers ::saveFileData
      * @covers \whikloj\BagItTools\Bag::finalize
      * @covers \whikloj\BagItTools\Bag::loadFetch
@@ -449,6 +450,8 @@ class FetchTest extends BagItTestFramework
      * @group Fetch
      * @covers ::downloadAll
      * @covers ::downloadFiles
+     * @covers ::createMultiCurl
+     * @covers ::createCurl
      * @throws \whikloj\BagItTools\BagItException
      */
     public function testMultiDownloadPartialFailure()
@@ -591,8 +594,10 @@ class FetchTest extends BagItTestFramework
     /**
      * @group Fetch
      * @covers ::createCurl
+     * @covers ::createMultiCurl
      * @covers ::downloadAll
      * @covers ::downloadFiles
+     * @covers ::curlXferInfo
      */
     public function testFetchTooLarge()
     {
