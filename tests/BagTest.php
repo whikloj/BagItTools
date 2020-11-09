@@ -890,7 +890,6 @@ class BagTest extends BagItTestFramework
      * Test that for a non-extended bag, trying to add bag-info tags throws an error.
      * @group Bag
      * @covers ::addBagInfoTag
-     * @covers ::assertBagIsExtended
      * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testAddBagInfoWhenNotExtended()

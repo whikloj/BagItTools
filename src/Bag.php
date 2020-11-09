@@ -665,7 +665,9 @@ class Bag
      */
     public function addBagInfoTag($tag, $value)
     {
-        $this->assertBagIsExtended();
+        if (!$this->isExtended) {
+            throw new BagItException("This bag is not extended, you need '\$bag->setExtended(true);'");
+        }
         $internal_tag = self::trimLower($tag);
         if (in_array($internal_tag, self::BAG_INFO_GENERATED_ELEMENTS)) {
             throw new BagItException("Field {$tag} is auto-generated and cannot be manually set.");
@@ -1588,18 +1590,6 @@ class Bag
             foreach ($this->tagManifests as $manifest) {
                 $manifest->update();
             }
-        }
-    }
-
-    /**
-     * Make sure this bag is extended or throw an exception.
-     *
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
-     */
-    private function assertBagIsExtended()
-    {
-        if (!$this->isExtended) {
-            throw new BagItException("This bag is not extended, you need '\$bag->setExtended(true);'");
         }
     }
 
