@@ -885,4 +885,16 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $this->assertCount(1, $bag->getErrors());
     }
+
+    /**
+     * Test that for a non-extended bag, trying to add bag-info tags throws an error.
+     * @group Bag
+     * @covers ::addBagInfoTag
+     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
+     */
+    public function testAddBagInfoWhenNotExtended()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->addBagInfoTag("Contact-Name", "Jared Whiklo");
+    }
 }

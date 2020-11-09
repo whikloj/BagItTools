@@ -202,7 +202,7 @@ class Bag
      *
      * @var boolean
      */
-    private $isExtended;
+    private $isExtended = false;
 
     /**
      * The valid algorithms from the current version of PHP filtered to those
@@ -665,6 +665,9 @@ class Bag
      */
     public function addBagInfoTag($tag, $value)
     {
+        if (!$this->isExtended) {
+            throw new BagItException("This bag is not extended, you need '\$bag->setExtended(true);'");
+        }
         $internal_tag = self::trimLower($tag);
         if (in_array($internal_tag, self::BAG_INFO_GENERATED_ELEMENTS)) {
             throw new BagItException("Field {$tag} is auto-generated and cannot be manually set.");
@@ -984,7 +987,7 @@ class Bag
      * @param boolean $extBag
      *   Whether the bag should be extended or not.
      */
-    public function setExtended($extBag)
+    public function setExtended(bool $extBag)
     {
         $extBag = (bool) $extBag;
         $this->isExtended = $extBag;
