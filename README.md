@@ -1,7 +1,7 @@
 # BagItTools
 
 [![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.2-8892BF.svg?style=flat-square)](https://php.net/)
-[![Build Status](https://travis-ci.com/whikloj/BagItTools.svg?branch=master)](https://travis-ci.com/whikloj/BagItTools)
+[![Github Actions](https://github.com/whikloj/BagItTools/workflows/Build/badge.svg)](https://github.com/whikloj/BagItTools/actions?query=workflow%3A%22Build%22)
 [![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](./LICENSE)
 [![codecov](https://codecov.io/gh/whikloj/BagItTools/branch/master/graph/badge.svg)](https://codecov.io/gh/whikloj/BagItTools)
 
