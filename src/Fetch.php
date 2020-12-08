@@ -70,6 +70,8 @@ class Fetch
     private $curlOptions = [
         CURLOPT_CONNECTTIMEOUT => 10,
         CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false
     ];
 
     /**
