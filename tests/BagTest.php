@@ -916,4 +916,42 @@ class BagTest extends BagItTestFramework
         $bag = Bag::create($this->tmpdir);
         $bag->addBagInfoTag("Contact-Name", "Jared Whiklo");
     }
+
+    /**
+     * Test that using a path directory name gets us an absolute path and when that path exists we get an error.
+     * @group Bag
+     * @covers \whikloj\BagItTools\BagUtils::getAbsolute
+     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
+     */
+    public function testRelativePathsExists()
+    {
+        // Make the directory
+        mkdir($this->tmpdir);
+        mkdir($this->tmpdir . DIRECTORY_SEPARATOR . "existing_bag");
+        $curr = getcwd();
+        chdir($this->tmpdir);
+        try {
+            Bag::create("existing_bag");
+        } finally {
+            chdir($curr);
+        }
+    }
+
+    /**
+     * Test that using a path directory name gets us an absolute path and if that path doesn't exist we create the bag.
+     * @group Bag
+     * @covers \whikloj\BagItTools\BagUtils::getAbsolute
+     */
+    public function testRelativePathDoesntExist()
+    {
+        // Make the directory
+        mkdir($this->tmpdir);
+        $curr = getcwd();
+        $full_path = $this->tmpdir . DIRECTORY_SEPARATOR . "existing_bag";
+        chdir($this->tmpdir);
+        $bag = Bag::create("existing_bag");
+        $bagroot = $bag->getBagRoot();
+        self::assertEquals($full_path, $bagroot);
+        chdir($curr);
+    }
 }

@@ -2,7 +2,6 @@
 
 namespace whikloj\BagItTools;
 
-use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
@@ -126,9 +125,12 @@ class BagUtils
      * And runeimp at gmail dot com proposal https://www.php.net/manual/en/function.realpath.php#112367
      * @author  moreau.marc.web@gmail.com
      * @param string $path
+     *   The path to decode.
+     * @param bool $add_absolute
+     *   Whether to prepend the current working directory if the path is relative.
      * @return string
      */
-    public static function getAbsolute($path) : string
+    public static function getAbsolute($path, bool $add_absolute = false) : string
     {
         // Cleaning path regarding OS
         $path = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $path, 'msr');
@@ -137,6 +139,15 @@ class BagUtils
         // Check if start with drive letter
         preg_match('/^[a-z]:/', $path, $matches);
         $startWithLetterDir = isset($matches[0]) ? $matches[0] : false;
+
+        // whikloj - 2021-07-05 : Make sure we are using an absolute path.
+        if (!($startWithLetterDir || $startWithSeparator) && $add_absolute) {
+            // This was relative to start with, prepend the current working directory.
+            $current_dir = getcwd();
+            return BagUtils::getAbsolute(rtrim($current_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .
+                ltrim($path, DIRECTORY_SEPARATOR));
+        }
+
         // Get and filter empty sub paths
         $subPaths = array_filter(explode(DIRECTORY_SEPARATOR, $path), 'mb_strlen');
 

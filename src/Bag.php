@@ -283,6 +283,7 @@ class Bag
             array($this, 'normalizeHashAlgorithmName')
         );
         $this->bagRoot = $this->internalPath($rootPath);
+        $this->bagRoot = BagUtils::getAbsolute($this->bagRoot, true);
         $this->loaded = (!$new);
         if ($new) {
             $this->createNewBag();
@@ -1174,7 +1175,6 @@ class Bag
     private function createNewBag()
     {
         $this->resetErrorsAndWarnings();
-        $this->bagRoot = BagUtils::getAbsolute($this->bagRoot);
         if (file_exists($this->bagRoot)) {
             throw new BagItException("New bag directory {$this->bagRoot} exists");
         }
