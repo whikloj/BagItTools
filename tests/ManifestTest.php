@@ -54,7 +54,7 @@ class ManifestTest extends BagItTestFramework
         $bag->createFile("This is some sample text", 'some/directory/file.txt');
 
         foreach ($test_files as $file) {
-            $this->assertFileNotExists($file);
+            $this->assertFileDoesNotExist($file);
         }
 
         $bag->update();
