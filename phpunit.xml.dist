@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit backupGlobals="false"
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         backupGlobals="false"
          backupStaticAttributes="false"
          colors="false"
          convertErrorsToExceptions="true"
@@ -7,18 +8,19 @@
          convertWarningsToExceptions="true"
          processIsolation="false"
          stopOnFailure="false"
-         bootstrap="./vendor/autoload.php">
-
-    <testsuite name="Bagit">
-        <directory suffix=".php">./tests</directory>
-        <exclude>./tests/BagItTestFramework.php</exclude>
-    </testsuite>
-    <logging>
-        <log type="coverage-clover" target="clover.xml" />
-    </logging>
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./src</directory>
-        </whitelist>
-    </filter>
+         bootstrap="./vendor/autoload.php"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+  <coverage processUncoveredFiles="true">
+    <include>
+      <directory suffix=".php">./src</directory>
+    </include>
+    <report>
+      <clover outputFile="clover.xml"/>
+    </report>
+  </coverage>
+  <testsuite name="Bagit">
+    <directory suffix=".php">./tests</directory>
+    <exclude>./tests/BagItTestFramework.php</exclude>
+  </testsuite>
+  <logging/>
 </phpunit>

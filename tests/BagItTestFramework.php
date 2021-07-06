@@ -276,4 +276,23 @@ class BagItTestFramework extends TestCase
         $contents = file_get_contents($bagit_file);
         $this->assertEquals($expected, $contents);
     }
+
+    /**
+     * Compare string that has been wrapped with newlines by removing and cleaning it up.
+     *
+     * @param string $expected
+     *   The string expected to exist in $original.
+     * @param string $original
+     *   The wrapped output message to test.
+     */
+    protected function assertStringContainsStringWithoutNewlines($expected, $original)
+    {
+        $split_original = explode("\n", $original);
+        array_walk($split_original, function (&$o) {
+            $o = trim($o);
+        });
+        $new_original = implode(" ", $split_original);
+        $final = trim($new_original);
+        $this->assertStringContainsString($expected, $final);
+    }
 }

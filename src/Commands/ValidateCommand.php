@@ -35,7 +35,7 @@ class ValidateCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output) : int
     {
         $io = new SymfonyStyle($input, $output);
         // TODO: This is simplified in Console 5.0, remove this then.
@@ -84,8 +84,8 @@ class ValidateCommand extends Command
                 return($valid ? 0 : 1);
             } catch (BagItException $e) {
                 $error_io->error("Exception: {$e->getMessage()}");
-                return(1);
             }
         }
+        return(1);
     }
 }
