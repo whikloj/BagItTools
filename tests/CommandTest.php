@@ -38,7 +38,7 @@ class CommandTest extends BagItTestFramework
             'bag-path' => $path,
         ]);
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString("Path {$path} does not exist, cannot validate.", $output);
+        $this->assertStringContainsStringWithoutNewlines("Path {$path} does not exist, cannot validate.", $output);
     }
 
     /**
@@ -105,8 +105,8 @@ class CommandTest extends BagItTestFramework
         ]);
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString("Bag is valid", $output);
-        $this->assertStringContainsString("[WARNING] This manifest is MD5, you should use setAlgorithm('sha512') to " .
-            "upgrade. -- file: manifest-md5.txt", $output);
+        $this->assertStringContainsStringWithoutNewlines("[WARNING] This manifest is MD5, you should use " .
+            "setAlgorithm('sha512') to upgrade. -- file: manifest-md5.txt", $output);
     }
 
     /**
@@ -123,6 +123,9 @@ class CommandTest extends BagItTestFramework
         $output = $this->commandTester->getDisplay();
         // Split this in two as we don't know what the actual root directory with be
         $this->assertStringContainsString("[ERROR] Path", $output);
-        $this->assertStringContainsString("/subdirectory/to/bag does not exist, cannot validate.", $output);
+        $this->assertStringContainsStringWithoutNewlines(
+            "/subdirectory/to/bag does not exist, cannot validate.",
+            $output
+        );
     }
 }

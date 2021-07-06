@@ -10,7 +10,7 @@
         <target>documentation/complete</target>
     </transformer>
     <transformations>
-        <template name="responsive" />
+        <template name="responsive-twig" />
     </transformations>
     <files>
         <directory>src/</directory>
