@@ -15,12 +15,9 @@ class BagInternalTest extends BagItTestFramework
    * Test makeRelative
    * @group BagInternal
    * @covers \whikloj\BagItTools\Bag::makeRelative
-   * @throws \ReflectionException
    */
     public function testMakeRelativePlain()
     {
-        $methodCall = $this->getReflectionMethod('\whikloj\BagItTools\Bag', 'makeRelative');
-
         $bag = Bag::create($this->tmpdir);
         $baseDir = $bag->getBagRoot();
 
@@ -40,14 +37,51 @@ class BagInternalTest extends BagItTestFramework
 
         foreach ($valid_paths as $path => $expected) {
             $fullpath = $baseDir . DIRECTORY_SEPARATOR . $path;
-            $relative = $methodCall->invokeArgs($bag, [$fullpath]);
+            $relative = $bag->makeRelative($fullpath);
             $this->assertEquals($expected, $relative);
         }
 
         foreach ($invalid_paths as $path) {
             $fullpath = $baseDir . DIRECTORY_SEPARATOR . $path;
-            $relative = $methodCall->invokeArgs($bag, [$fullpath]);
+            $relative = $bag->makeRelative($fullpath);
             $this->assertEquals('', $relative);
+        }
+    }
+
+    /**
+     * @covers \whikloj\BagItTools\Bag::makeAbsolute
+     */
+    public function testMakeAbsolutePlain()
+    {
+        $bag = Bag::create($this->tmpdir);
+        $baseDir = $bag->getBagRoot();
+
+        $valid_paths = [
+            'data/image/someimage.jpg' => 'data/image/someimage.jpg',
+            'data/picture.txt' => 'data/picture.txt',
+            'data/images/subimages/../picture.jpg' => 'data/images/picture.jpg',
+            'data/one/../two/../three/.././/eggs.txt' => 'data/eggs.txt',
+            'somefile.txt' => 'somefile.txt',
+            '/var/lib/somewhere' => 'var/lib/somewhere',
+        ];
+
+        $invalid_paths = [
+            'data/../../../images/places/image.jpg' => 'image.jpg',
+            'data/one/..//./two/./../../three/.././../eggs.txt' => 'eggs.txt',
+        ];
+
+        foreach ($valid_paths as $path => $expected) {
+            $fullpath = $baseDir . DIRECTORY_SEPARATOR . $expected;
+            $absolute = $bag->makeAbsolute($path);
+            $this->assertEquals($fullpath, $absolute);
+        }
+
+        // There are no invalid paths as makeAbsolute only promises to prepend bagRoot + DIRECTORY_SEPARATOR to the
+        // incoming value once normalized.
+        foreach ($invalid_paths as $path => $expected) {
+            $fullpath = $baseDir . DIRECTORY_SEPARATOR . $expected;
+            $absolute = $bag->makeAbsolute($fullpath);
+            $this->assertEquals($fullpath, $absolute);
         }
     }
 
@@ -55,12 +89,9 @@ class BagInternalTest extends BagItTestFramework
    * Test pathInBagData
    * @group BagInternal
    * @covers \whikloj\BagItTools\Bag::pathInBagData
-   * @throws \ReflectionException
    */
     public function testPathInBagData()
     {
-        $methodCall = $this->getReflectionMethod('\whikloj\BagItTools\Bag', 'pathInBagData');
-
         $bag = Bag::create($this->tmpdir);
 
         $valid_paths = [
@@ -77,12 +108,12 @@ class BagInternalTest extends BagItTestFramework
         ];
 
         foreach ($valid_paths as $path) {
-            $relative = $methodCall->invokeArgs($bag, [$path]);
+            $relative = $bag->pathInBagData($path);
             $this->assertTrue($relative);
         }
 
         foreach ($invalid_paths as $path) {
-            $relative = $methodCall->invokeArgs($bag, [$path]);
+            $relative = $bag->pathInBagData($path);
             $this->assertFalse($relative);
         }
     }
@@ -93,6 +124,7 @@ class BagInternalTest extends BagItTestFramework
      * @covers \whikloj\BagItTools\Bag::wrapBagInfoText
      * @covers \whikloj\BagItTools\Bag::wrapAtLength
      * @throws \ReflectionException
+     * @throws \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testWrapBagInfo()
     {
@@ -130,6 +162,7 @@ class BagInternalTest extends BagItTestFramework
      * @group Internal
      * @covers \whikloj\BagItTools\Bag::compareVersion
      * @throws \ReflectionException
+     * @throws \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testVersionCompare()
     {

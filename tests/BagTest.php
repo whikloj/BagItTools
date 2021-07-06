@@ -19,7 +19,7 @@ class BagTest extends BagItTestFramework
    * @covers ::__construct
    * @covers ::createNewBag
    * @covers ::updateBagIt
-      */
+   */
     public function testConstructNewBag()
     {
         $this->assertFileDoesNotExist($this->tmpdir);
@@ -29,6 +29,57 @@ class BagTest extends BagItTestFramework
         $this->assertFileExists($this->tmpdir . DIRECTORY_SEPARATOR . "data");
         $this->assertTrue(is_dir($this->tmpdir . DIRECTORY_SEPARATOR . "data"));
         $this->assertTrue($bag->validate());
+    }
+
+    /**
+     * Create a file with an absolute path.
+     *
+     * @group Bag
+     * @covers ::create
+     */
+    public function testCreateBagAbsolute()
+    {
+        $this->assertFileDoesNotExist($this->tmpdir);
+        $bag = Bag::create($this->tmpdir);
+        $this->assertTrue($bag->validate());
+    }
+
+    /**
+     * Create a bag using a relative path.
+     *
+     * @group Bag
+     * @covers ::create
+     * @covers \whikloj\BagItTools\BagUtils::getAbsolute
+     */
+    public function testCreateBagRelative()
+    {
+        mkdir($this->tmpdir);
+        $newDir = $this->tmpdir . DIRECTORY_SEPARATOR . "some-new-dir";
+        $this->assertDirectoryDoesNotExist($newDir);
+        $curr = getcwd();
+        chdir($this->tmpdir);
+        $bag = Bag::create("some-new-dir");
+        $this->assertTrue($bag->validate());
+        $this->assertDirectoryExists($newDir);
+        chdir($curr);
+    }
+
+    /**
+     * Test creating a bag with a relative path.
+     * @covers ::create
+     * @covers \whikloj\BagItTools\BagUtils::getAbsolute
+     */
+    public function testCreateBagRelative2()
+    {
+        mkdir($this->tmpdir);
+        $newDir = $this->tmpdir . DIRECTORY_SEPARATOR . "some-new-dir";
+        $this->assertDirectoryDoesNotExist($newDir);
+        $curr = getcwd();
+        chdir($this->tmpdir);
+        $bag = Bag::create("./some-new-dir");
+        $this->assertTrue($bag->validate());
+        $this->assertDirectoryExists($newDir);
+        chdir($curr);
     }
 
   /**
@@ -44,7 +95,7 @@ class BagTest extends BagItTestFramework
    * @covers \whikloj\BagItTools\AbstractManifest::loadFile
    * @covers \whikloj\BagItTools\AbstractManifest::cleanUpRelPath
    * @covers \whikloj\BagItTools\AbstractManifest::addToNormalizedList
-      */
+   */
     public function testOpenBag()
     {
         $this->tmpdir = $this->prepareBasicTestBag();
@@ -732,6 +783,26 @@ class BagTest extends BagItTestFramework
             $bag->getPayloadManifests()['sha256']->getHashes(),
             $newbag->getPayloadManifests()['sha256']->getHashes()
         );
+    }
+
+    /**
+     * Test an unknown/invalid package extension.
+     *
+     * @covers ::package
+     */
+    public function testInvalidPackage()
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $archivefile = $this->getTempName();
+        $archivefile .= ".rar";
+        $this->assertFileDoesNotExist($archivefile);
+
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Unknown archive type, the file extension must be one of (tar, tgz, tar.gz, " .
+            "tar.bz2, zip)");
+
+        $bag->package($archivefile);
     }
 
     /**
