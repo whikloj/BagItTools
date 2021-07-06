@@ -3,6 +3,7 @@
 namespace whikloj\BagItTools\Test;
 
 use whikloj\BagItTools\BagUtils;
+use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
  * Class BagUtilsTest
@@ -109,20 +110,24 @@ class BagUtilsTest extends BagItTestFramework
 
     /**
      * @covers ::checkedUnlink
-     * @expectedException \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedUnlink()
     {
+        $this->expectException(FilesystemException::class);
+        $this->expectExceptionMessage("Unable to delete path {$this->tmpdir}");
+
         // try to delete a non-existant file.
         BagUtils::checkedUnlink($this->tmpdir);
     }
 
     /**
      * @covers ::checkedMkdir
-     * @expectedException  \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedMkdir()
     {
+        $this->expectException(FilesystemException::class);
+        $this->expectExceptionMessage("Unable to create directory {$this->tmpdir}");
+
         // Create a directory
         touch($this->tmpdir);
         // Try to create a directory with the same name.
@@ -131,39 +136,50 @@ class BagUtilsTest extends BagItTestFramework
 
     /**
      * @covers ::checkedCopy
-     * @expectedException  \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedCopyNoSource()
     {
         $destFile = $this->getTempName();
+
+        $this->expectException(FilesystemException::class);
+        $this->expectExceptionMessage("Unable to copy file ({$this->tmpdir}) to ({$destFile})");
+
         // Source file does not exist.
         BagUtils::checkedCopy($this->tmpdir, $destFile);
     }
 
     /**
      * @covers ::checkedCopy
-     * @expectedException  \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedCopyNoDest()
     {
         // Real source file
         $sourceFile = self::TEST_IMAGE['filename'];
+        // Fake destination path
+        $destFile = $this->tmpdir . DIRECTORY_SEPARATOR . "someotherfile";
+
+        $this->expectException(FilesystemException::class);
+        $this->expectExceptionMessage("Unable to copy file ({$sourceFile}) to ({$destFile})");
+
         // Directory of destination does not exist.
-        BagUtils::checkedCopy($sourceFile, $this->tmpdir . DIRECTORY_SEPARATOR . "someotherfile");
+        BagUtils::checkedCopy($sourceFile, $destFile);
     }
 
     /**
      * @covers ::checkedFilePut
-     * @expectedException \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedFilePut()
     {
-        BagUtils::checkedFilePut($this->tmpdir . DIRECTORY_SEPARATOR . "someotherfile", "some content");
+        $destFile = $this->tmpdir . DIRECTORY_SEPARATOR . "someotherfile";
+
+        $this->expectException(FilesystemException::class);
+        $this->expectExceptionMessage("Unable to put contents to file {$destFile}");
+
+        BagUtils::checkedFilePut($destFile, "some content");
     }
 
     /**
      * @covers ::checkedFwrite
-     * @expectedException  \whikloj\BagItTools\Exceptions\FilesystemException
      */
     public function testCheckedFwrite()
     {
@@ -174,6 +190,10 @@ class BagUtilsTest extends BagItTestFramework
         }
         // Close the file pointer.
         fclose($fp);
+
+        $this->expectException(FilesystemException::class);
+        $this->expectExceptionMessage("Error writing to file");
+
         // Write to the file.
         BagUtils::checkedFwrite($fp, "Some example text");
     }

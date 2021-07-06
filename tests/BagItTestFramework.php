@@ -72,7 +72,7 @@ class BagItTestFramework extends TestCase
     /**
      * {@inheritdoc}
      */
-    public function setUp()
+    public function setUp() : void
     {
         parent::setUp();
         $this->tmpdir = $this->getTempName();
@@ -81,7 +81,7 @@ class BagItTestFramework extends TestCase
     /**
      * {@inheritdoc}
      */
-    public function tearDown()
+    public function tearDown() : void
     {
         parent::tearDown();
         if (isset($this->tmpdir) && file_exists($this->tmpdir)) {

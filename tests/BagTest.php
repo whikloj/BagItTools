@@ -4,6 +4,7 @@ namespace whikloj\BagItTools\Test;
 
 use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\BagUtils;
+use whikloj\BagItTools\Exceptions\BagItException;
 
 /**
  * Class BagItTest
@@ -21,7 +22,7 @@ class BagTest extends BagItTestFramework
       */
     public function testConstructNewBag()
     {
-        $this->assertFileNotExists($this->tmpdir);
+        $this->assertFileDoesNotExist($this->tmpdir);
         $bag = Bag::create($this->tmpdir);
         $this->assertFileExists($this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt");
         $this->assertTrue(is_file($this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt"));
@@ -79,12 +80,12 @@ class BagTest extends BagItTestFramework
         );
     }
 
-    /**
-     * Simple tests of reporting bag root and data directory
-     * @group Bag
-     * @covers ::getDataDirectory
-     * @covers ::getBagRoot
-     */
+  /**
+   * Simple tests of reporting bag root and data directory
+   * @group Bag
+   * @covers ::getDataDirectory
+   * @covers ::getBagRoot
+   */
     public function testBagDirs()
     {
         $bag = Bag::create($this->tmpdir);
@@ -97,7 +98,7 @@ class BagTest extends BagItTestFramework
    * Test adding a file to a bag.
    * @group Bag
    * @covers ::addFile
-      */
+   */
     public function testAddFile()
     {
         $source_file = self::TEST_IMAGE['filename'];
@@ -113,11 +114,14 @@ class BagTest extends BagItTestFramework
    * Test adding a file that doesn't exist.
    * @group Bag
    * @covers ::addFile
-   * @expectedException \whikloj\BagItTools\Exceptions\BagItException
    */
     public function testAddFileNoSource()
     {
         $source_file = "some/fake/image.txt";
+
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("{$source_file} does not exist");
+
         $bag = Bag::create($this->tmpdir);
         $bag->addFile($source_file, "some/image.txt");
     }
@@ -126,31 +130,40 @@ class BagTest extends BagItTestFramework
    * Test adding a file with an invalid destination directory.
    * @group Bag
    * @covers ::addFile
-   * @expectedException \whikloj\BagItTools\Exceptions\BagItException
    */
     public function testAddFileInvalidDestination()
     {
         $source_file = self::TEST_IMAGE['filename'];
+        $destination = "data/../../../images/places/image.jpg";
+
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Path {$destination} resolves outside the bag.");
+
         $bag = Bag::create($this->tmpdir);
-        $bag->addFile($source_file, "data/../../../images/places/image.jpg");
+        $bag->addFile($source_file, $destination);
     }
 
     /**
      * Test adding a file to a bag twice.
      * @group Bag
      * @covers ::addFile
-     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testAddFileTwice()
     {
         $source_file = self::TEST_IMAGE['filename'];
+        $destination = "some/image.txt";
+
         $bag = Bag::create($this->tmpdir);
-        $bag->addFile($source_file, "some/image.txt");
+        $bag->addFile($source_file, $destination);
         $this->assertDirectoryExists($bag->getDataDirectory() .
             DIRECTORY_SEPARATOR . 'some');
         $this->assertFileExists($bag->getDataDirectory() .
             DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'image.txt');
-        $bag->addFile($source_file, "some/image.txt");
+
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("File data/{$destination} already exists in the bag.");
+
+        $bag->addFile($source_file, $destination);
     }
 
     /**
@@ -164,7 +177,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $this->assertFileExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'jekyll_and_hyde.txt');
         $bag->removeFile('jekyll_and_hyde.txt');
-        $this->assertFileNotExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'jekyll_and_hyde.txt');
+        $this->assertFileDoesNotExist($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'jekyll_and_hyde.txt');
     }
 
     /**
@@ -177,9 +190,9 @@ class BagTest extends BagItTestFramework
     {
         $source = "Hi this is a test";
         $bag = Bag::create($this->tmpdir);
-        $this->assertDirectoryNotExists($bag->getDataDirectory() .
+        $this->assertDirectoryDoesNotExist($bag->getDataDirectory() .
             DIRECTORY_SEPARATOR . 'some');
-        $this->assertFileNotExists($bag->getDataDirectory() .
+        $this->assertFileDoesNotExist($bag->getDataDirectory() .
             DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'text.txt');
         $bag->createFile($source, "some/text.txt");
         $this->assertDirectoryExists($bag->getDataDirectory() .
@@ -196,18 +209,22 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::addFile
      * @covers ::createFile
-     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testCreateFileTwice()
     {
         $source = "Hi this is a test";
+        $destination = "some/text.txt";
         $bag = Bag::create($this->tmpdir);
-        $bag->createFile($source, "some/text.txt");
+        $bag->createFile($source, $destination);
         $contents = file_get_contents($bag->getDataDirectory() .
             DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'text.txt');
         $this->assertEquals($source, $contents);
+
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("File data/{$destination} already exists in the bag.");
+
         $source_two = "This is new stuff";
-        $bag->createFile($source_two, "some/text.txt");
+        $bag->createFile($source_two, $destination);
     }
 
     /**
@@ -237,14 +254,14 @@ class BagTest extends BagItTestFramework
 
         // Reference with data/ prefix
         $bag->removeFile('data/pictures/some_more_data.txt');
-        $this->assertFileNotExists($picturesDir . DIRECTORY_SEPARATOR . 'some_more_data.txt');
+        $this->assertFileDoesNotExist($picturesDir . DIRECTORY_SEPARATOR . 'some_more_data.txt');
 
         // Reference without data/ prefix
         $bag->removeFile('pictures/another_picture.txt');
-        $this->assertFileNotExists($picturesDir . DIRECTORY_SEPARATOR . 'another_picture.txt');
+        $this->assertFileDoesNotExist($picturesDir . DIRECTORY_SEPARATOR . 'another_picture.txt');
 
         // All files are gone so directory data/pictures should have been removed.
-        $this->assertDirectoryNotExists($picturesDir);
+        $this->assertDirectoryDoesNotExist($picturesDir);
     }
 
     /**
@@ -259,7 +276,7 @@ class BagTest extends BagItTestFramework
 
         $bag = Bag::load($this->tmpdir);
         // Directory doesn't exist.
-        $this->assertDirectoryNotExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'empty');
+        $this->assertDirectoryDoesNotExist($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'empty');
         // Add files.
         $bag->addFile(self::TEST_IMAGE['filename'], 'data/empty/test.jpg');
         $bag->addFile(self::TEST_TEXT['filename'], 'data/empty/.hidden');
@@ -272,7 +289,7 @@ class BagTest extends BagItTestFramework
         // Remove the hidden file.
         $bag->removeFile('data/empty/.hidden');
         // Directory is removed too.
-        $this->assertDirectoryNotExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'empty');
+        $this->assertDirectoryDoesNotExist($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'empty');
     }
 
     /**
@@ -288,7 +305,7 @@ class BagTest extends BagItTestFramework
         $manifest = $bag->getPayloadManifests()['sha256'];
         // File doesn't exist.
         $this->assertArrayNotHasKey('data/land.jpg', $manifest->getHashes());
-        $this->assertFileNotExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
+        $this->assertFileDoesNotExist($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
 
         // Add the file
         $bag->addFile(self::TEST_IMAGE['filename'], 'data/land.jpg');
@@ -304,7 +321,7 @@ class BagTest extends BagItTestFramework
         unlink($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
         $manifest = $bag->getPayloadManifests()['sha256'];
         // File is gone
-        $this->assertFileNotExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
+        $this->assertFileDoesNotExist($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
         // Still exists in the manifest.
         $this->assertArrayHasKey('data/land.jpg', $manifest->getHashes());
         // Update BagIt files on disk.
@@ -348,7 +365,6 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::setFileEncoding
      * @covers \whikloj\BagItTools\BagUtils::getValidCharset
-     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testSetFileEncodingFailure()
     {
@@ -360,8 +376,12 @@ class BagTest extends BagItTestFramework
         $bag->update();
         $this->assertBagItFileEncoding($bag, 'GB2312');
 
+        $fake_encoding = 'fake-encoding';
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Character set {$fake_encoding} is not supported");
+
         // Now try a wrong encoding.
-        $bag->setFileEncoding('fake-encoding');
+        $bag->setFileEncoding($fake_encoding);
     }
 
     /**
@@ -437,10 +457,12 @@ class BagTest extends BagItTestFramework
      *
      * @group Bag
      * @covers ::removeAlgorithm
-     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testRemoveLastHash()
     {
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Cannot remove last payload algorithm, add one before removing this one");
+
         $bag = Bag::create($this->tmpdir);
         $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
         $bag->removeAlgorithm('SHA-512');
@@ -481,30 +503,15 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::addFile
      * @covers ::reservedFilename
-     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testUseReservedFilename()
     {
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("The filename requested is reserved on Windows OSes.");
+
         $bag = Bag::create($this->tmpdir);
         $bag->addFile(self::TEST_TEXT['filename'], 'data/some/directory/com1');
     }
-
-    /**
-     * Test writing a file to an absolute location outside data
-     * @group Bag
-     * @covers ::create
-     * @covers ::addFile
-     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
-     *
-     *
-     * Need to review, we currently rebase things NOT in data/ into data/
-     *
-     */
-    #public function testAddFileAbsolutePath()
-    #{
-    #    $bag = Bag::create($this->tmpdir);
-    #    $bag->addFile(self::TEST_TEXT['filename'], '/var/cache/etc');
-    #}
 
     /**
      * Test getting a warning when validating an MD5 bag.
@@ -532,11 +539,15 @@ class BagTest extends BagItTestFramework
      * @covers ::load
      * @covers ::getExtensions
      * @covers ::isCompressed
-     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testNonExistantCompressed()
     {
-        Bag::load('/my/directory.tar');
+        $path = '/my/directory.tar';
+
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Path {$path} does not exist, could not load Bag.");
+
+        Bag::load($path);
     }
 
 
@@ -626,7 +637,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $archivefile = $this->getTempName();
         $archivefile .= ".zip";
-        $this->assertFileNotExists($archivefile);
+        $this->assertFileDoesNotExist($archivefile);
         $bag->package($archivefile);
         $this->assertFileExists($archivefile);
 
@@ -654,7 +665,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $archivefile = $this->getTempName();
         $archivefile .= ".tar";
-        $this->assertFileNotExists($archivefile);
+        $this->assertFileDoesNotExist($archivefile);
         $bag->package($archivefile);
         $this->assertFileExists($archivefile);
 
@@ -682,7 +693,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $archivefile = $this->getTempName();
         $archivefile .= ".tar.gz";
-        $this->assertFileNotExists($archivefile);
+        $this->assertFileDoesNotExist($archivefile);
         $bag->package($archivefile);
         $this->assertFileExists($archivefile);
 
@@ -710,7 +721,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $archivefile = $this->getTempName();
         $archivefile .= ".tar.bz2";
-        $this->assertFileNotExists($archivefile);
+        $this->assertFileDoesNotExist($archivefile);
         $bag->package($archivefile);
         $this->assertFileExists($archivefile);
 
@@ -771,10 +782,12 @@ class BagTest extends BagItTestFramework
      *
      * @group Bag
      * @covers ::upgrade
-     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testUpgradeCreatedBag()
     {
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("You can only upgrade loaded bags.");
+
         $bag = Bag::create($this->tmpdir);
         $bag->upgrade();
     }
@@ -784,10 +797,12 @@ class BagTest extends BagItTestFramework
      *
      * @group Bag
      * @covers ::upgrade
-     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testUpgradeV1Bag()
     {
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Bag is already at version 1.0");
+
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
         $this->assertEquals('1.0', $bag->getVersionString());
@@ -799,10 +814,12 @@ class BagTest extends BagItTestFramework
      *
      * @group Bag
      * @covers ::upgrade
-     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testUpgradeInvalid()
     {
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("This bag is not valid, we cannot automatically upgrade it.");
+
         $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
         $bag = Bag::load($this->tmpdir);
         $this->assertEquals('0.97', $bag->getVersionString());
@@ -820,7 +837,7 @@ class BagTest extends BagItTestFramework
      */
     public function testEmptyBagShouldValidate()
     {
-        $this->assertFileNotExists($this->tmpdir);
+        $this->assertFileDoesNotExist($this->tmpdir);
         $bag = Bag::create($this->tmpdir);
         $this->assertTrue($bag->validate());
     }
@@ -890,10 +907,12 @@ class BagTest extends BagItTestFramework
      * Test that for a non-extended bag, trying to add bag-info tags throws an error.
      * @group Bag
      * @covers ::addBagInfoTag
-     * @expectedException  \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testAddBagInfoWhenNotExtended()
     {
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("This bag is not extended, you need '\$bag->setExtended(true);'");
+
         $bag = Bag::create($this->tmpdir);
         $bag->addBagInfoTag("Contact-Name", "Jared Whiklo");
     }

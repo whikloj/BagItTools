@@ -18,7 +18,7 @@ class CommandTest extends BagItTestFramework
     private $commandTester;
 
 
-    public function setUp()
+    public function setUp() : void
     {
         parent::setUp();
         $application = new Application();
@@ -38,7 +38,7 @@ class CommandTest extends BagItTestFramework
             'bag-path' => $path,
         ]);
         $output = $this->commandTester->getDisplay();
-        $this->assertContains("Path {$path} does not exist, cannot validate.", $output);
+        $this->assertStringContainsString("Path {$path} does not exist, cannot validate.", $output);
     }
 
     /**
@@ -52,7 +52,7 @@ class CommandTest extends BagItTestFramework
             'bag-path' => $path,
         ]);
         $output = $this->commandTester->getDisplay();
-        $this->assertContains("Bag is valid", $output);
+        $this->assertStringContainsString("Bag is valid", $output);
     }
 
     /**
@@ -70,7 +70,7 @@ class CommandTest extends BagItTestFramework
             'bag-path' => $this->tmpdir,
         ]);
         $output = $this->commandTester->getDisplay();
-        $this->assertContains("Bag is NOT valid", $output);
+        $this->assertStringContainsString("Bag is NOT valid", $output);
     }
 
     /**
@@ -87,8 +87,8 @@ class CommandTest extends BagItTestFramework
             'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
         ]);
         $output = $this->commandTester->getDisplay();
-        $this->assertContains("Bag is NOT valid", $output);
-        $this->assertContains("[ERROR] Required file missing. -- file: bagit.txt", $output);
+        $this->assertStringContainsString("Bag is NOT valid", $output);
+        $this->assertStringContainsString("[ERROR] Required file missing. -- file: bagit.txt", $output);
     }
 
     /**
@@ -104,8 +104,8 @@ class CommandTest extends BagItTestFramework
             'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
         ]);
         $output = $this->commandTester->getDisplay();
-        $this->assertContains("Bag is valid", $output);
-        $this->assertContains("[WARNING] This manifest is MD5, you should use setAlgorithm('sha512') to " .
+        $this->assertStringContainsString("Bag is valid", $output);
+        $this->assertStringContainsString("[WARNING] This manifest is MD5, you should use setAlgorithm('sha512') to " .
             "upgrade. -- file: manifest-md5.txt", $output);
     }
 
@@ -122,7 +122,7 @@ class CommandTest extends BagItTestFramework
         ]);
         $output = $this->commandTester->getDisplay();
         // Split this in two as we don't know what the actual root directory with be
-        $this->assertContains("[ERROR] Path", $output);
-        $this->assertContains("/subdirectory/to/bag does not exist, cannot validate.", $output);
+        $this->assertStringContainsString("[ERROR] Path", $output);
+        $this->assertStringContainsString("/subdirectory/to/bag does not exist, cannot validate.", $output);
     }
 }
