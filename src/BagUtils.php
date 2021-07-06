@@ -333,8 +333,12 @@ class BagUtils
      */
     public static function checkedFwrite($fp, $content)
     {
-        $res = @fwrite($fp, $content);
-        if ($res === false) {
+        try {
+            $res = @fwrite($fp, $content);
+            if ($res === false) {
+                throw new FilesystemException("Error writing to file");
+            }
+        } catch (\TypeError $e) {
             throw new FilesystemException("Error writing to file");
         }
     }
