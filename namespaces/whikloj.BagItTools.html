@@ -20,10 +20,8 @@
 <a href="#api" class="dropdown-toggle" data-toggle="dropdown">
                                     API Documentation <b class="caret"></b></a><ul class="dropdown-menu">
 <li><a>Namespaces</a></li>
-<li><a href="../namespaces/global.html"><i class="icon-th"></i> global</a></li>
 <li><a href="../namespaces/whikloj.html"><i class="icon-th"></i> whikloj</a></li>
 <li><a>Packages</a></li>
-<li><a href="../packages/Default.html"><i class="icon-folder-open"></i> Default</a></li>
 <li><a href="../packages/whikloj.html"><i class="icon-folder-open"></i> whikloj</a></li>
 </ul>
 </li>
@@ -35,7 +33,7 @@
 <a href="#reports" class="dropdown-toggle" data-toggle="dropdown">
                                     Reports <b class="caret"></b></a><ul class="dropdown-menu">
 <li><a href="../errors.html"><i class="icon-remove-sign"></i> Errors 
-                <span class="label label-info">7</span></a></li>
+                <span class="label label-info">11</span></a></li>
 <li><a href="../markers.html"><i class="icon-map-marker"></i> Markers 
                 <ul></ul></a></li>
 <li><a href="../deprecated.html"><i class="icon-stop"></i> Deprecated elements 
@@ -60,15 +58,18 @@
 <li class="nav-header">
 <i class="icon-map-marker"></i> Namespaces</li>
 <li>
-<a href="../namespaces/whikloj.BagItTools.html" title="BagItTools"><i class="icon-th"></i>BagItTools</a><ul class="nav nav-list nav-namespaces"></ul>
+<a href="../namespaces/whikloj.BagItTools.html" title="BagItTools"><i class="icon-th"></i>BagItTools</a><ul class="nav nav-list nav-namespaces">
+<li>
+<a href="../namespaces/whikloj.BagItTools.Commands.html" title="Commands"><i class="icon-th"></i>Commands</a><ul class="nav nav-list nav-namespaces"></ul>
+</li>
+<li>
+<a href="../namespaces/whikloj.BagItTools.Exceptions.html" title="Exceptions"><i class="icon-th"></i>Exceptions</a><ul class="nav nav-list nav-namespaces"></ul>
+</li>
+</ul>
 </li>
 <li class="nav-header">
 <i title="Classes" class="icon-custom icon-class"></i> Classes</li>
-<li><a href="#BagItException" title="BagIt exception thrown for all errors or client invalidation.">BagItException</a></li>
-<li><a href="#BagUtils" title="Utility class to hold static functions.">BagUtils</a></li>
 <li><a href="#TagManifest" title="Tag Manifest extension of AbstractManifest class.">TagManifest</a></li>
-<li><a href="#Bag" title="Bag class as normal interface for all actions and holder of supporting constructs.">Bag</a></li>
-<li><a href="#Fetch" title="Class for holding and interacting with fetch.txt data.">Fetch</a></li>
 <li><a href="#AbstractManifest" title="Abstract manifest class to hold common elements between Payload and Tag manifests.">AbstractManifest</a></li>
 <li><a href="#PayloadManifest" title="Payload Manifest extension of AbstractManifest.">PayloadManifest</a></li>
 </ul>
@@ -78,8 +79,8 @@
 <li>
 <a href="../index.html"><i class="icon-th"></i></a><span class="divider">\</span>
 </li>
-<li><a href="../namespaces/whikloj.html">whikloj</a></li>
-<li class="active">
+<li xmlns:php="http://php.net/xsl"><a href="../namespaces/whikloj.html">whikloj</a></li>
+<li xmlns:php="http://php.net/xsl" class="active">
 <span class="divider">\</span><a href="../namespaces/whikloj.BagItTools.html">BagItTools</a>
 </li>
 </ul>
@@ -92,34 +93,6 @@
 <p class="short_description">Abstract manifest class to hold common elements between Payload and Tag manifests.</p>
 <div class="details collapse"></div>
 <a href="../classes/whikloj.BagItTools.AbstractManifest.html" class="more">« More »</a>
-</div>
-<div xmlns:php="http://php.net/xsl" id="Bag" class="element ajax clickable class">
-<h1>Bag<a href="../classes/whikloj.BagItTools.Bag.html">¶</a>
-</h1>
-<p class="short_description">Bag class as normal interface for all actions and holder of supporting constructs.</p>
-<div class="details collapse"></div>
-<a href="../classes/whikloj.BagItTools.Bag.html" class="more">« More »</a>
-</div>
-<div xmlns:php="http://php.net/xsl" id="BagItException" class="element ajax clickable class">
-<h1>BagItException<a href="../classes/whikloj.BagItTools.BagItException.html">¶</a>
-</h1>
-<p class="short_description">BagIt exception thrown for all errors or client invalidation.</p>
-<div class="details collapse"></div>
-<a href="../classes/whikloj.BagItTools.BagItException.html" class="more">« More »</a>
-</div>
-<div xmlns:php="http://php.net/xsl" id="BagUtils" class="element ajax clickable class">
-<h1>BagUtils<a href="../classes/whikloj.BagItTools.BagUtils.html">¶</a>
-</h1>
-<p class="short_description">Utility class to hold static functions.</p>
-<div class="details collapse"></div>
-<a href="../classes/whikloj.BagItTools.BagUtils.html" class="more">« More »</a>
-</div>
-<div xmlns:php="http://php.net/xsl" id="Fetch" class="element ajax clickable class">
-<h1>Fetch<a href="../classes/whikloj.BagItTools.Fetch.html">¶</a>
-</h1>
-<p class="short_description">Class for holding and interacting with fetch.txt data.</p>
-<div class="details collapse"></div>
-<a href="../classes/whikloj.BagItTools.Fetch.html" class="more">« More »</a>
 </div>
 <div xmlns:php="http://php.net/xsl" id="PayloadManifest" class="element ajax clickable class">
 <h1>PayloadManifest<a href="../classes/whikloj.BagItTools.PayloadManifest.html">¶</a>
@@ -135,13 +108,66 @@
 <div class="details collapse"></div>
 <a href="../classes/whikloj.BagItTools.TagManifest.html" class="more">« More »</a>
 </div>
+<ul class="breadcrumb">
+<li>
+<a href="../index.html"><i class="icon-th"></i></a><span class="divider">\</span>
+</li>
+<li xmlns:php="http://php.net/xsl"><a href="../namespaces/whikloj.html">whikloj</a></li>
+<li xmlns:php="http://php.net/xsl">
+<span class="divider">\</span><a href="../namespaces/whikloj.BagItTools.html">BagItTools</a>
+</li>
+<li xmlns:php="http://php.net/xsl" class="active">
+<span class="divider">\</span><a href="../namespaces/whikloj.BagItTools.Commands.html">Commands</a>
+</li>
+</ul>
+<div class="namespace-indent">
+<h3>
+<i title="Class" class="icon-custom icon-class"></i> Classes, interfaces, and traits</h3>
+<div xmlns:php="http://php.net/xsl" id="ValidateCommand" class="element ajax clickable class">
+<h1>ValidateCommand<a href="../classes/whikloj.BagItTools.Commands.ValidateCommand.html">¶</a>
+</h1>
+<p class="short_description">Command to validate a bag.</p>
+<div class="details collapse"></div>
+<a href="../classes/whikloj.BagItTools.Commands.ValidateCommand.html" class="more">« More »</a>
+</div>
+</div>
+<ul class="breadcrumb">
+<li>
+<a href="../index.html"><i class="icon-th"></i></a><span class="divider">\</span>
+</li>
+<li xmlns:php="http://php.net/xsl"><a href="../namespaces/whikloj.html">whikloj</a></li>
+<li xmlns:php="http://php.net/xsl">
+<span class="divider">\</span><a href="../namespaces/whikloj.BagItTools.html">BagItTools</a>
+</li>
+<li xmlns:php="http://php.net/xsl" class="active">
+<span class="divider">\</span><a href="../namespaces/whikloj.BagItTools.Exceptions.html">Exceptions</a>
+</li>
+</ul>
+<div class="namespace-indent">
+<h3>
+<i title="Class" class="icon-custom icon-class"></i> Classes, interfaces, and traits</h3>
+<div xmlns:php="http://php.net/xsl" id="BagItException" class="element ajax clickable class">
+<h1>BagItException<a href="../classes/whikloj.BagItTools.Exceptions.BagItException.html">¶</a>
+</h1>
+<p class="short_description">BagIt exception thrown for all errors or client invalidation.</p>
+<div class="details collapse"></div>
+<a href="../classes/whikloj.BagItTools.Exceptions.BagItException.html" class="more">« More »</a>
+</div>
+<div xmlns:php="http://php.net/xsl" id="FilesystemException" class="element ajax clickable class">
+<h1>FilesystemException<a href="../classes/whikloj.BagItTools.Exceptions.FilesystemException.html">¶</a>
+</h1>
+<p class="short_description">Errors related to operations on the filesystem.</p>
+<div class="details collapse"></div>
+<a href="../classes/whikloj.BagItTools.Exceptions.FilesystemException.html" class="more">« More »</a>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div class="row"><footer class="span12">
             Template is built using <a href="http://twitter.github.com/bootstrap/">Twitter Bootstrap 2</a> and icons provided by <a href="http://glyphicons.com/">Glyphicons</a>.<br>
-            Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor 2.8.5</a> and<br>
-            generated on 2019-12-17T15:33:53-06:00.<br></footer></div>
+            Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor 2.9.1</a> and<br>
+            generated on 2021-07-06T13:40:10-05:00.<br></footer></div>
 </div>
 </body>
 </html>
