@@ -921,13 +921,17 @@ class BagTest extends BagItTestFramework
      * Test that using a path directory name gets us an absolute path and when that path exists we get an error.
      * @group Bag
      * @covers \whikloj\BagItTools\BagUtils::getAbsolute
-     * @expectedException \whikloj\BagItTools\Exceptions\BagItException
      */
     public function testRelativePathsExists()
     {
         // Make the directory
         mkdir($this->tmpdir);
-        mkdir($this->tmpdir . DIRECTORY_SEPARATOR . "existing_bag");
+        $fullpath = $this->tmpdir . DIRECTORY_SEPARATOR . "existing_bag";
+        mkdir($fullpath);
+
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("New bag directory {$fullpath} exists");
+
         $curr = getcwd();
         chdir($this->tmpdir);
         try {

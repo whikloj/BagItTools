@@ -216,7 +216,10 @@ class FetchTest extends BagItTestFramework
      * @group Fetch
      * @covers \whikloj\BagItTools\Bag::addFetchFile
      * @covers ::download
+<<<<<<< HEAD
      * @covers ::urlExistsInFile
+=======
+>>>>>>> db06076 (End support for PHP 7.2 to upgrade phpunit/phpcpd versions.)
      */
     public function testAddFetchUrlTwice()
     {
@@ -239,7 +242,10 @@ class FetchTest extends BagItTestFramework
      * @group Fetch
      * @covers \whikloj\BagItTools\Bag::addFetchFile
      * @covers ::download
+<<<<<<< HEAD
      * @covers ::destinationExistsInFile
+=======
+>>>>>>> db06076 (End support for PHP 7.2 to upgrade phpunit/phpcpd versions.)
      */
     public function testAddFetchDestTwice()
     {
