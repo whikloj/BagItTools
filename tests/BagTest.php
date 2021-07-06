@@ -921,6 +921,7 @@ class BagTest extends BagItTestFramework
      * Test that using a path directory name gets us an absolute path and when that path exists we get an error.
      * @group Bag
      * @covers \whikloj\BagItTools\BagUtils::getAbsolute
+     * @covers ::createNewBag
      */
     public function testRelativePathsExists()
     {
@@ -945,6 +946,7 @@ class BagTest extends BagItTestFramework
      * Test that using a path directory name gets us an absolute path and if that path doesn't exist we create the bag.
      * @group Bag
      * @covers \whikloj\BagItTools\BagUtils::getAbsolute
+     * @covers ::createNewBag
      */
     public function testRelativePathDoesntExist()
     {
