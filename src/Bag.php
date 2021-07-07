@@ -283,6 +283,7 @@ class Bag
             array($this, 'normalizeHashAlgorithmName')
         );
         $this->bagRoot = $this->internalPath($rootPath);
+        $this->bagRoot = BagUtils::getAbsolute($this->bagRoot, true);
         $this->loaded = (!$new);
         if ($new) {
             $this->createNewBag();
@@ -318,9 +319,7 @@ class Bag
      */
     public static function load($rootPath) : Bag
     {
-        if ($rootPath[0] !== DIRECTORY_SEPARATOR) {
-            $rootPath = getcwd() . DIRECTORY_SEPARATOR . $rootPath;
-        }
+        $rootPath = BagUtils::getAbsolute($rootPath, true);
         if (is_file($rootPath) && self::isCompressed($rootPath)) {
             $rootPath = self::uncompressBag($rootPath);
         }
@@ -524,6 +523,7 @@ class Bag
     {
         $length = strlen($this->bagRoot);
         $path = $this->internalPath($path);
+        $path = BagUtils::getAbsolute($path);
         if (substr($path, 0, $length) == $this->bagRoot) {
             return $path;
         }
@@ -1174,7 +1174,6 @@ class Bag
     private function createNewBag()
     {
         $this->resetErrorsAndWarnings();
-        $this->bagRoot = BagUtils::getAbsolute($this->bagRoot);
         if (file_exists($this->bagRoot)) {
             throw new BagItException("New bag directory {$this->bagRoot} exists");
         }

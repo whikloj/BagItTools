@@ -77,6 +77,20 @@ class BagUtilsTest extends BagItTestFramework
     }
 
     /**
+     * @covers ::getAbsolute
+     */
+    public function testGetAbsoluteRelative()
+    {
+        mkdir($this->tmpdir);
+        $current = getcwd();
+        chdir($this->tmpdir);
+        $bag_name = "new_bag_directory";
+        $full_path = $this->tmpdir . DIRECTORY_SEPARATOR . $bag_name;
+        $this->assertEquals($full_path, BagUtils::getAbsolute($bag_name, true));
+        chdir($current);
+    }
+
+    /**
      * @covers ::invalidPathCharacters
      */
     public function testInvalidPathCharacters()
