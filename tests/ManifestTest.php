@@ -154,6 +154,64 @@ class ManifestTest extends BagItTestFramework
     }
 
     /**
+     * Test decoding a bag with carriage returns, line breaks and % in file paths.
+     * @group Manifest
+     * @covers ::decodeFilepath
+     */
+    public function testLoadManifestWithSpecialCharacters(): void
+    {
+        $expected = [
+            "data/File-with-%0A-name.txt",
+            "data/carriage\rreturn-file.txt",
+            "data/directory\nline\nbreak/some-file.txt",
+            "data/directory\nline\nbreak/carriage\rreturn/Example-file-%-and-%25.txt",
+        ];
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestEncodingBag");
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->validate());
+        $manifest = $bag->getPayloadManifests();
+        $paths = array_keys($manifest['sha256']->getHashes());
+        $this->assertArrayEquals($expected, $paths);
+    }
+
+    /**
+     * Test that carriage returns, line breaks and % characters are encoded on file paths in payload manifests.
+     * @group Manifest
+     * @covers ::encodeFilepath
+     */
+    public function testWriteManifestWithSpecialCharacters(): void
+    {
+        $expected = [
+            "data/file-with%0Anewline.txt",
+            "data/directory%0Dcarriage%0Dreturn/empty.txt",
+            "data/image-with-%25-character.jpg",
+            "data/already-encoded-%2525-double-it.txt",
+            "data/directory%0Dcarriage%0Dreturn/directory%0Aline%0Abreak/image-with-%2525.jpg",
+        ];
+        $bag = Bag::create($this->tmpdir);
+        $bag->addFile(self::TEST_TEXT['filename'], "file-with\nnewline.txt");
+        $bag->addFile(self::TEST_TEXT['filename'], "directory\rcarriage\rreturn/empty.txt");
+        $bag->addFile(self::TEST_IMAGE['filename'], "image-with-%-character.jpg");
+        $bag->addFile(self::TEST_TEXT['filename'], "already-encoded-%25-double-it.txt");
+        $bag->addFile(
+            self::TEST_IMAGE['filename'],
+            "directory\rcarriage\rreturn/directory\nline\nbreak/image-with-%25.jpg"
+        );
+        $bag->update();
+        // Read the lines from the manifest file.
+        $fp = fopen($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt', "r");
+        $paths = [];
+        while (!feof($fp)) {
+            $line = fgets($fp);
+            if ($line !== false) {
+                $path = explode(' ', $line)[1];
+                $paths[] = trim($path);
+            }
+        }
+        $this->assertArrayEquals($expected, $paths);
+    }
+
+    /**
      * Utility to set a bag with a specific manifest file.
      * @param string $manifest_filename
      *   File name from tests/resources/manifests to put in bag.

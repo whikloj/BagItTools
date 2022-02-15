@@ -2,7 +2,6 @@
 
 namespace whikloj\BagItTools;
 
-use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
@@ -286,6 +285,7 @@ abstract class AbstractManifest
             throw new FilesystemException("Unable to write {$fullPath}");
         }
         foreach ($this->hashes as $path => $hash) {
+            $path = $this->encodeFilepath($path);
             $line = "{$hash} {$path}" . PHP_EOL;
             $line = $this->bag->encodeText($line);
             BagUtils::checkedFwrite($fp, $line);
@@ -423,6 +423,7 @@ abstract class AbstractManifest
     {
         $filepath = $this->bag->makeAbsolute($filepath);
         $filepath = $this->cleanUpAbsPath($filepath);
+        $filepath = $this->decodeFilepath($filepath);
         return $this->bag->makeRelative($filepath);
     }
 
@@ -463,5 +464,43 @@ abstract class AbstractManifest
             'error' => [],
             'warning' => [],
         ];
+    }
+
+    /**
+     * Decode a file path.
+     *
+     * @param string $line
+     *   The original filepath from the manifest file.
+     * @return string
+     *   The filepath with the special characters decoded.
+     */
+    private function decodeFilepath(string $line): string
+    {
+        // Strip newlines from the right.
+        $decoded = rtrim($line, "\r\n");
+        return str_replace(
+            ["%0A", "%0D", "%25"],
+            ["\n", "\r", "%"],
+            $decoded
+        );
+    }
+
+    /**
+     * Encode a file path.
+     *
+     * @param string $line
+     *   The original file path.
+     * @return string
+     *   The file path with the special manifest characters encoded.
+     */
+    private function encodeFilepath(string $line): string
+    {
+        // Strip newlines from the right.
+        $encoded = rtrim($line, "\r\n");
+        return str_replace(
+            ["%", "\n", "\r"],
+            ["%25", "%0A", "%0D"],
+            $encoded
+        );
     }
 }

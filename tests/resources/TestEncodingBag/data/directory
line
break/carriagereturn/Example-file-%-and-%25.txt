@@ -1,0 +1,1 @@
+This is a file with percent characters in the filename, inside a directory with a carriage return, inside a directory with line breaks.
