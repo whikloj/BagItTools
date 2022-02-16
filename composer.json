@@ -48,6 +48,8 @@
     ]
   },
   "config": {
-    "allow-plugins": {}
+    "allow-plugins": {
+      "symfony/flex": false
+    }
   }
 }
