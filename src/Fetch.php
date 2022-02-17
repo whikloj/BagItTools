@@ -112,6 +112,9 @@ class Fetch
      */
     public function downloadAll()
     {
+        if (count($this->getErrors()) > 0) {
+            throw new BagItException("The fetch.txt file has errors, unable to download files.");
+        }
         $this->resetErrors();
         $this->downloadQueue = [];
         foreach ($this->files as $file) {
@@ -146,13 +149,34 @@ class Fetch
         if (!$this->internalValidateUrl($uri)) {
             throw new BagItException("This library only supports http/https URLs");
         }
-        if (!$this->validatePath($dest)) {
-            // Skip destinations with %xx other than %0A, %0D and %25
-            throw new BagItException("Destination paths can't have any percent encoded characters except CR, LF, & %");
-        }
         if (!$this->bag->pathInBagData($dest)) {
             throw new BagItException("Path {$dest} resolves outside the bag.");
         }
+    }
+
+    /**
+     * Add a file to this fetch file.
+     *
+     * @param string $url
+     *   The remote URL for the file.
+     * @param string $destination
+     *   The bag destination path for the file.
+     * @param int|null $size
+     *   The expected size of the file, or null for unknown.
+     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     *   Errors with adding this file to your fetch file.
+     */
+    public function addFile(string $url, string $destination, int $size = null): void
+    {
+        $fetchData = [
+            'uri' => $url,
+            'destination' => $destination,
+        ];
+        if (is_int($size)) {
+            $fetchData['size'] = $size;
+        }
+        // Download the file now to help with manifest handling, deleted when you package() or finalize().
+        $this->download($fetchData);
     }
 
     /**
@@ -327,13 +351,20 @@ class Fetch
                         $filesize = (int)$filesize;
                     }
                     $destination = BagUtils::baseInData($matches[3]);
+                    if (BagUtils::checkUnencodedFilepath($destination)) {
+                        $this->addError(
+                            "Line $lineCount: Filepaths containing Line Feed (LF), Carriage Return (CR) or a " .
+                            "percent sign (%) MUST be encoded, and only those characters can be encoded."
+                        );
+                    }
+                    $destination = BagUtils::decodeFilepath($destination);
                     $this->files[] = [
                         'uri' => $uri,
                         'size' => $filesize,
                         'destination' => $destination,
                     ];
                 } else {
-                    $this->addError("Line {$lineCount} : This line is not valid.");
+                    $this->addError("Line $lineCount : This line is not valid.");
                 }
             }
         }
@@ -513,7 +544,8 @@ class Fetch
                 throw new FilesystemException("Unable to write {$this->filename}");
             }
             foreach ($this->files as $fileData) {
-                $line = "{$fileData['uri']} {$fileData['size']} {$fileData['destination']}" . PHP_EOL;
+                $destination = BagUtils::encodeFilepath($fileData['destination']);
+                $line = "{$fileData['uri']} {$fileData['size']} $destination" . PHP_EOL;
                 $line = $this->bag->encodeText($line);
                 BagUtils::checkedFwrite($fp, $line);
             }
@@ -551,30 +583,6 @@ class Fetch
         $parts = parse_url($url);
         if ($parts['scheme'] !== 'http' && $parts['scheme'] !== 'https') {
             return false;
-        }
-        return true;
-    }
-
-    /**
-     * Validate the path for fetch files.
-     *
-     * @param string $dest
-     *   The destination file path.
-     * @return bool
-     *   True if it is valid.
-     */
-    private function validatePath($dest) : bool
-    {
-        // You can't have any encoded characters in the destination string except LF, CR, CRLF and % itself.
-        if (strpos($dest, '%') !== false) {
-            $parts = explode('%', $dest);
-            foreach ($parts as $part) {
-                $char = substr($part, 0, 2);
-                $char = strtolower($char);
-                if (!($char == '0a' || $char == '0d' || $char == '25')) {
-                    return false;
-                }
-            }
         }
         return true;
     }

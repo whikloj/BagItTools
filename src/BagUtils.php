@@ -353,4 +353,66 @@ class BagUtils
             throw new FilesystemException("Error writing to file");
         }
     }
+
+    /**
+     * Decode a file path according to the special rules of the spec.
+     *
+     * RFC 8943 - sections 2.1.3 & 2.2.3
+     * If _filename_ includes an LF, a CR, a CRLF, or a percent sign (%), those characters (and only those) MUST be
+     * percent-encoded as described in [RFC3986].
+     *
+     * @param string $line
+     *   The original filepath from the manifest file.
+     * @return string
+     *   The filepath with the special characters decoded.
+     */
+    public static function decodeFilepath(string $line): string
+    {
+        // Strip newlines from the right.
+        $decoded = rtrim($line, "\r\n");
+        return str_replace(
+            ["%0A", "%0D", "%25"],
+            ["\n", "\r", "%"],
+            $decoded
+        );
+    }
+
+    /**
+     * Encode a file path according to the special rules of the spec.
+     *
+     * RFC 8943 - sections 2.1.3 & 2.2.3
+     * If _filename_ includes an LF, a CR, a CRLF, or a percent sign (%), those characters (and only those) MUST be
+     * percent-encoded as described in [RFC3986].
+     *
+     * @param string $line
+     *   The original file path.
+     * @return string
+     *   The file path with the special manifest characters encoded.
+     */
+    public static function encodeFilepath(string $line): string
+    {
+        // Strip newlines from the right.
+        $encoded = rtrim($line, "\r\n");
+        return str_replace(
+            ["%", "\n", "\r"],
+            ["%25", "%0A", "%0D"],
+            $encoded
+        );
+    }
+
+    /**
+     * Check for unencoded newlines, carriage returns or % symbols in a file path.
+     *
+     * @param string $filepath
+     *   The file path to check
+     * @return bool
+     *   True if there are un-encoded characters
+     * @see \whikloj\BagItTools\BagUtils::encodeFilepath()
+     * @see \whikloj\BagItTools\BagUtils::decodeFilepath()
+     */
+    public static function checkUnencodedFilepath(string $filepath): bool
+    {
+        return (strpos($filepath, "\n") > -1 || strpos($filepath, "\r") > -1 ||
+            preg_match_all("/%(?!(25|0A|0D))/", $filepath));
+    }
 }

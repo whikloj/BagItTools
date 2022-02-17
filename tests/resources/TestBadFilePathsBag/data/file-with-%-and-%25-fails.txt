@@ -1,0 +1,1 @@
+This is a bad test because there is an unencoded % in the file path in the payload manifest.

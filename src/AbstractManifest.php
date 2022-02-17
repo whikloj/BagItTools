@@ -246,9 +246,7 @@ abstract class AbstractManifest
                 if (preg_match("~^(\w+)\s+\*?(.*)$~", $line, $matches)) {
                     $hash = $matches[1];
                     $originalPath = $matches[2];
-                    if (substr($originalPath, 0, 2) == "./") {
-                        $this->addLoadWarning("Line {$lineCount} : Paths SHOULD not be relative");
-                    }
+                    $this->checkIncomingFilePath($originalPath, $lineCount);
                     $path = $this->cleanUpRelPath($originalPath);
                     // Normalized path in lowercase (for matching)
                     $lowerNormalized = $this->normalizePath($path);
@@ -262,6 +260,8 @@ abstract class AbstractManifest
                         $this->hashes[$path] = $hash;
                         $this->addToNormalizedList($lowerNormalized);
                     }
+                } else {
+                    $this->addLoadError("Line $lineCount : Line is not of the form 'checksum path'");
                 }
             }
             fclose($fp);
@@ -285,12 +285,33 @@ abstract class AbstractManifest
             throw new FilesystemException("Unable to write {$fullPath}");
         }
         foreach ($this->hashes as $path => $hash) {
-            $path = $this->encodeFilepath($path);
+            $path = BagUtils::encodeFilepath($path);
             $line = "{$hash} {$path}" . PHP_EOL;
             $line = $this->bag->encodeText($line);
             BagUtils::checkedFwrite($fp, $line);
         }
         fclose($fp);
+    }
+
+    /**
+     * Does validation on incoming file paths.
+     *
+     * @param string $filepath
+     *   The file path to be checked.
+     * @param int $lineCount
+     *   The line of the manifest we are currently checking.
+     */
+    private function checkIncomingFilePath(string $filepath, int $lineCount): void
+    {
+        if (substr($filepath, 0, 2) == "./") {
+            $this->addLoadWarning("Line $lineCount : Paths SHOULD not be relative");
+        }
+        if (BagUtils::checkUnencodedFilepath($filepath)) {
+            $this->addLoadError(
+                "Line $lineCount: File paths containing Line Feed (LF), Carriage Return (CR) or a percent sign (%) " .
+                "MUST be encoded, and only those characters can be encoded."
+            );
+        }
     }
 
     /**
@@ -423,7 +444,7 @@ abstract class AbstractManifest
     {
         $filepath = $this->bag->makeAbsolute($filepath);
         $filepath = $this->cleanUpAbsPath($filepath);
-        $filepath = $this->decodeFilepath($filepath);
+        $filepath = BagUtils::decodeFilepath($filepath);
         return $this->bag->makeRelative($filepath);
     }
 
@@ -464,43 +485,5 @@ abstract class AbstractManifest
             'error' => [],
             'warning' => [],
         ];
-    }
-
-    /**
-     * Decode a file path.
-     *
-     * @param string $line
-     *   The original filepath from the manifest file.
-     * @return string
-     *   The filepath with the special characters decoded.
-     */
-    private function decodeFilepath(string $line): string
-    {
-        // Strip newlines from the right.
-        $decoded = rtrim($line, "\r\n");
-        return str_replace(
-            ["%0A", "%0D", "%25"],
-            ["\n", "\r", "%"],
-            $decoded
-        );
-    }
-
-    /**
-     * Encode a file path.
-     *
-     * @param string $line
-     *   The original file path.
-     * @return string
-     *   The file path with the special manifest characters encoded.
-     */
-    private function encodeFilepath(string $line): string
-    {
-        // Strip newlines from the right.
-        $encoded = rtrim($line, "\r\n");
-        return str_replace(
-            ["%", "\n", "\r"],
-            ["%25", "%0A", "%0D"],
-            $encoded
-        );
     }
 }

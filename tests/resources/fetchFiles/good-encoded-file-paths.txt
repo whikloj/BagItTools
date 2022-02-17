@@ -1,0 +1,4 @@
+http://example.org/some/file/1 - data/some-file-%0A-with-LF.txt
+http://example.org/some/file/2 - data/some-file-%0D-with-CR.txt
+http://example.org/some/file/3 - data/some-file-%25.txt
+https://www.example.org/what/a/day 123456 dir1/dir3/dir4%252Ffile.txt

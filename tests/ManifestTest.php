@@ -156,7 +156,8 @@ class ManifestTest extends BagItTestFramework
     /**
      * Test decoding a bag with carriage returns, line breaks and % in file paths.
      * @group Manifest
-     * @covers ::decodeFilepath
+     * @covers \whikloj\BagItTools\BagUtils::decodeFilepath
+     * @covers ::checkIncomingFilePath
      */
     public function testLoadManifestWithSpecialCharacters(): void
     {
@@ -177,7 +178,7 @@ class ManifestTest extends BagItTestFramework
     /**
      * Test that carriage returns, line breaks and % characters are encoded on file paths in payload manifests.
      * @group Manifest
-     * @covers ::encodeFilepath
+     * @covers \whikloj\BagItTools\BagUtils::encodeFilepath
      */
     public function testWriteManifestWithSpecialCharacters(): void
     {
@@ -199,16 +200,28 @@ class ManifestTest extends BagItTestFramework
         );
         $bag->update();
         // Read the lines from the manifest file.
-        $fp = fopen($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt', "r");
-        $paths = [];
-        while (!feof($fp)) {
-            $line = fgets($fp);
-            if ($line !== false) {
-                $path = explode(' ', $line)[1];
-                $paths[] = trim($path);
-            }
-        }
+        $paths = explode("\n", file_get_contents($bag->getBagRoot() . DIRECTORY_SEPARATOR . "manifest-sha512.txt"));
+        $paths = array_filter($paths);
+        array_walk($paths, function (&$o) {
+            $o = trim(explode(" ", $o)[1]);
+        });
         $this->assertArrayEquals($expected, $paths);
+    }
+
+    /**
+     * This payload manifest has un-encoded characters that need to be encoded.
+     * @group Manifest
+     * @covers ::checkIncomingFilePath
+     */
+    public function testLoadBagWithUnencodedFilepaths(): void
+    {
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestBadFilePathsBag");
+        $bag = Bag::load($this->tmpdir);
+        $this->assertFalse($bag->validate());
+        // 3 errors for bad payload lines, 2 for missing files and 1 for files in the bag not in the payload manifest.
+        $this->assertCount(6, $bag->getErrors());
+        $payload = $bag->getPayloadManifests()['sha256'];
+        $this->assertCount(4, $payload->getHashes());
     }
 
     /**
