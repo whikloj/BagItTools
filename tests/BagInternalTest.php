@@ -10,13 +10,12 @@ use whikloj\BagItTools\Bag;
  */
 class BagInternalTest extends BagItTestFramework
 {
-
   /**
    * Test makeRelative
    * @group BagInternal
    * @covers \whikloj\BagItTools\Bag::makeRelative
    */
-    public function testMakeRelativePlain()
+    public function testMakeRelativePlain(): void
     {
         $bag = Bag::create($this->tmpdir);
         $baseDir = $bag->getBagRoot();
@@ -51,7 +50,7 @@ class BagInternalTest extends BagItTestFramework
     /**
      * @covers \whikloj\BagItTools\Bag::makeAbsolute
      */
-    public function testMakeAbsolutePlain()
+    public function testMakeAbsolutePlain(): void
     {
         $bag = Bag::create($this->tmpdir);
         $baseDir = $bag->getBagRoot();
@@ -90,7 +89,7 @@ class BagInternalTest extends BagItTestFramework
    * @group BagInternal
    * @covers \whikloj\BagItTools\Bag::pathInBagData
    */
-    public function testPathInBagData()
+    public function testPathInBagData(): void
     {
         $bag = Bag::create($this->tmpdir);
 
@@ -126,7 +125,7 @@ class BagInternalTest extends BagItTestFramework
      * @throws \ReflectionException
      * @throws \whikloj\BagItTools\Exceptions\BagItException
      */
-    public function testWrapBagInfo()
+    public function testWrapBagInfo(): void
     {
         $test_matrix = [
             "Source-Organization: Organization transferring the content." => [
@@ -164,7 +163,7 @@ class BagInternalTest extends BagItTestFramework
      * @throws \ReflectionException
      * @throws \whikloj\BagItTools\Exceptions\BagItException
      */
-    public function testVersionCompare()
+    public function testVersionCompare(): void
     {
         $bag = Bag::create($this->tmpdir);
         $method = $this->getReflectionMethod('\whikloj\BagItTools\Bag', 'compareVersion');
@@ -180,7 +179,7 @@ class BagInternalTest extends BagItTestFramework
      * @group Internal
      * @covers \whikloj\BagItTools\Bag::resetErrorsAndWarnings
      */
-    public function testResetErrorsAndWarnings()
+    public function testResetErrorsAndWarnings(): void
     {
         $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
         $bag = Bag::load($this->tmpdir);
@@ -204,7 +203,7 @@ class BagInternalTest extends BagItTestFramework
      * @group Internal
      * @covers \whikloj\BagItTools\Bag::addBagError
      */
-    public function testAddBagError()
+    public function testAddBagError(): void
     {
         $bag = Bag::create($this->tmpdir);
         $this->assertCount(0, $bag->getErrors());
@@ -222,7 +221,7 @@ class BagInternalTest extends BagItTestFramework
      * @group Internal
      * @covers \whikloj\BagItTools\Bag::addBagWarning
      */
-    public function testAddBagWarning()
+    public function testAddBagWarning(): void
     {
         $bag = Bag::create($this->tmpdir);
         $this->assertCount(0, $bag->getErrors());
@@ -240,7 +239,7 @@ class BagInternalTest extends BagItTestFramework
      * @group Internal
      * @covers \whikloj\BagItTools\Bag::arrayKeyExistsNoCase
      */
-    public function testArrayKeyExistsNoCase()
+    public function testArrayKeyExistsNoCase(): void
     {
         $test_array = [
             ['name' => 'BOB'],

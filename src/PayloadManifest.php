@@ -11,7 +11,6 @@ namespace whikloj\BagItTools;
  */
 class PayloadManifest extends AbstractManifest
 {
-
   /**
    * PayloadManifest constructor.
    *
@@ -22,7 +21,7 @@ class PayloadManifest extends AbstractManifest
    * @param bool $load
    *   Whether we are loading an existing file
    */
-    public function __construct(Bag $bag, $algorithm, $load = false)
+    public function __construct(Bag $bag, string $algorithm, bool $load = false)
     {
         parent::__construct($bag, $algorithm, "manifest-{$algorithm}.txt", $load);
     }
@@ -30,7 +29,7 @@ class PayloadManifest extends AbstractManifest
   /**
    * {@inheritdoc}
    */
-    public function update()
+    public function update(): void
     {
         $this->hashes = [];
         $files = BagUtils::getAllFiles($this->bag->makeAbsolute("data"));
@@ -43,7 +42,7 @@ class PayloadManifest extends AbstractManifest
     /**
      * {@inheritdoc}
      */
-    public function validate()
+    public function validate(): void
     {
         parent::validate();
         $onDisk = BagUtils::getAllFiles($this->bag->makeAbsolute("data"));

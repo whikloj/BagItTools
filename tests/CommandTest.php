@@ -14,11 +14,12 @@ use whikloj\BagItTools\Commands\ValidateCommand;
  */
 class CommandTest extends BagItTestFramework
 {
-
+    /**
+     * @var \Symfony\Component\Console\Tester\CommandTester
+     */
     private $commandTester;
 
-
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
         $application = new Application();
@@ -31,7 +32,7 @@ class CommandTest extends BagItTestFramework
      * @covers ::configure
      * @covers ::execute
      */
-    public function testValidateInvalidPath()
+    public function testValidateInvalidPath(): void
     {
         $path = __DIR__ . DIRECTORY_SEPARATOR . 'DEVNULL';
         $this->commandTester->execute([
@@ -45,7 +46,7 @@ class CommandTest extends BagItTestFramework
      * @covers ::configure
      * @covers ::execute
      */
-    public function testValidBag()
+    public function testValidBag(): void
     {
         $path = __DIR__ . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . "TestBag";
         $this->commandTester->execute([
@@ -59,7 +60,7 @@ class CommandTest extends BagItTestFramework
      * @covers ::configure
      * @covers ::execute
      */
-    public function testInvalidBag()
+    public function testInvalidBag(): void
     {
         $this->tmpdir = self::prepareBasicTestBag();
         file_put_contents(
@@ -77,7 +78,7 @@ class CommandTest extends BagItTestFramework
      * @covers ::configure
      * @covers ::execute
      */
-    public function testInvalidWithErrors()
+    public function testInvalidWithErrors(): void
     {
         $this->tmpdir = self::prepareBasicTestBag();
         unlink($this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt");
@@ -95,7 +96,7 @@ class CommandTest extends BagItTestFramework
      * @covers ::configure
      * @covers ::execute
      */
-    public function testInvalidWithWarnings()
+    public function testInvalidWithWarnings(): void
     {
         $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
         $this->commandTester->execute([
@@ -113,7 +114,7 @@ class CommandTest extends BagItTestFramework
      * @covers ::configure
      * @covers ::execute
      */
-    public function testRelativeDirectoryToNoBag()
+    public function testRelativeDirectoryToNoBag(): void
     {
         $this->commandTester->execute([
             'bag-path' => "subdirectory/to/bag",

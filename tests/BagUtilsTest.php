@@ -12,11 +12,10 @@ use whikloj\BagItTools\Exceptions\FilesystemException;
  */
 class BagUtilsTest extends BagItTestFramework
 {
-
     /**
      * @covers ::isDotDir
      */
-    public function testIsDotDir()
+    public function testIsDotDir(): void
     {
         $this->assertTrue(BagUtils::isDotDir('.'));
         $this->assertTrue(BagUtils::isDotDir('..'));
@@ -28,7 +27,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::baseInData
      */
-    public function testBaseInData()
+    public function testBaseInData(): void
     {
         $this->assertEquals('data/test.txt', BagUtils::baseInData('test.txt'));
         $this->assertEquals('data/test.txt', BagUtils::baseInData('data/test.txt'));
@@ -39,7 +38,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::findAllByPattern
      */
-    public function testFindAllByPattern()
+    public function testFindAllByPattern(): void
     {
         $txt_files = [
             self::TEST_BAG_DIR . '/bagit.txt',
@@ -58,7 +57,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::getValidCharset
      */
-    public function testGetValidCharset()
+    public function testGetValidCharset(): void
     {
         $this->assertEquals('UTF-8', BagUtils::getValidCharset('utf-8'));
         $this->assertEquals('EUC-JP', BagUtils::getValidCharset('euc-jp'));
@@ -68,7 +67,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::getAbsolute
      */
-    public function testGetAbsolute()
+    public function testGetAbsolute(): void
     {
         $this->assertEquals('data/dir1/dir2', BagUtils::getAbsolute('data/./dir1//dir2'));
         $this->assertEquals('data/dir1/dir3', BagUtils::getAbsolute('data/dir1/dir2/../dir3'));
@@ -79,7 +78,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::getAbsolute
      */
-    public function testGetAbsoluteRelative()
+    public function testGetAbsoluteRelative(): void
     {
         mkdir($this->tmpdir);
         $current = getcwd();
@@ -93,7 +92,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::invalidPathCharacters
      */
-    public function testInvalidPathCharacters()
+    public function testInvalidPathCharacters(): void
     {
         $this->assertTrue(BagUtils::invalidPathCharacters('/some/directory'));
         $this->assertTrue(BagUtils::invalidPathCharacters('../some/other/directory'));
@@ -104,7 +103,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::getAllFiles
      */
-    public function testGetAllFiles()
+    public function testGetAllFiles(): void
     {
         $files = BagUtils::getAllFiles(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos');
         $this->assertCount(2, $files);
@@ -125,7 +124,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::checkedUnlink
      */
-    public function testCheckedUnlink()
+    public function testCheckedUnlink(): void
     {
         $this->expectException(FilesystemException::class);
         $this->expectExceptionMessage("Unable to delete path {$this->tmpdir}");
@@ -137,7 +136,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::checkedMkdir
      */
-    public function testCheckedMkdir()
+    public function testCheckedMkdir(): void
     {
         $this->expectException(FilesystemException::class);
         $this->expectExceptionMessage("Unable to create directory {$this->tmpdir}");
@@ -151,7 +150,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::checkedCopy
      */
-    public function testCheckedCopyNoSource()
+    public function testCheckedCopyNoSource(): void
     {
         $destFile = $this->getTempName();
 
@@ -165,7 +164,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::checkedCopy
      */
-    public function testCheckedCopyNoDest()
+    public function testCheckedCopyNoDest(): void
     {
         // Real source file
         $sourceFile = self::TEST_IMAGE['filename'];
@@ -182,7 +181,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::checkedFilePut
      */
-    public function testCheckedFilePut()
+    public function testCheckedFilePut(): void
     {
         $destFile = $this->tmpdir . DIRECTORY_SEPARATOR . "someotherfile";
 
@@ -195,7 +194,7 @@ class BagUtilsTest extends BagItTestFramework
     /**
      * @covers ::checkedFwrite
      */
-    public function testCheckedFwrite()
+    public function testCheckedFwrite(): void
     {
         // Open a pointer to a new file.
         $fp = fopen($this->tmpdir, "w+");

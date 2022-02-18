@@ -11,7 +11,6 @@ namespace whikloj\BagItTools;
  */
 class TagManifest extends AbstractManifest
 {
-
   /**
    * PayloadManifest constructor.
    *
@@ -22,7 +21,7 @@ class TagManifest extends AbstractManifest
    * @param boolean $load
    *   Whether we are loading an existing file
    */
-    public function __construct(Bag $bag, $algorithm, $load = false)
+    public function __construct(Bag $bag, string $algorithm, bool $load = false)
     {
         parent::__construct($bag, $algorithm, "tagmanifest-{$algorithm}.txt", $load);
     }
@@ -30,7 +29,7 @@ class TagManifest extends AbstractManifest
   /**
    * {@inheritdoc}
    */
-    public function update()
+    public function update(): void
     {
         $this->hashes = [];
         $files = BagUtils::getAllFiles($this->bag->getBagRoot(), ["data"]);
@@ -45,7 +44,7 @@ class TagManifest extends AbstractManifest
     /**
      * {@inheritdoc}
      */
-    public function validate()
+    public function validate(): void
     {
         parent::validate();
         $onDisk = BagUtils::getAllFiles($this->bag->getBagRoot(), ["data"]);
@@ -76,7 +75,7 @@ class TagManifest extends AbstractManifest
      * @return bool
      *   True if it is a tagmanifest file.
      */
-    private function isTagManifest($filepath) : bool
+    private function isTagManifest(string $filepath): bool
     {
         return (substr(basename($filepath), 0, 11) == "tagmanifest");
     }

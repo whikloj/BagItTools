@@ -9,7 +9,7 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use whikloj\BagItTools\Bag;
-use whikloj\BagItTools\BagItException;
+use whikloj\BagItTools\Exceptions\BagItException;
 
 /**
  * Command to validate a bag.
@@ -35,7 +35,7 @@ class ValidateCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output) : int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         // TODO: This is simplified in Console 5.0, remove this then.

@@ -13,7 +13,6 @@ use whikloj\BagItTools\Exceptions\FilesystemException;
  */
 class BagUtils
 {
-
     /**
      * Valid character set MIME names from IANA.
      */
@@ -62,7 +61,7 @@ class BagUtils
      * @return bool
      *    True if it is a dot directory name.
      */
-    public static function isDotDir($filename) : bool
+    public static function isDotDir(string $filename): bool
     {
         return ($filename == "." || $filename == "..");
     }
@@ -75,7 +74,7 @@ class BagUtils
      * @return string
      *   The (possibly) rebased path.
      */
-    public static function baseInData($path) : string
+    public static function baseInData(string $path): string
     {
         if (substr($path, 0, 5) !== 'data/') {
             $path = "data/" . ltrim($path, "/");
@@ -95,9 +94,9 @@ class BagUtils
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Error in matching pattern.
      */
-    public static function findAllByPattern($pattern) : array
+    public static function findAllByPattern(string $pattern): array
     {
-        $matches=glob($pattern);
+        $matches = glob($pattern);
         if ($matches === false) {
             throw new FilesystemException("Error matching pattern {$pattern}");
         }
@@ -112,7 +111,7 @@ class BagUtils
      * @return string|null
      *   The proper name or null if we don't have it.
      */
-    public static function getValidCharset($charset)
+    public static function getValidCharset(string $charset): ?string
     {
         if (in_array($charset, array_keys(self::CHARACTER_SETS))) {
             return self::CHARACTER_SETS[$charset];
@@ -130,7 +129,7 @@ class BagUtils
      *   Whether to prepend the current working directory if the path is relative.
      * @return string
      */
-    public static function getAbsolute($path, bool $add_absolute = false) : string
+    public static function getAbsolute(string $path, bool $add_absolute = false): string
     {
         // Cleaning path regarding OS
         $path = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $path, 'msr');
@@ -160,7 +159,8 @@ class BagUtils
             // and $startWithLetterDir
             // and (absolutes is empty or all previous values are ..)
             // save absolute cause that's a relative and we can't deal with that and just forget that we want go up
-            if ('..' === $subPath
+            if (
+                '..' === $subPath
                 && !$startWithSeparator
                 && !$startWithLetterDir
                 && empty(array_filter($absolutes, function ($value) {
@@ -191,7 +191,7 @@ class BagUtils
      * @return bool
      *   True if invalid characters/character sequences exist.
      */
-    public static function invalidPathCharacters($path) : bool
+    public static function invalidPathCharacters(string $path): bool
     {
         $path = urldecode($path);
         return ($path[0] === DIRECTORY_SEPARATOR || strpos($path, "~") !== false ||
@@ -208,7 +208,7 @@ class BagUtils
      * @return array
      *   List of files with absolute path.
      */
-    public static function getAllFiles($directory, $exclusions = []) : array
+    public static function getAllFiles(string $directory, array $exclusions = []): array
     {
         $paths = [$directory];
         $found_files = [];
@@ -242,7 +242,7 @@ class BagUtils
      *   If the copy() call fails.
      * @see \copy()
      */
-    public static function checkedCopy($sourceFile, $destFile)
+    public static function checkedCopy(string $sourceFile, string $destFile): void
     {
         if (!@copy($sourceFile, $destFile)) {
             throw new FilesystemException("Unable to copy file ({$sourceFile}) to ({$destFile})");
@@ -262,7 +262,7 @@ class BagUtils
      *   If the mkdir() call fails.
      * @see \mkdir()
      */
-    public static function checkedMkdir($path, $mode = 0777, $recursive = false)
+    public static function checkedMkdir(string $path, int $mode = 0777, bool $recursive = false): void
     {
         if (!@mkdir($path, $mode, $recursive)) {
             throw new FilesystemException("Unable to create directory {$path}");
@@ -284,7 +284,7 @@ class BagUtils
      *   On any error putting the contents to the file.
      * @see \file_put_contents()
      */
-    public static function checkedFilePut($path, $contents, $flags = 0)
+    public static function checkedFilePut(string $path, string $contents, int $flags = 0): int
     {
         $res = @file_put_contents($path, $contents, $flags);
         if ($res === false) {
@@ -302,7 +302,7 @@ class BagUtils
      *   If the call to unlink() fails.
      * @see \unlink()
      */
-    public static function checkedUnlink($path)
+    public static function checkedUnlink(string $path): void
     {
         if (!@unlink($path)) {
             throw new FilesystemException("Unable to delete path {$path}");
@@ -322,7 +322,7 @@ class BagUtils
      *   Issues creating the file.
      * @see \tempnam()
      */
-    public static function checkedTempnam($directory = "", $prefix = "") : string
+    public static function checkedTempnam(string $directory = "", string $prefix = ""): string
     {
         $res = @tempnam($directory, $prefix);
         if ($res === false) {
@@ -342,7 +342,7 @@ class BagUtils
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Problem writing to file.
      */
-    public static function checkedFwrite($fp, $content)
+    public static function checkedFwrite($fp, string $content): void
     {
         try {
             $res = @fwrite($fp, $content);

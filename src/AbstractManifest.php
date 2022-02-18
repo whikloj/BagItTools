@@ -13,7 +13,6 @@ use whikloj\BagItTools\Exceptions\FilesystemException;
  */
 abstract class AbstractManifest
 {
-
     /**
      * The bag this manifest is part of.
      *
@@ -93,7 +92,7 @@ abstract class AbstractManifest
      * @param boolean $load
      *   Whether we are loading an existing file
      */
-    protected function __construct(Bag $bag, $algorithm, $filename, $load = false)
+    protected function __construct(Bag $bag, string $algorithm, string $filename, bool $load = false)
     {
         $this->bag = $bag;
         $this->algorithm = $algorithm;
@@ -110,7 +109,7 @@ abstract class AbstractManifest
      *
      * @return string
      */
-    public function getAlgorithm() : string
+    public function getAlgorithm(): string
     {
         return $this->algorithm;
     }
@@ -120,7 +119,7 @@ abstract class AbstractManifest
      *
      * @return string
      */
-    public function getFilename() : string
+    public function getFilename(): string
     {
         return $this->filename;
     }
@@ -130,7 +129,7 @@ abstract class AbstractManifest
      *
      * @return array
      */
-    public function getErrors() : array
+    public function getErrors(): array
     {
         return $this->manifestErrors;
     }
@@ -140,7 +139,7 @@ abstract class AbstractManifest
      *
      * @return array
      */
-    public function getWarnings() : array
+    public function getWarnings(): array
     {
         return $this->manifestWarnings;
     }
@@ -151,7 +150,7 @@ abstract class AbstractManifest
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Error writing the manifest file to disk.
      */
-    public function update()
+    public function update(): void
     {
         $newHashes = [];
         foreach ($this->hashes as $path => $hash) {
@@ -164,7 +163,7 @@ abstract class AbstractManifest
     /**
      * Compare file hashes against what is on disk.
      */
-    public function validate()
+    public function validate(): void
     {
         $this->manifestWarnings = [] + $this->loadIssues['warning'];
         $this->manifestErrors = [] + $this->loadIssues['error'];
@@ -192,7 +191,7 @@ abstract class AbstractManifest
      * @return array
      *   Array of paths => hashes
      */
-    public function getHashes() : array
+    public function getHashes(): array
     {
         return $this->hashes;
     }
@@ -209,7 +208,7 @@ abstract class AbstractManifest
      * @param string $filepath
      *   The absolute filepath.
      */
-    protected function validatePath($path, $filepath)
+    protected function validatePath(string $path, string $filepath): void
     {
         if (!file_exists($filepath)) {
             $this->addError("{$path} does not exist.");
@@ -224,7 +223,7 @@ abstract class AbstractManifest
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Unable to read manifest file.
      */
-    protected function loadFile()
+    protected function loadFile(): void
     {
         $this->hashes = [];
         $this->resetLoadIssues();
@@ -273,7 +272,7 @@ abstract class AbstractManifest
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   If we can't write the manifest files.
      */
-    protected function writeToDisk()
+    protected function writeToDisk(): void
     {
         $fullPath = $this->bag->makeAbsolute($this->filename);
         if (file_exists($fullPath)) {
@@ -322,7 +321,7 @@ abstract class AbstractManifest
      * @return string
      *   The hash.
      */
-    protected function calculateHash($file) : string
+    protected function calculateHash(string $file): string
     {
         return hash_file($this->getPhpHashName(), $file);
     }
@@ -333,7 +332,7 @@ abstract class AbstractManifest
      * @param string $message
      *   The error text.
      */
-    protected function addError($message)
+    protected function addError(string $message): void
     {
         $this->manifestErrors[] = [
             'file' => $this->filename,
@@ -347,7 +346,7 @@ abstract class AbstractManifest
      * @param string $message
      *   The error text.
      */
-    protected function addWarning($message)
+    protected function addWarning(string $message): void
     {
         $this->manifestWarnings[] = [
             'file' => $this->filename,
@@ -362,7 +361,7 @@ abstract class AbstractManifest
      *
      * @return string the PHP hash name for the internal hash encoding.
      */
-    protected function getPhpHashName() : string
+    protected function getPhpHashName(): string
     {
         return Bag::getHashName($this->algorithm);
     }
@@ -377,7 +376,7 @@ abstract class AbstractManifest
      * @param string $path
      *   The normalized path.
      */
-    private function addToNormalizedList($path)
+    private function addToNormalizedList(string $path): void
     {
         $this->normalizedPaths[] = $path;
     }
@@ -390,7 +389,7 @@ abstract class AbstractManifest
      * @return bool
      *   True if there is a match.
      */
-    private function matchNormalizedList($path) : bool
+    private function matchNormalizedList(string $path): bool
     {
         return (in_array($this->normalizePath($path), $this->normalizedPaths));
     }
@@ -405,7 +404,7 @@ abstract class AbstractManifest
      * @return string
      *   The normalized path.
      */
-    private function normalizePath($path, $toLower = true)
+    private function normalizePath(string $path, bool $toLower = true): string
     {
         $path = urldecode($path);
         if ($toLower) {
@@ -425,7 +424,7 @@ abstract class AbstractManifest
      * @return string
      *   The cleaned up absolute file path, not resolved on disk.
      */
-    private function cleanUpAbsPath($filepath) : string
+    private function cleanUpAbsPath(string $filepath): string
     {
         $filepath = trim($filepath);
         return BagUtils::getAbsolute($filepath);
@@ -439,7 +438,7 @@ abstract class AbstractManifest
      * @return string
      *   The cleaned up relative file path or blank if not in the bag Root.
      */
-    private function cleanUpRelPath($filepath) : string
+    private function cleanUpRelPath(string $filepath): string
     {
         $filepath = $this->bag->makeAbsolute($filepath);
         $filepath = $this->cleanUpAbsPath($filepath);
@@ -453,7 +452,7 @@ abstract class AbstractManifest
      * @param string $message
      *   The error text.
      */
-    private function addLoadError($message)
+    private function addLoadError(string $message): void
     {
         $this->loadIssues['error'][] = [
             'file' => $this->filename,
@@ -467,7 +466,7 @@ abstract class AbstractManifest
      * @param string $message
      *   The error text.
      */
-    private function addLoadWarning($message)
+    private function addLoadWarning(string $message): void
     {
         $this->loadIssues['warning'][] = [
             'file' => $this->filename,
@@ -478,7 +477,7 @@ abstract class AbstractManifest
     /**
      * Utility to reset the load issues construct.
      */
-    private function resetLoadIssues()
+    private function resetLoadIssues(): void
     {
         $this->loadIssues = [
             'error' => [],

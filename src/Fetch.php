@@ -14,7 +14,6 @@ use whikloj\BagItTools\Exceptions\FilesystemException;
  */
 class Fetch
 {
-
     /**
      * The fetch filename.
      */
@@ -99,7 +98,7 @@ class Fetch
      *
      * @return array
      */
-    public function getData() : array
+    public function getData(): array
     {
         return $this->files;
     }
@@ -188,7 +187,7 @@ class Fetch
      * @throws \whikloj\BagItTools\Exceptions\BagItException
      *   Problems downloading the file.
      */
-    public function download($fetchData)
+    public function download(array $fetchData): void
     {
         $this->validateData($fetchData);
         $uri = $fetchData['uri'];
@@ -204,12 +203,12 @@ class Fetch
         if (file_exists($fullDest)) {
             throw new BagItException("File already exists at the destination path {$dest}");
         }
-        $size = isset($fetchData['size']) ? $fetchData['size'] : null;
+        $size = $fetchData['size'] ?? null;
         $ch = $this->createCurl($uri, true, $size);
         $output = curl_exec($ch);
         $error = curl_error($ch);
         curl_close($ch);
-        if (!empty($error)) {
+        if (!empty($error) || $output === false) {
             throw new BagItException("Error with download of {$uri} : {$error}");
         }
         $this->saveFileData($output, $dest);
@@ -228,7 +227,7 @@ class Fetch
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Issues removing the file from the filesystem.
      */
-    public function removeFile($url)
+    public function removeFile(string $url): void
     {
         if ($this->urlExistsInFile($url)) {
             $newFiles = [];
@@ -252,7 +251,7 @@ class Fetch
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   If we can't write to disk.
      */
-    public function update()
+    public function update(): void
     {
         $this->writeToDisk();
     }
@@ -264,7 +263,7 @@ class Fetch
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Problems removing file from filesystem.
      */
-    public function cleanup()
+    public function cleanup(): void
     {
         foreach ($this->files as $file) {
             $fullPath = BagUtils::getAbsolute($this->bag->makeAbsolute($file['destination']));
@@ -282,7 +281,7 @@ class Fetch
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Problems removing file from filesystem.
      */
-    public function clearData()
+    public function clearData(): void
     {
         $this->cleanup();
         $this->files = [];
@@ -297,7 +296,7 @@ class Fetch
      * @return array
      *   Array of errors.
      */
-    public function getErrors() : array
+    public function getErrors(): array
     {
         return $this->fetchErrors;
     }
@@ -310,7 +309,7 @@ class Fetch
      * @return bool
      *   True if the destination is in the fetch.txt
      */
-    public function reservedPath($dest) : bool
+    public function reservedPath(string $dest): bool
     {
         $dest = BagUtils::baseInData($dest);
         return $this->destinationExistsInFile($dest);
@@ -326,7 +325,7 @@ class Fetch
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Unable to read the fetch.txt file.
      */
-    private function loadFiles()
+    private function loadFiles(): void
     {
         $this->resetErrors();
         if (file_exists($this->filename)) {
@@ -373,14 +372,14 @@ class Fetch
     /**
      * Write out data collected via curl to disk.
      *
-     * @param mixed $content
+     * @param string $content
      *   The content from curl.
      * @param string $destination
      *   The relative path to the final file.
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Trouble writing to disk.
      */
-    private function saveFileData($content, $destination)
+    private function saveFileData(string $content, string $destination): void
     {
         if (strlen($content) > 0) {
             $fullDest = $this->bag->makeAbsolute($destination);
@@ -405,8 +404,10 @@ class Fetch
     private function createMultiCurl()
     {
         $mh = curl_multi_init();
-        if (version_compare('7.62.0', $this->curlVersion) > 0 &&
-            version_compare('7.43.0', $this->curlVersion) <= 0) {
+        if (
+            version_compare('7.62.0', $this->curlVersion) > 0 &&
+            version_compare('7.43.0', $this->curlVersion) <= 0
+        ) {
             // Try enabling HTTP/1.1 pipelining and HTTP/2 multiplexing if our version is less than 7.62
             // CURLPIPE_HTTP1 is deprecated in PHP 7.4
             if (version_compare('7.4', PHP_VERSION) > 0) {
@@ -435,7 +436,7 @@ class Fetch
      * @return false|resource
      *   False on error, otherwise the cUl resource.
      */
-    private function createCurl($url, $single = false, $size = null)
+    private function createCurl(string $url, bool $single = false, int $size = null)
     {
         $ch = curl_init($url);
         $options = $this->curlOptions;
@@ -443,7 +444,7 @@ class Fetch
             // If this is set during curl_multi_exec, it swallows error messages.
             $options[CURLOPT_FAILONERROR] = true;
         }
-        if (!is_null($size) && is_int($size)) {
+        if (is_int($size)) {
             $options[CURLOPT_NOPROGRESS] = 0;
             $options[CURLOPT_PROGRESSFUNCTION] = function ($a, $b, $c, $d, $e) use ($size) {
                 // PROGRESSFUNCTION variables are
@@ -470,7 +471,7 @@ class Fetch
      * @return int
      *   1 if current download size is greater than 105% of the expected size.
      */
-    private static function curlXferInfo($expectDl, $currDl)
+    private static function curlXferInfo(int $expectDl, int $currDl): int
     {
         // Allow a 5% variance in size.
         $variance = $expectDl * 1.05;
@@ -483,7 +484,7 @@ class Fetch
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Unable to open a file handle to download to.
      */
-    private function downloadFiles()
+    private function downloadFiles(): void
     {
         if (count($this->downloadQueue) > 0) {
             $mh = $this->createMultiCurl();
@@ -495,7 +496,7 @@ class Fetch
                     // Don't download again.
                     if (!file_exists($fullPath)) {
                         $destinations[$key] = $fullPath;
-                        $size = isset($download['size']) ? $download['size'] : null;
+                        $size = is_int($download['size']) ? $download['size'] : null;
                         $curl_handles[$key] = $this->createCurl($download['uri'], false, $size);
                         curl_multi_add_handle($mh, $curl_handles[$key]);
                     }
@@ -503,7 +504,7 @@ class Fetch
                 $running = null;
                 do {
                     $status = curl_multi_exec($mh, $running);
-                    while (false !== ($info = curl_multi_info_read($mh))) {
+                    while (false !== curl_multi_info_read($mh)) {
                         // Need to read the information or we lose any callback aborted messages.
                     }
                 } while ($running && $status == CURLM_OK);
@@ -533,7 +534,7 @@ class Fetch
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   If we can't write the fetch file.
      */
-    private function writeToDisk()
+    private function writeToDisk(): void
     {
         if (file_exists($this->filename)) {
             BagUtils::checkedUnlink($this->filename);
@@ -561,7 +562,7 @@ class Fetch
      * @return bool
      *   True if we can process it.
      */
-    private function validateUrl($url) : bool
+    private function validateUrl(string $url): bool
     {
         $parts = parse_url($url);
         if (!isset($parts['scheme']) || !isset($parts['host'])) {
@@ -578,7 +579,7 @@ class Fetch
      * @return bool
      *   True if we can process it.
      */
-    private function internalValidateUrl($url) : bool
+    private function internalValidateUrl(string $url): bool
     {
         $parts = parse_url($url);
         if ($parts['scheme'] !== 'http' && $parts['scheme'] !== 'https') {
@@ -595,7 +596,7 @@ class Fetch
      * @return bool
      *   True if a duplicate.
      */
-    private function urlExistsInFile($url) : bool
+    private function urlExistsInFile(string $url): bool
     {
         $uris = array_column($this->files, 'uri');
         array_walk($uris, function (&$item) {
@@ -612,7 +613,7 @@ class Fetch
      * @return bool
      *   True if a duplicate.
      */
-    private function destinationExistsInFile($dest) : bool
+    private function destinationExistsInFile(string $dest): bool
     {
         $paths = array_column($this->files, 'destination');
         array_walk($paths, function (&$item) {
@@ -624,7 +625,7 @@ class Fetch
     /**
      * Set general CURLOPTS based on the Curl version.
      */
-    private function setupCurl()
+    private function setupCurl(): void
     {
         if (!defined('CURLMOPT_MAX_TOTAL_CONNECTIONS')) {
             define('CURLMOPT_MAX_TOTAL_CONNECTIONS', 13);
@@ -632,8 +633,10 @@ class Fetch
         if (!defined('CURL_PIPEWAIT')) {
             define('CURL_PIPEWAIT', 237);
         }
-        if (version_compare('7.0', PHP_VERSION) <= 0 &&
-            version_compare('7.43.0', $this->curlVersion) <= 0) {
+        if (
+            version_compare('7.0', PHP_VERSION) <= 0 &&
+            version_compare('7.43.0', $this->curlVersion) <= 0
+        ) {
             $this->curlOptions[CURL_PIPEWAIT] = true;
         }
     }
@@ -641,7 +644,7 @@ class Fetch
     /**
      * Reset the error and warning logs.
      */
-    private function resetErrors()
+    private function resetErrors(): void
     {
         $this->fetchErrors = [];
     }
@@ -652,7 +655,7 @@ class Fetch
      * @param string $message
      *   The message.
      */
-    private function addError($message)
+    private function addError(string $message): void
     {
         $this->fetchErrors[] = [
             'file' => self::FILENAME,

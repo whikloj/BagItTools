@@ -12,7 +12,6 @@ use whikloj\BagItTools\Exceptions\BagItException;
  */
 class ExtendedBagTest extends BagItTestFramework
 {
-
     /**
      * @group Extended
      * @covers ::validate
@@ -21,7 +20,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::getWarnings
      * @covers \whikloj\BagItTools\AbstractManifest::getWarnings
      */
-    public function testValidateExtendedBag()
+    public function testValidateExtendedBag(): void
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
@@ -38,7 +37,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers \whikloj\BagItTools\AbstractManifest::update
      * @covers \whikloj\BagItTools\AbstractManifest::writeToDisk
      */
-    public function testNoTagManifest()
+    public function testNoTagManifest(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
         $bag = Bag::load($this->tmpdir);
@@ -74,7 +73,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::update
      * @covers \whikloj\BagItTools\AbstractManifest::loadFile
      */
-    public function testLoadExtendedBag()
+    public function testLoadExtendedBag(): void
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
@@ -114,7 +113,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::getBagInfoByTag
      * @covers ::bagInfoTagExists
      */
-    public function testGetBagInfoByKey()
+    public function testGetBagInfoByKey(): void
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
@@ -137,7 +136,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::removeBagInfoTag
      * @covers ::bagInfoTagExists
      */
-    public function testRemoveBagInfoByTag()
+    public function testRemoveBagInfoByTag(): void
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
@@ -158,7 +157,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::removeBagInfoTagIndex
      * @covers ::bagInfoTagExists
      */
-    public function testRemoveBagInfoByTagIndex()
+    public function testRemoveBagInfoByTagIndex(): void
     {
         $original = [
             'Robert Smith',
@@ -196,7 +195,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::updatePayloadManifests
      * @covers ::ensureTagManifests
      */
-    public function testGetHashesCommon()
+    public function testGetHashesCommon(): void
     {
         $bag = Bag::create($this->tmpdir);
         $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
@@ -262,7 +261,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::removeAllTagManifests
      * @covers ::removeTagManifest
      */
-    public function testSetAlgorithm()
+    public function testSetAlgorithm(): void
     {
         $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
@@ -311,7 +310,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::addBagInfoTag
      * @covers ::bagInfoTagExists
      */
-    public function testSetBagInfoElement()
+    public function testSetBagInfoElement(): void
     {
         $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
@@ -344,7 +343,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::addBagInfoTag
      * @covers ::setExtended
      */
-    public function testSetGeneratedField()
+    public function testSetGeneratedField(): void
     {
         $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
@@ -365,7 +364,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::loadBagInfo
      * @covers ::compareVersion
      */
-    public function testInvalidBagInfov1()
+    public function testInvalidBagInfov1(): void
     {
         $bag = Bag::create($this->tmpdir);
         copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
@@ -381,7 +380,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::loadBagInfo
      * @covers ::compareVersion
      */
-    public function testInvalidBagInfov097()
+    public function testInvalidBagInfov097(): void
     {
         $bag = Bag::create($this->tmpdir);
         copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
@@ -402,7 +401,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::getPayloadManifests
      * @covers ::getTagManifests
      */
-    public function testGetManifests()
+    public function testGetManifests(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
         $bag = Bag::load($this->tmpdir);
@@ -420,7 +419,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::getPayloadManifests
      * @covers ::getTagManifests
      */
-    public function testGetManifestsExtended()
+    public function testGetManifestsExtended(): void
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
@@ -440,7 +439,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::getBagInfoByTag
      * @covers ::update
      */
-    public function testOxumCalculationForManyHashAlogrithm()
+    public function testOxumCalculationForManyHashAlogrithm(): void
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
@@ -462,7 +461,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::getBagInfoByTag
      * @covers ::update
      */
-    public function testCalculatedBagSize()
+    public function testCalculatedBagSize(): void
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
@@ -493,7 +492,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @covers ::loadBagInfo
      * @covers ::trimSpacesOnly
      */
-    public function testLongBagInfoLinesWrap()
+    public function testLongBagInfoLinesWrap(): void
     {
         $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
@@ -513,7 +512,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @group Extended
      * @covers ::loadBagInfo
      */
-    public function testLoadWrappedLines()
+    public function testLoadWrappedLines(): void
     {
         $bag = Bag::create($this->tmpdir);
         copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
@@ -527,7 +526,7 @@ class ExtendedBagTest extends BagItTestFramework
             "Why do this?\nBecause we can.", $testbag->getBagInfoByTag('External-Description')[0]);
         $testbag->update();
 
-        // We wrote the bag info again, so now it is stripped of
+        // We wrote the bag info again, so now it is stripped of newlines
         $testbag2 = Bag::load($this->tmpdir);
         $this->assertCount(0, $testbag2->getErrors());
         $this->assertEquals("This is some crazy information about a new way of searching for : the stuff. " .

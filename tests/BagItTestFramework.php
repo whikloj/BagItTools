@@ -5,6 +5,7 @@ namespace whikloj\BagItTools\Test;
 use PHPUnit\Framework\TestCase;
 use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\BagUtils;
+use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
  * Base testing class for BagItTools.
@@ -12,7 +13,6 @@ use whikloj\BagItTools\BagUtils;
  */
 class BagItTestFramework extends TestCase
 {
-
     /**
      * Path to the test resources directory.
      */
@@ -72,7 +72,7 @@ class BagItTestFramework extends TestCase
     /**
      * {@inheritdoc}
      */
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
         $this->tmpdir = $this->getTempName();
@@ -81,7 +81,7 @@ class BagItTestFramework extends TestCase
     /**
      * {@inheritdoc}
      */
-    public function tearDown() : void
+    public function tearDown(): void
     {
         parent::tearDown();
         if (isset($this->tmpdir) && file_exists($this->tmpdir)) {
@@ -92,10 +92,12 @@ class BagItTestFramework extends TestCase
     /**
      * Get a temporary filename.
      *
-     * @return bool|string
+     * @return string
      *   The filename.
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   Unable to generate a new temporary directory.
      */
-    protected function getTempName()
+    protected function getTempName(): string
     {
         $tempname = tempnam("", "bagit_");
         if ($tempname !== false) {
@@ -103,6 +105,7 @@ class BagItTestFramework extends TestCase
                 return $tempname;
             }
         }
+        throw new FilesystemException("Unable to create temporary directory");
     }
 
     /**
@@ -111,7 +114,7 @@ class BagItTestFramework extends TestCase
      * @param string $path
      *   The directory to delete.
      */
-    protected static function deleteDirAndContents($path)
+    protected static function deleteDirAndContents(string $path): void
     {
         if (is_dir($path)) {
             $files = scandir($path);
@@ -135,7 +138,7 @@ class BagItTestFramework extends TestCase
      *
      * @return string The temporary directory with the copy of the test bag.
      */
-    protected function prepareBasicTestBag() : string
+    protected function prepareBasicTestBag(): string
     {
         return $this->copyTestBag(self::TEST_BAG_DIR);
     }
@@ -146,7 +149,7 @@ class BagItTestFramework extends TestCase
      * @return string
      *   The temporary directory with the test bag.
      */
-    protected function prepareExtendedTestBag() : string
+    protected function prepareExtendedTestBag(): string
     {
         return $this->copyTestBag(self::TEST_EXTENDED_BAG_DIR);
     }
@@ -154,12 +157,12 @@ class BagItTestFramework extends TestCase
     /**
      * Does recursive copying of a test bag.
      *
-     * @param $testDir
+     * @param string $testDir
      *   The source directory.
      * @return string
      *   The path to the copy of the bag.
      */
-    protected function copyTestBag($testDir) : string
+    protected function copyTestBag(string $testDir): string
     {
         $tmp = $this->getTempName();
         mkdir($tmp);
@@ -173,7 +176,7 @@ class BagItTestFramework extends TestCase
      * @param array $expected The expected array.
      * @param array $testing The array to test.
      */
-    protected function assertArrayEquals(array $expected, array $testing)
+    protected function assertArrayEquals(array $expected, array $testing): void
     {
         // They have the same number of elements
         $this->assertCount(count($expected), $testing);
@@ -189,19 +192,19 @@ class BagItTestFramework extends TestCase
      * @param string $src The original directory.
      * @param string $dest The destination directory.
      */
-    private static function copyDir($src, $dest)
+    private static function copyDir(string $src, string $dest): void
     {
         foreach (scandir($src) as $item) {
             if (BagUtils::isDotDir($item)) {
                 continue;
             }
-            if (is_dir("{$src}/{$item}")) {
-                if (!is_dir("{$dest}/{$item}")) {
-                    mkdir("{$dest}/{$item}");
+            if (is_dir("$src/$item")) {
+                if (!is_dir("$dest/$item")) {
+                    mkdir("$dest/$item");
                 }
-                self::copyDir("{$src}/{$item}", "{$dest}/{$item}");
+                self::copyDir("$src/$item", "$dest/$item");
             } else {
-                copy("{$src}/{$item}", "{$dest}/{$item}");
+                copy("$src/$item", "$dest/$item");
             }
         }
     }
@@ -219,7 +222,7 @@ class BagItTestFramework extends TestCase
      *
      * @throws \ReflectionException
      */
-    protected static function getReflectionMethod($class, $method) : \ReflectionMethod
+    protected static function getReflectionMethod(string $class, string $method): \ReflectionMethod
     {
         $class = new \ReflectionClass($class);
         $methodCall = $class->getMethod($method);
@@ -234,9 +237,9 @@ class BagItTestFramework extends TestCase
      * @param string $version_string
      *   The BagIt version.
      */
-    protected function assertBagItFileVersion(Bag $bag, $version_string)
+    protected function assertBagItFileVersion(Bag $bag, string $version_string): void
     {
-        $this->assertBagItVersionEncoding($bag, $version_string, null);
+        $this->assertBagItVersionEncoding($bag, $version_string);
     }
 
     /**
@@ -246,7 +249,7 @@ class BagItTestFramework extends TestCase
      * @param string $encoding
      *   The file encoding.
      */
-    protected function assertBagItFileEncoding(Bag $bag, $encoding)
+    protected function assertBagItFileEncoding(Bag $bag, string $encoding): void
     {
         $this->assertBagItVersionEncoding($bag, null, $encoding);
     }
@@ -260,14 +263,17 @@ class BagItTestFramework extends TestCase
      * @param string|null $encoding
      *   The encoding string or null to use the default.
      */
-    protected function assertBagItVersionEncoding(Bag $bag, $version_string = null, $encoding = null)
-    {
+    protected function assertBagItVersionEncoding(
+        Bag $bag,
+        string $version_string = null,
+        string $encoding = null
+    ): void {
         $default_version = "1.0";
         $default_encoding = "UTF-8";
-        $template = "BagIt-Version: %s". PHP_EOL . "Tag-File-Character-Encoding: %s" . PHP_EOL;
+        $template = "BagIt-Version: %s" . PHP_EOL . "Tag-File-Character-Encoding: %s" . PHP_EOL;
 
-        $use_version = is_null($version_string) ? $default_version : $version_string;
-        $use_encoding = is_null($encoding) ? $default_encoding : $encoding;
+        $use_version = $version_string ?? $default_version;
+        $use_encoding = $encoding ?? $default_encoding;
 
         $expected = sprintf($template, $use_version, $use_encoding);
 
@@ -285,7 +291,7 @@ class BagItTestFramework extends TestCase
      * @param string $original
      *   The wrapped output message to test.
      */
-    protected function assertStringContainsStringWithoutNewlines($expected, $original)
+    protected function assertStringContainsStringWithoutNewlines(string $expected, string $original): void
     {
         $split_original = explode("\n", $original);
         array_walk($split_original, function (&$o) {

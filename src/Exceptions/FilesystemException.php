@@ -11,5 +11,4 @@ namespace whikloj\BagItTools\Exceptions;
  */
 class FilesystemException extends BagItException
 {
-
 }

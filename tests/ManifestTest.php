@@ -11,7 +11,6 @@ use whikloj\BagItTools\Bag;
  */
 class ManifestTest extends BagItTestFramework
 {
-
   /**
    * Test creation of default payload manifest with construction.
    * @group Manifest
@@ -20,7 +19,7 @@ class ManifestTest extends BagItTestFramework
    * @covers ::getFilename
    * @covers ::getAlgorithm
    */
-    public function testCreateManifest()
+    public function testCreateManifest(): void
     {
         $bag = Bag::create($this->tmpdir);
         $manifests = $bag->getPayloadManifests();
@@ -40,7 +39,7 @@ class ManifestTest extends BagItTestFramework
      * @covers \whikloj\BagItTools\TagManifest::update
      * @covers \whikloj\BagItTools\PayloadManifest::update
      */
-    public function testCheckManifests()
+    public function testCheckManifests(): void
     {
         $bag = Bag::create($this->tmpdir);
         $test_files = [
@@ -95,7 +94,7 @@ class ManifestTest extends BagItTestFramework
      * @covers \whikloj\BagItTools\TagManifest::validate
      * @covers \whikloj\BagItTools\PayloadManifest::validate
      */
-    public function testValidateManifests()
+    public function testValidateManifests(): void
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
@@ -112,7 +111,7 @@ class ManifestTest extends BagItTestFramework
      * @covers ::addLoadWarning
      * @covers ::normalizePath
      */
-    public function testRelativeManifestPaths()
+    public function testRelativeManifestPaths(): void
     {
         $this->prepareManifest('manifest-with-relative-paths-sha256.txt');
         $bag = Bag::load($this->tmpdir);
@@ -128,7 +127,7 @@ class ManifestTest extends BagItTestFramework
      * @covers ::addLoadError
      * @covers ::normalizePath
      */
-    public function testDuplicateManifestPaths()
+    public function testDuplicateManifestPaths(): void
     {
         $this->prepareManifest('manifest-with-duplicate-lines-sha256.txt');
         $bag = Bag::load($this->tmpdir);
@@ -144,7 +143,7 @@ class ManifestTest extends BagItTestFramework
      * @covers ::addLoadWarning
      * @covers ::normalizePath
      */
-    public function testDuplicateCaseInsensitiveManifestPaths()
+    public function testDuplicateCaseInsensitiveManifestPaths(): void
     {
         $this->prepareManifest('manifest-with-case-insensitive-duplicates-sha256.txt');
         $bag = Bag::load($this->tmpdir);
@@ -253,7 +252,7 @@ class ManifestTest extends BagItTestFramework
      * @param string $manifest_filename
      *   File name from tests/resources/manifests to put in bag.
      */
-    private function prepareManifest($manifest_filename)
+    private function prepareManifest(string $manifest_filename): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
         file_put_contents(
@@ -273,7 +272,7 @@ class ManifestTest extends BagItTestFramework
      * @return string
      *   The line from the file decoded to UTF-8.
      */
-    private static function getLine($fp, $file_encoding)
+    private static function getLine($fp, string $file_encoding): string
     {
         $line = fgets($fp);
         $line = mb_convert_encoding($line, 'UTF-8', $file_encoding);
