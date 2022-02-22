@@ -713,4 +713,34 @@ class FetchTest extends BagItTestFramework
         $manifest = $bag->getPayloadManifests()['sha512'];
         $this->assertArrayEquals($expected_in_memory, array_keys($manifest->getHashes()));
     }
+
+    public function testReadCRLineEndings(): void
+    {
+        $fetch = $this->setupBag('fetch-CR.txt');
+        $this->assertCount(0, $fetch->getErrors());
+        $cr_data = $fetch->getData();
+        $this->assertCount(2, $cr_data);
+        $this->assertTrue(in_array('http://example.org/some/file/1', array_column($cr_data, 'uri')));
+        $this->assertTrue(in_array('http://example.org/some/file/2', array_column($cr_data, 'uri')));
+    }
+
+    public function testReadLFLineEndings(): void
+    {
+        $fetch = $this->setupBag('fetch-LF.txt');
+        $this->assertCount(0, $fetch->getErrors());
+        $cr_data = $fetch->getData();
+        $this->assertCount(2, $cr_data);
+        $this->assertTrue(in_array('http://example.org/some/file/1', array_column($cr_data, 'uri')));
+        $this->assertTrue(in_array('http://example.org/some/file/2', array_column($cr_data, 'uri')));
+    }
+
+    public function testReadCRLFLineEndings(): void
+    {
+        $fetch = $this->setupBag('fetch-CRLF.txt');
+        $this->assertCount(0, $fetch->getErrors());
+        $cr_data = $fetch->getData();
+        $this->assertCount(2, $cr_data);
+        $this->assertTrue(in_array('http://example.org/some/file/1', array_column($cr_data, 'uri')));
+        $this->assertTrue(in_array('http://example.org/some/file/2', array_column($cr_data, 'uri')));
+    }
 }

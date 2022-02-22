@@ -225,6 +225,30 @@ class ManifestTest extends BagItTestFramework
     }
 
     /**
+     * Ensure we properly load manifests with CR line endings only.
+     */
+    public function testLoadBagWithCRLineEndings(): void
+    {
+        $this->prepareManifest("TestBag-manifest-CR-sha256.txt");
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->validate());
+        $payload = $bag->getPayloadManifests()['sha256'];
+        $this->assertCount(3, $payload->getHashes());
+    }
+
+    /**
+     * Ensure we properly load manifests with CRLF line endings only.
+     */
+    public function testLoadBagWithCRLFLineEndings(): void
+    {
+        $this->prepareManifest("TestBag-manifest-CRLF-sha256.txt");
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->validate());
+        $payload = $bag->getPayloadManifests()['sha256'];
+        $this->assertCount(3, $payload->getHashes());
+    }
+
+    /**
      * Utility to set a bag with a specific manifest file.
      * @param string $manifest_filename
      *   File name from tests/resources/manifests to put in bag.

@@ -330,14 +330,14 @@ class Fetch
     {
         $this->resetErrors();
         if (file_exists($this->filename)) {
-            $fp = fopen($this->filename, "rb");
-            if ($fp === false) {
+            $file_contents = file_get_contents($this->filename);
+            if ($file_contents === false) {
                 throw new FilesystemException("Unable to read file {$this->filename}");
             }
             $lineCount = 0;
-            while (!feof($fp)) {
+            $lines = BagUtils::splitFileDataOnLineEndings($file_contents);
+            foreach ($lines as $line) {
                 $lineCount += 1;
-                $line = fgets($fp);
                 $line = $this->bag->decodeText($line);
                 $line = trim($line);
                 if (empty($line)) {
@@ -364,7 +364,7 @@ class Fetch
                         'destination' => $destination,
                     ];
                 } else {
-                    $this->addError("Line $lineCount : This line is not valid.");
+                    $this->addError("Line $lineCount: This line is not valid.");
                 }
             }
         }

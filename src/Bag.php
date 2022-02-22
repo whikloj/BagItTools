@@ -1214,19 +1214,19 @@ class Bag
         $info_file = 'bag-info.txt';
         $fullPath = $this->makeAbsolute($info_file);
         if (file_exists($fullPath)) {
-            $fp = fopen($fullPath, 'rb');
-            if ($fp === false) {
+            $file_contents = file_get_contents($fullPath);
+            if ($file_contents === false) {
                 throw new FilesystemException("Unable to access {$info_file}");
             }
             $bagData = [];
             $lineCount = 0;
-            while (!feof($fp)) {
-                $line = fgets($fp);
+            $lines = BagUtils::splitFileDataOnLineEndings($file_contents);
+            foreach ($lines as $line) {
                 $lineCount += 1;
                 if (trim($line) == "") {
                     continue;
                 }
-                $line = $this->decodeText($line);
+                $line = $this->decodeText($line) . PHP_EOL;
                 if (!empty($line)) {
                     $lineLength = strlen($line);
                     if (substr($line, 0, 2) == "  " || $line[0] == "\t") {
@@ -1243,7 +1243,7 @@ class Bag
                             }
                             $bagData[count($bagData)-1]['value'] = $previousValue;
                         }
-                    } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:(.*)([\r\n]+)~", $line, $matches)) {
+                    } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:(.*)~", $line, $matches)) {
                         // First line
                         $current_tag = $matches[2];
                         if ($this->mustNotRepeatBagInfoExists($current_tag)) {
@@ -1268,19 +1268,18 @@ class Bag
                             $value = $matches[4];
                         } else {
                             // Shorter line, save the newline.
-                            $value = $matches[4] . $matches[5];
+                            $value = $matches[4] . PHP_EOL;
                         }
                         $bagData[] = [
                             'tag' => $current_tag,
                             // Newline is removed by preg_match, re-add it here.
                             'value' => Bag::trimSpacesOnly($value),
                         ];
-                    } elseif (!empty($line)) {
+                    } else {
                         $this->addBagError($info_file, "Invalid tag.");
                     }
                 }
             }
-            fclose($fp);
             // We left newlines on the end of each tag value, those can be stripped.
             array_walk($bagData, function (&$item) {
                     $item['value'] = rtrim($item['value']);
@@ -1765,7 +1764,7 @@ class Bag
             if ($contents === false) {
                 throw new FilesystemException("Unable to read {$fullPath}");
             }
-            $lines = explode(PHP_EOL, $contents);
+            $lines = BagUtils::splitFileDataOnLineEndings($contents);
             // remove blank lines.
             $lines = array_filter($lines);
             array_walk(
