@@ -218,10 +218,10 @@ class ManifestTest extends BagItTestFramework
         $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestBadFilePathsBag");
         $bag = Bag::load($this->tmpdir);
         $this->assertFalse($bag->validate());
-        // 3 errors for bad payload lines, 2 for missing files and 1 for files in the bag not in the payload manifest.
-        $this->assertCount(6, $bag->getErrors());
+        // 1 errors for bad payload lines, 1 for missing files and 1 for files in the bag not in the payload manifest.
+        $this->assertCount(3, $bag->getErrors());
         $payload = $bag->getPayloadManifests()['sha256'];
-        $this->assertCount(4, $payload->getHashes());
+        $this->assertCount(2, $payload->getHashes());
     }
 
     /**

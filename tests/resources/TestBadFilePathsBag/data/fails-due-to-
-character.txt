@@ -1,1 +1,0 @@
-This will fail because the LF character is not urlencoded in the payload manifest.

@@ -412,7 +412,6 @@ class BagUtils
      */
     public static function checkUnencodedFilepath(string $filepath): bool
     {
-        return (strpos($filepath, "\n") > -1 || strpos($filepath, "\r") > -1 ||
-            preg_match_all("/%(?!(25|0A|0D))/", $filepath));
+        return preg_match_all("/%(?!(25|0A|0D))/", $filepath);
     }
 }

@@ -150,7 +150,7 @@ class FetchTest extends BagItTestFramework
     public function testDestinationOtherEncodedCharacters()
     {
         $fetch = $this->setupBag('bad-encoding.txt');
-        $this->assertCount(3, $fetch->getErrors());
+        $this->assertCount(1, $fetch->getErrors());
         $this->expectException(BagItException::class);
         $fetch->downloadAll();
     }
