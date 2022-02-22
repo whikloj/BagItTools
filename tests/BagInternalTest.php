@@ -267,4 +267,35 @@ class BagInternalTest extends BagItTestFramework
             ['BOO', 'name', $test_array]
         ));
     }
+
+    /**
+     * @covers \whikloj\BagItTools\AbstractManifest::checkIncomingFilePath
+     */
+    public function testCheckFilePathEncoding(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $payload = $bag->getPayloadManifests()['sha512'];
+        $class = new \ReflectionClass('whikloj\BagItTools\PayloadManifest');
+        $methodCall = $class->getMethod('checkIncomingFilePath');
+        $methodCall->setAccessible(true);
+        $loadIssues = $class->getProperty('loadIssues');
+        $loadIssues->setAccessible(true);
+        // Initially no errors
+        $this->assertCount(0, $loadIssues->getValue($payload)['error']);
+        // unencoded % symbol
+        $methodCall->invokeArgs($payload, ["fail-for-%-filename.txt", 1]);
+        $this->assertCount(1, $loadIssues->getValue($payload)['error']);
+        // Urlencoded character that is not %25, %0A or %0D
+        $methodCall->invokeArgs($payload, ["fail-for-%2F-filename.txt", 1]);
+        $this->assertCount(2, $loadIssues->getValue($payload)['error']);
+        // No issue with encoded %
+        $methodCall->invokeArgs($payload, ["succeed-for-%25-filename.txt", 1]);
+        $this->assertCount(2, $loadIssues->getValue($payload)['error']);
+        // No issue for encoded line feed
+        $methodCall->invokeArgs($payload, ["succeed-for-%0A-filename.txt", 1]);
+        $this->assertCount(2, $loadIssues->getValue($payload)['error']);
+        // No issue for encoded carriage return
+        $methodCall->invokeArgs($payload, ["succeed-for-%0D-filename.txt", 1]);
+        $this->assertCount(2, $loadIssues->getValue($payload)['error']);
+    }
 }

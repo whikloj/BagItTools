@@ -1,0 +1,2 @@
+f65e9130dcfa5ae0db20557cf8e396242cca6a6c505c443587564f3b2b4ffc58  data/file-with-%-and-%25-fails.txt
+fffe60312df6e39971a95593557fcb17da5b9ebc2538634df37934a98c9a657e  data/this-file-will-be-fine-%25-and-%0A.txt

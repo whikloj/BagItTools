@@ -866,18 +866,10 @@ class Bag
      */
     public function addFetchFile($url, $destination, $size = null)
     {
-        $fetchData = [
-            'uri' => $url,
-            'destination' => $destination,
-        ];
-        if (!is_null($size) && is_int($size)) {
-            $fetchData['size'] = $size;
-        }
         if (!isset($this->fetchFile)) {
             $this->fetchFile = new Fetch($this, false);
         }
-        // Download the file now to help with manifest handling, deleted when you package() or finalize().
-        $this->fetchFile->download($fetchData);
+        $this->fetchFile->addFile($url, $destination, $size);
         $this->changed = true;
     }
 

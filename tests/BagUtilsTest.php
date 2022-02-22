@@ -110,7 +110,7 @@ class BagUtilsTest extends BagItTestFramework
         $this->assertCount(2, $files);
 
         $files = BagUtils::getAllFiles(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'fetchFiles');
-        $this->assertCount(4, $files);
+        $this->assertCount(5, $files);
 
         $files = BagUtils::getAllFiles(self::TEST_EXTENDED_BAG_DIR);
         $this->assertCount(7, $files);
@@ -210,5 +210,20 @@ class BagUtilsTest extends BagItTestFramework
 
         // Write to the file.
         BagUtils::checkedFwrite($fp, "Some example text");
+    }
+
+    /**
+     * @covers ::checkUnencodedFilepath
+     */
+    public function testCheckUnencodedFilepath(): void
+    {
+        $this->assertTrue(BagUtils::checkUnencodedFilepath("some/path/with%2ffake/slashes"));
+        $this->assertTrue(BagUtils::checkUnencodedFilepath("some/path/with%2Ffake/slashes"));
+        $this->assertFalse(BagUtils::checkUnencodedFilepath("some/path/with%252ffake/slashes"));
+        $this->assertFalse(BagUtils::checkUnencodedFilepath("some/path/with%252Ffake/slashes"));
+        $this->assertFalse(BagUtils::checkUnencodedFilepath("some/path/with%0Aencoded/newlines"));
+        $this->assertFalse(BagUtils::checkUnencodedFilepath("some/path/with%0Dencoded/carriage/returns"));
+        $this->assertTrue(BagUtils::checkUnencodedFilepath("some/path/with%22encoded/quotes"));
+        $this->assertFalse(BagUtils::checkUnencodedFilepath("some/path/with/nothing"));
     }
 }

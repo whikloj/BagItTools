@@ -2,7 +2,6 @@
 
 namespace whikloj\BagItTools;
 
-use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
@@ -247,9 +246,7 @@ abstract class AbstractManifest
                 if (preg_match("~^(\w+)\s+\*?(.*)$~", $line, $matches)) {
                     $hash = $matches[1];
                     $originalPath = $matches[2];
-                    if (substr($originalPath, 0, 2) == "./") {
-                        $this->addLoadWarning("Line {$lineCount} : Paths SHOULD not be relative");
-                    }
+                    $this->checkIncomingFilePath($originalPath, $lineCount);
                     $path = $this->cleanUpRelPath($originalPath);
                     // Normalized path in lowercase (for matching)
                     $lowerNormalized = $this->normalizePath($path);
@@ -263,6 +260,8 @@ abstract class AbstractManifest
                         $this->hashes[$path] = $hash;
                         $this->addToNormalizedList($lowerNormalized);
                     }
+                } else {
+                    $this->addLoadError("Line $lineCount : Line is not of the form 'checksum path'");
                 }
             }
             fclose($fp);
@@ -286,11 +285,33 @@ abstract class AbstractManifest
             throw new FilesystemException("Unable to write {$fullPath}");
         }
         foreach ($this->hashes as $path => $hash) {
+            $path = BagUtils::encodeFilepath($path);
             $line = "{$hash} {$path}" . PHP_EOL;
             $line = $this->bag->encodeText($line);
             BagUtils::checkedFwrite($fp, $line);
         }
         fclose($fp);
+    }
+
+    /**
+     * Does validation on incoming file paths.
+     *
+     * @param string $filepath
+     *   The file path to be checked.
+     * @param int $lineCount
+     *   The line of the manifest we are currently checking.
+     */
+    private function checkIncomingFilePath(string $filepath, int $lineCount): void
+    {
+        if (substr($filepath, 0, 2) == "./") {
+            $this->addLoadWarning("Line $lineCount : Paths SHOULD not be relative");
+        }
+        if (BagUtils::checkUnencodedFilepath($filepath)) {
+            $this->addLoadError(
+                "Line $lineCount: File paths containing Line Feed (LF), Carriage Return (CR) or a percent sign (%) " .
+                "MUST be encoded, and only those characters can be encoded."
+            );
+        }
     }
 
     /**
@@ -423,6 +444,7 @@ abstract class AbstractManifest
     {
         $filepath = $this->bag->makeAbsolute($filepath);
         $filepath = $this->cleanUpAbsPath($filepath);
+        $filepath = BagUtils::decodeFilepath($filepath);
         return $this->bag->makeRelative($filepath);
     }
 

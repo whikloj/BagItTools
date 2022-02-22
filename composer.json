@@ -46,5 +46,10 @@
       "@check",
       "phpdbg -qrr ./vendor/bin/phpunit"
     ]
+  },
+  "config": {
+    "allow-plugins": {
+      "symfony/flex": false
+    }
   }
 }

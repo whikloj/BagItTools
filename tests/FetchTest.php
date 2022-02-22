@@ -120,8 +120,7 @@ class FetchTest extends BagItTestFramework
             self::FETCH_FILES . DIRECTORY_SEPARATOR . $fetchFile,
             $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'fetch.txt'
         );
-        $fetch = new Fetch($bag, true);
-        return $fetch;
+        return new Fetch($bag, true);
     }
 
     /**
@@ -142,21 +141,28 @@ class FetchTest extends BagItTestFramework
     }
 
     /**
-     * Test destinations that have percent encoded characters other than
+     * Test destinations that have incorrect character encoded lines.
      * @group Fetch
      * @covers ::__construct
      * @covers ::loadFiles
      * @covers ::downloadAll
-     * @covers ::downloadFiles
-     * @covers ::validateData
-     * @covers ::validatePath
      */
     public function testDestinationOtherEncodedCharacters()
     {
-        $fetch = $this->setupBag('other-encoded-characters.txt');
-        $this->assertCount(0, $fetch->getErrors());
-        $fetch->downloadAll();
+        $fetch = $this->setupBag('bad-encoding.txt');
         $this->assertCount(1, $fetch->getErrors());
+        $this->expectException(BagItException::class);
+        $fetch->downloadAll();
+    }
+
+    /**
+     * @group Fetch
+     * @covers ::loadFiles
+     */
+    public function testFetchFileCorrectlyEncodedCharacters(): void
+    {
+        $fetch = $this->setupBag('good-encoded-file-paths.txt');
+        $this->assertCount(0, $fetch->getErrors());
     }
 
     /**
@@ -664,5 +670,47 @@ class FetchTest extends BagItTestFramework
             'message' => "Failed to fetch URL (" . self::$remote_urls[4] . ") : Callback aborted",
         ];
         $this->assertEquals($expected, $bag->getErrors()[0]);
+    }
+
+    /**
+     * Ensure fetch files are written to disk encoded, but kept in memory as un-encoded.
+     * @group Fetch
+     * @covers ::writeToDisk
+     * @covers \whikloj\BagItTools\BagUtils::encodeFilepath
+     */
+    public function testCreateFetchWithEncodedCharacters(): void
+    {
+        $expected_on_disk = [
+            "data/file-with%0Anewline.txt",
+            "data/directory%0Dcarriage%0Dreturn/empty.txt",
+            "data/image-with-%25-character.jpg",
+            "data/already-encoded-%2525-double-it.txt",
+            "data/directory%0Dcarriage%0Dreturn/directory%0Aline%0Abreak/image-with-%2525.jpg",
+        ];
+        $expected_in_memory = [
+            "data/file-with\nnewline.txt",
+            "data/directory\rcarriage\rreturn/empty.txt",
+            "data/image-with-%-character.jpg",
+            "data/already-encoded-%25-double-it.txt",
+            "data/directory\rcarriage\rreturn/directory\nline\nbreak/image-with-%25.jpg",
+        ];
+        // Create a bag with fetch file destinations that are weird.
+        $bag = Bag::create($this->tmpdir);
+        $bag->setExtended(true);
+        for ($foo=0; $foo < count($expected_in_memory); $foo += 1) {
+            $bag->addFetchFile(self::$remote_urls[$foo], $expected_in_memory[$foo]);
+        }
+        $bag->update();
+        // Read the fetch.txt file from disk.
+        $fetch = explode("\n", file_get_contents($bag->getBagRoot() . DIRECTORY_SEPARATOR . "fetch.txt"));
+        $fetch = array_filter($fetch);
+        array_walk($fetch, function (&$o) {
+            $o = trim(explode(" ", $o)[2]);
+        });
+        // Verify the on disk fetch.txt file paths are as expected.
+        $this->assertArrayEquals($expected_on_disk, $fetch);
+        // Verify that the filepaths in memory remain decoded.
+        $manifest = $bag->getPayloadManifests()['sha512'];
+        $this->assertArrayEquals($expected_in_memory, array_keys($manifest->getHashes()));
     }
 }

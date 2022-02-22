@@ -10,16 +10,21 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.host-os }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ["7.3", "7.4"]
+        php-versions: ["7.4", "8.0"]
         experimental: [false]
+        host-os: ["ubuntu-latest"]
         include:
-          - php-versions: "8.0"
+          - php-versions: "7.3"
+            experimental: false
+            host-os: "ubuntu-18.04"
+          - php-versions: "8.1"
             experimental: true
+            host-os: "ubuntu-latest"
 
     name: PHP ${{ matrix.php-versions }}
     steps:
@@ -30,7 +35,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
-          tools: phpunit
+          coverage: none
 
       - name: Get composer cache directory
         id: composercache
