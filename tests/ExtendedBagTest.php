@@ -533,4 +533,89 @@ class ExtendedBagTest extends BagItTestFramework
         $this->assertEquals("This is some crazy information about a new way of searching for : the stuff. " .
             "Why do this? Because we can.", $testbag2->getBagInfoByTag('External-Description')[0]);
     }
+
+    /**
+     * Repeat the reading of a bag but with CR instead of LF endings.
+     *
+     * @covers \whikloj\BagItTools\AbstractManifest::loadFile
+     *
+     * @see \whikloj\BagItTools\Test\ExtendedBagTest::testLoadExtendedBag()
+     */
+    public function testLoadExtendedCRLineEndings(): void
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        $this->switchLineEndingsTo("\r");
+
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->isExtended());
+        $payloads = $bag->getPayloadManifests();
+        $tags = $bag->getTagManifests();
+        $this->assertCount(1, $payloads);
+        $this->assertCount(1, $tags);
+        $this->assertArrayHasKey('sha1', $payloads);
+        $this->assertArrayHasKey('sha1', $tags);
+        $this->assertCount(2, $payloads['sha1']->getHashes());
+        $this->assertCount(4, $tags['sha1']->getHashes());
+        $this->assertArrayHasKey('bagit.txt', $tags['sha1']->getHashes());
+        $this->assertArrayHasKey('bag-info.txt', $tags['sha1']->getHashes());
+        $this->assertArrayHasKey('manifest-sha1.txt', $tags['sha1']->getHashes());
+        $this->assertArrayHasKey('alt_tags/random_tags.txt', $tags['sha1']->getHashes());
+        $this->assertTrue($bag->hasBagInfoTag('contact-phone'));
+        $this->assertFalse($bag->hasBagInfoTag('payload-oxum'));
+        $this->assertFalse($bag->hasBagInfoTag('bag-size'));
+    }
+
+    /**
+     * Repeat the reading of a bag but with CRLF instead of just LF endings.
+     *
+     * @covers \whikloj\BagItTools\AbstractManifest::loadFile
+     *
+     * @see \whikloj\BagItTools\Test\ExtendedBagTest::testLoadExtendedBag()
+     */
+    public function testLoadExtendedCRLFLineEndings(): void
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        $this->switchLineEndingsTo("\r\n");
+
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->isExtended());
+        $payloads = $bag->getPayloadManifests();
+        $tags = $bag->getTagManifests();
+        $this->assertCount(1, $payloads);
+        $this->assertCount(1, $tags);
+        $this->assertArrayHasKey('sha1', $payloads);
+        $this->assertArrayHasKey('sha1', $tags);
+        $this->assertCount(2, $payloads['sha1']->getHashes());
+        $this->assertCount(4, $tags['sha1']->getHashes());
+        $this->assertArrayHasKey('bagit.txt', $tags['sha1']->getHashes());
+        $this->assertArrayHasKey('bag-info.txt', $tags['sha1']->getHashes());
+        $this->assertArrayHasKey('manifest-sha1.txt', $tags['sha1']->getHashes());
+        $this->assertArrayHasKey('alt_tags/random_tags.txt', $tags['sha1']->getHashes());
+        $this->assertTrue($bag->hasBagInfoTag('contact-phone'));
+        $this->assertFalse($bag->hasBagInfoTag('payload-oxum'));
+        $this->assertFalse($bag->hasBagInfoTag('bag-size'));
+    }
+
+    /**
+     * Switch the line endings of the test extended bag from \r to
+     *
+     * @param string $newEnding
+     *   What to switch the line endings to.
+     */
+    private function switchLineEndingsTo(string $newEnding): void
+    {
+        $files = [
+            "bagit.txt",
+            "bag-info.txt",
+            "manifest-sha1.txt",
+            "tagmanifest-sha1.txt",
+        ];
+        foreach ($files as $file) {
+            $path = $this->tmpdir . DIRECTORY_SEPARATOR . $file;
+            file_put_contents(
+                $path,
+                str_replace("\n", $newEnding, file_get_contents($path))
+            );
+        }
+    }
 }

@@ -414,4 +414,17 @@ class BagUtils
     {
         return preg_match_all("/%(?!(25|0A|0D))/", $filepath);
     }
+
+    /**
+     * Split the file data on any of the allowed line endings.
+     *
+     * @param string $data
+     *   The file data as a single string.
+     * @return array
+     *   Array split on \r\n, \r, and \n
+     */
+    public static function splitFileDataOnLineEndings(string $data): array
+    {
+        return preg_split("/(\r\n|\r|\n)/", $data);
+    }
 }

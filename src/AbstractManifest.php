@@ -230,14 +230,14 @@ abstract class AbstractManifest
         $this->resetLoadIssues();
         $fullPath = $this->bag->makeAbsolute($this->filename);
         if (file_exists($fullPath)) {
-            $fp = fopen($fullPath, "rb");
-            if ($fp === false) {
+            $file_contents = file_get_contents($fullPath);
+            if ($file_contents === false) {
                 throw new FilesystemException("Unable to read file {$fullPath}");
             }
             $lineCount = 0;
-            while (!feof($fp)) {
+            $lines = BagUtils::splitFileDataOnLineEndings($file_contents);
+            foreach ($lines as $line) {
                 $lineCount += 1;
-                $line = fgets($fp);
                 $line = $this->bag->decodeText($line);
                 $line = trim($line);
                 if (empty($line)) {
@@ -264,7 +264,6 @@ abstract class AbstractManifest
                     $this->addLoadError("Line $lineCount : Line is not of the form 'checksum path'");
                 }
             }
-            fclose($fp);
         }
     }
 
