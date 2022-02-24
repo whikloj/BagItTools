@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace whikloj\BagItTools\Commands;
 
 use Symfony\Component\Console\Command\Command;

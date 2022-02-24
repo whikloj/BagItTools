@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace whikloj\BagItTools;
 
 use TypeError;
@@ -413,7 +415,7 @@ class BagUtils
      */
     public static function checkUnencodedFilepath(string $filepath): bool
     {
-        return preg_match_all("/%(?!(25|0A|0D))/", $filepath);
+        return (bool) preg_match_all("/%(?!(25|0A|0D))/", $filepath);
     }
 
     /**

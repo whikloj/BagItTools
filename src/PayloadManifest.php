@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace whikloj\BagItTools;
 
 /**
@@ -11,16 +13,18 @@ namespace whikloj\BagItTools;
  */
 class PayloadManifest extends AbstractManifest
 {
-  /**
-   * PayloadManifest constructor.
-   *
-   * @param \whikloj\BagItTools\Bag $bag
-   *   The bag this manifest is part of.
-   * @param string $algorithm
-   *   The BagIt name of the hash algorithm.
-   * @param bool $load
-   *   Whether we are loading an existing file
-   */
+    /**
+     * PayloadManifest constructor.
+     *
+     * @param \whikloj\BagItTools\Bag $bag
+     *   The bag this manifest is part of.
+     * @param string $algorithm
+     *   The BagIt name of the hash algorithm.
+     * @param bool $load
+     *   Whether we are loading an existing file
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   Unable to read manifest file.
+     */
     public function __construct(Bag $bag, string $algorithm, bool $load = false)
     {
         parent::__construct($bag, $algorithm, "manifest-$algorithm.txt", $load);

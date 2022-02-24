@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace whikloj\BagItTools\Test;
 
 use whikloj\BagItTools\Bag;
@@ -823,7 +825,7 @@ class BagTest extends BagItTestFramework
         $this->assertTrue($bag->validate());
         $fp = fopen($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt', 'r');
         while (!feof($fp)) {
-            $line = fgets($fp);
+            $line = (string) fgets($fp);
             $line = trim($line);
             if (empty($line)) {
                 continue;
@@ -837,7 +839,7 @@ class BagTest extends BagItTestFramework
         $this->assertTrue($bag->validate());
         $fp = fopen($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt', 'r');
         while (!feof($fp)) {
-            $line = fgets($fp);
+            $line = (string) fgets($fp);
             $line = trim($line);
             if (empty($line)) {
                 continue;
