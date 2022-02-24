@@ -23,7 +23,7 @@ class TagManifest extends AbstractManifest
    */
     public function __construct(Bag $bag, string $algorithm, bool $load = false)
     {
-        parent::__construct($bag, $algorithm, "tagmanifest-{$algorithm}.txt", $load);
+        parent::__construct($bag, $algorithm, "tagmanifest-$algorithm.txt", $load);
     }
 
   /**

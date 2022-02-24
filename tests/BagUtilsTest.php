@@ -2,6 +2,7 @@
 
 namespace whikloj\BagItTools\Test;
 
+use Exception;
 use whikloj\BagItTools\BagUtils;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
@@ -127,7 +128,7 @@ class BagUtilsTest extends BagItTestFramework
     public function testCheckedUnlink(): void
     {
         $this->expectException(FilesystemException::class);
-        $this->expectExceptionMessage("Unable to delete path {$this->tmpdir}");
+        $this->expectExceptionMessage("Unable to delete path $this->tmpdir");
 
         // try to delete a non-existant file.
         BagUtils::checkedUnlink($this->tmpdir);
@@ -139,7 +140,7 @@ class BagUtilsTest extends BagItTestFramework
     public function testCheckedMkdir(): void
     {
         $this->expectException(FilesystemException::class);
-        $this->expectExceptionMessage("Unable to create directory {$this->tmpdir}");
+        $this->expectExceptionMessage("Unable to create directory $this->tmpdir");
 
         // Create a directory
         touch($this->tmpdir);
@@ -155,7 +156,7 @@ class BagUtilsTest extends BagItTestFramework
         $destFile = $this->getTempName();
 
         $this->expectException(FilesystemException::class);
-        $this->expectExceptionMessage("Unable to copy file ({$this->tmpdir}) to ({$destFile})");
+        $this->expectExceptionMessage("Unable to copy file ($this->tmpdir) to ($destFile)");
 
         // Source file does not exist.
         BagUtils::checkedCopy($this->tmpdir, $destFile);
@@ -172,7 +173,7 @@ class BagUtilsTest extends BagItTestFramework
         $destFile = $this->tmpdir . DIRECTORY_SEPARATOR . "someotherfile";
 
         $this->expectException(FilesystemException::class);
-        $this->expectExceptionMessage("Unable to copy file ({$sourceFile}) to ({$destFile})");
+        $this->expectExceptionMessage("Unable to copy file ($sourceFile) to ($destFile)");
 
         // Directory of destination does not exist.
         BagUtils::checkedCopy($sourceFile, $destFile);
@@ -186,7 +187,7 @@ class BagUtilsTest extends BagItTestFramework
         $destFile = $this->tmpdir . DIRECTORY_SEPARATOR . "someotherfile";
 
         $this->expectException(FilesystemException::class);
-        $this->expectExceptionMessage("Unable to put contents to file {$destFile}");
+        $this->expectExceptionMessage("Unable to put contents to file $destFile");
 
         BagUtils::checkedFilePut($destFile, "some content");
     }
@@ -199,7 +200,7 @@ class BagUtilsTest extends BagItTestFramework
         // Open a pointer to a new file.
         $fp = fopen($this->tmpdir, "w+");
         if ($fp === false) {
-            throw new \Exception("Couldn't open file ({$this->tmpdir}).");
+            throw new Exception("Couldn't open file ($this->tmpdir).");
         }
         // Close the file pointer.
         fclose($fp);

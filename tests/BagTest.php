@@ -170,7 +170,7 @@ class BagTest extends BagItTestFramework
         $source_file = "some/fake/image.txt";
 
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("{$source_file} does not exist");
+        $this->expectExceptionMessage("$source_file does not exist");
 
         $bag = Bag::create($this->tmpdir);
         $bag->addFile($source_file, "some/image.txt");
@@ -187,7 +187,7 @@ class BagTest extends BagItTestFramework
         $destination = "data/../../../images/places/image.jpg";
 
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("Path {$destination} resolves outside the bag.");
+        $this->expectExceptionMessage("Path $destination resolves outside the bag.");
 
         $bag = Bag::create($this->tmpdir);
         $bag->addFile($source_file, $destination);
@@ -211,7 +211,7 @@ class BagTest extends BagItTestFramework
             DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'image.txt');
 
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("File data/{$destination} already exists in the bag.");
+        $this->expectExceptionMessage("File data/$destination already exists in the bag.");
 
         $bag->addFile($source_file, $destination);
     }
@@ -271,7 +271,7 @@ class BagTest extends BagItTestFramework
         $this->assertEquals($source, $contents);
 
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("File data/{$destination} already exists in the bag.");
+        $this->expectExceptionMessage("File data/$destination already exists in the bag.");
 
         $source_two = "This is new stuff";
         $bag->createFile($source_two, $destination);
@@ -428,7 +428,7 @@ class BagTest extends BagItTestFramework
 
         $fake_encoding = 'fake-encoding';
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("Character set {$fake_encoding} is not supported");
+        $this->expectExceptionMessage("Character set $fake_encoding is not supported");
 
         // Now try a wrong encoding.
         $bag->setFileEncoding($fake_encoding);
@@ -595,7 +595,7 @@ class BagTest extends BagItTestFramework
         $path = '/my/directory.tar';
 
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("Path {$path} does not exist, could not load Bag.");
+        $this->expectExceptionMessage("Path $path does not exist, could not load Bag.");
 
         Bag::load($path);
     }
@@ -1001,7 +1001,7 @@ class BagTest extends BagItTestFramework
         mkdir($fullpath);
 
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("New bag directory {$fullpath} exists");
+        $this->expectExceptionMessage("New bag directory $fullpath exists");
 
         $curr = getcwd();
         chdir($this->tmpdir);

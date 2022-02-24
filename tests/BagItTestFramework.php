@@ -3,6 +3,8 @@
 namespace whikloj\BagItTools\Test;
 
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use ReflectionMethod;
 use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\BagUtils;
 use whikloj\BagItTools\Exceptions\FilesystemException;
@@ -222,9 +224,9 @@ class BagItTestFramework extends TestCase
      *
      * @throws \ReflectionException
      */
-    protected static function getReflectionMethod(string $class, string $method): \ReflectionMethod
+    protected static function getReflectionMethod(string $class, string $method): ReflectionMethod
     {
-        $class = new \ReflectionClass($class);
+        $class = new ReflectionClass($class);
         $methodCall = $class->getMethod($method);
         $methodCall->setAccessible(true);
         return $methodCall;

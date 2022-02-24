@@ -2,8 +2,11 @@
 
 namespace whikloj\BagItTools;
 
+use Archive_Tar;
+use Normalizer;
 use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
+use ZipArchive;
 
 /**
  * Bag class as normal interface for all actions and holder of supporting constructs.
@@ -253,7 +256,7 @@ class Bag
      *
      * @var boolean
      */
-    private $loaded = false;
+    private $loaded;
 
     /**
      * Bag constructor.
@@ -367,7 +370,7 @@ class Bag
     public function update(): void
     {
         if (!file_exists($this->makeAbsolute("data"))) {
-            BagUtils::checkedMkdir($this->makeAbsolute("data"), 0777);
+            BagUtils::checkedMkdir($this->makeAbsolute("data"));
         }
         $this->updateBagIt();
         $this->updatePayloadManifests();
@@ -438,16 +441,16 @@ class Bag
         if (file_exists($source)) {
             $dest = BagUtils::baseInData($dest);
             if (!$this->pathInBagData($dest)) {
-                throw new BagItException("Path {$dest} resolves outside the bag.");
+                throw new BagItException("Path $dest resolves outside the bag.");
             } elseif ($this->reservedFilename($dest)) {
                 throw new BagItException("The filename requested is reserved on Windows OSes.");
             } elseif (isset($this->fetchFile) && $this->fetchFile->reservedPath($dest)) {
-                throw new BagItException("The path ({$dest}) is used in the fetch.txt file.");
+                throw new BagItException("The path ($dest) is used in the fetch.txt file.");
             } else {
                 $fullDest = $this->makeAbsolute($dest);
-                $fullDest = \Normalizer::normalize($fullDest);
+                $fullDest = Normalizer::normalize($fullDest);
                 if (file_exists($fullDest)) {
-                    throw new BagItException("File {$dest} already exists in the bag.");
+                    throw new BagItException("File $dest already exists in the bag.");
                 }
                 $dirname = dirname($fullDest);
                 if (substr($this->makeRelative($dirname), 0, 5) == "data/") {
@@ -460,7 +463,7 @@ class Bag
                 $this->changed = true;
             }
         } else {
-            throw new BagItException("{$source} does not exist");
+            throw new BagItException("$source does not exist");
         }
     }
 
@@ -669,7 +672,7 @@ class Bag
         }
         $internal_tag = self::trimLower($tag);
         if (in_array($internal_tag, self::BAG_INFO_GENERATED_ELEMENTS)) {
-            throw new BagItException("Field {$tag} is auto-generated and cannot be manually set.");
+            throw new BagItException("Field $tag is auto-generated and cannot be manually set.");
         }
         if (!$this->bagInfoTagExists($internal_tag)) {
             $this->bagInfoTagIndex[$internal_tag] = [];
@@ -695,7 +698,7 @@ class Bag
         $encoding = self::trimLower($encoding);
         $charset = BagUtils::getValidCharset($encoding);
         if (is_null($charset)) {
-            throw new BagItException("Character set {$encoding} is not supported.");
+            throw new BagItException("Character set $encoding is not supported.");
         } else {
             if ($encoding == self::trimLower(self::DEFAULT_FILE_ENCODING)) {
                 // go back to default.
@@ -786,7 +789,7 @@ class Bag
             }
             $this->changed = true;
         } else {
-            throw new BagItException("Algorithm {$algorithm} is not supported.");
+            throw new BagItException("Algorithm $algorithm is not supported.");
         }
     }
 
@@ -819,7 +822,7 @@ class Bag
             }
             $this->changed = true;
         } else {
-            throw new BagItException("Algorithm {$algorithm} is not supported.");
+            throw new BagItException("Algorithm $algorithm is not supported.");
         }
     }
 
@@ -848,7 +851,7 @@ class Bag
             }
             $this->changed = true;
         } else {
-            throw new BagItException("Algorithm {$algorithm} is not supported.");
+            throw new BagItException("Algorithm $algorithm is not supported.");
         }
     }
 
@@ -1139,7 +1142,7 @@ class Bag
     {
         $root = $this->getBagRoot();
         if (!file_exists($root)) {
-            throw new BagItException("Path {$root} does not exist, could not load Bag.");
+            throw new BagItException("Path $root does not exist, could not load Bag.");
         }
         $this->resetErrorsAndWarnings();
         // Reset these or we end up with double manifests in a validate() situation.
@@ -1166,7 +1169,7 @@ class Bag
     {
         $this->resetErrorsAndWarnings();
         if (file_exists($this->bagRoot)) {
-            throw new BagItException("New bag directory {$this->bagRoot} exists");
+            throw new BagItException("New bag directory $this->bagRoot exists");
         }
         BagUtils::checkedMkdir($this->bagRoot . DIRECTORY_SEPARATOR . "data", 0777, true);
         $this->updateBagIt();
@@ -1215,7 +1218,7 @@ class Bag
         if (file_exists($fullPath)) {
             $file_contents = file_get_contents($fullPath);
             if ($file_contents === false) {
-                throw new FilesystemException("Unable to access {$info_file}");
+                throw new FilesystemException("Unable to access $info_file");
             }
             $bagData = [];
             $lineCount = 0;
@@ -1248,18 +1251,18 @@ class Bag
                         if ($this->mustNotRepeatBagInfoExists($current_tag)) {
                             $this->addBagError(
                                 $info_file,
-                                "Tag {$current_tag} MUST not be repeated. (Line {$lineCount})"
+                                "Line $lineCount: Tag $current_tag MUST not be repeated."
                             );
                         } elseif ($this->shouldNotRepeatBagInfoExists($current_tag)) {
                             $this->addBagWarning(
                                 $info_file,
-                                "Tag {$current_tag} SHOULD NOT be repeated. (Line {$lineCount})"
+                                "Line $lineCount: Tag $current_tag SHOULD NOT be repeated."
                             );
                         }
                         if (($this->compareVersion('1.0') <= 0) && (!empty($matches[1]) || !empty($matches[3]))) {
                             $this->addBagError(
                                 $info_file,
-                                "Labels cannot begin or end with a whitespace. (Line {$lineCount})"
+                                "Line $lineCount: Labels cannot begin or end with a whitespace."
                             );
                         }
                         if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
@@ -1365,7 +1368,7 @@ class Bag
             // We don't guarantee newlines remain once you edit a bag.
             $value = str_replace("\r\n", " ", $value);
             $value = str_replace("\n", " ", $value);
-            $data = self::wrapBagInfoText("{$tag}: {$value}");
+            $data = self::wrapBagInfoText("$tag: $value");
             foreach ($data as $line) {
                 $line = $this->encodeText($line);
                 BagUtils::checkedFwrite($fp, $line . PHP_EOL);
@@ -1513,7 +1516,7 @@ class Bag
     private static function wrapAtLength(string $text, int $length): array
     {
         $text = str_replace("\n", "", $text);
-        $wrapped = wordwrap($text, $length, "\n");
+        $wrapped = wordwrap($text, $length);
         return explode("\n", $wrapped);
     }
 
@@ -1537,7 +1540,7 @@ class Bag
                 if (isset($tagManifests[$hash])) {
                     $this->addBagError(
                         $this->makeRelative($file),
-                        "More than one tag manifest for hash ({$hash}) found."
+                        "More than one tag manifest for hash ($hash) found."
                     );
                 } else {
                     $tagManifests[$hash] = new TagManifest($this, $hash, true);
@@ -1653,7 +1656,7 @@ class Bag
                 $hash = self::determineHashFromFilename($manifest);
                 $relative_filename = $this->makeRelative($manifest);
                 if (!is_null($hash) && !in_array($hash, array_keys(self::HASH_ALGORITHMS))) {
-                    throw new BagItException("We do not support the algorithm {$hash}");
+                    throw new BagItException("We do not support the algorithm $hash");
                 } elseif (is_null($hash)) {
                     $this->addBagError(
                         $relative_filename,
@@ -1662,7 +1665,7 @@ class Bag
                 } elseif (isset($this->payloadManifests[$hash])) {
                     $this->addBagError(
                         $relative_filename,
-                        "More than one payload manifest for hash ({$hash}) found."
+                        "More than one payload manifest for hash ($hash) found."
                     );
                 } else {
                     $temp = new PayloadManifest($this, $hash, true);
@@ -1761,7 +1764,7 @@ class Bag
         } else {
             $contents = file_get_contents($fullPath);
             if ($contents === false) {
-                throw new FilesystemException("Unable to read {$fullPath}");
+                throw new FilesystemException("Unable to read $fullPath");
             }
             $lines = BagUtils::splitFileDataOnLineEndings($contents);
             // remove blank lines.
@@ -1891,14 +1894,14 @@ class Bag
      */
     private function makeZip(string $filename): void
     {
-        $zip = new \ZipArchive();
-        $res = $zip->open($filename, \ZipArchive::CREATE);
+        $zip = new ZipArchive();
+        $res = $zip->open($filename, ZipArchive::CREATE);
         if ($res === true) {
             $files = BagUtils::getAllFiles($this->bagRoot);
             $parentPrefix = basename($this->bagRoot);
             foreach ($files as $file) {
                 $relative = $this->makeRelative($file);
-                $zip->addFile($file, "{$parentPrefix}/{$relative}");
+                $zip->addFile($file, "$parentPrefix/$relative");
             }
             $zip->close();
         } else {
@@ -1918,14 +1921,14 @@ class Bag
     {
         $extension = self::getExtensions($filename);
         $compression = self::extensionTarCompression($extension);
-        $tar = new \Archive_Tar($filename, $compression);
+        $tar = new Archive_Tar($filename, $compression);
         if ($tar === false) {
             throw new FilesystemException("Error creating Tar file.");
         }
         $parent = $this->getParentDir();
         $files = BagUtils::getAllFiles($this->bagRoot);
         if (!$tar->createModify($files, "", $parent)) {
-            throw new FilesystemException("Error adding files to {$filename}.");
+            throw new FilesystemException("Error adding files to $filename.");
         }
     }
 
@@ -1955,7 +1958,7 @@ class Bag
     private static function uncompressBag(string $filepath): string
     {
         if (!file_exists($filepath)) {
-            throw new BagItException("File {$filepath} does not exist.");
+            throw new BagItException("File $filepath does not exist.");
         }
         $extension = self::getExtensions($filepath);
         if (in_array($extension, self::ZIP_EXTENSIONS)) {
@@ -1981,7 +1984,7 @@ class Bag
      */
     private static function unzipBag(string $filename): string
     {
-        $zip = new \ZipArchive();
+        $zip = new ZipArchive();
         $res = $zip->open($filename);
         if ($res === false) {
             throw new FilesystemException("Unable to unzip $filename");
@@ -2008,10 +2011,10 @@ class Bag
     {
         $compression = self::extensionTarCompression($extension);
         $directory = self::extractDir();
-        $tar = new \Archive_Tar($filename, $compression);
+        $tar = new Archive_Tar($filename, $compression);
         $res = $tar->extract($directory);
         if ($res === false) {
-            throw new FilesystemException("Usable to untar {$filename}");
+            throw new FilesystemException("Unable to untar $filename");
         }
         return $directory;
     }

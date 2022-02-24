@@ -23,7 +23,7 @@ class PayloadManifest extends AbstractManifest
    */
     public function __construct(Bag $bag, string $algorithm, bool $load = false)
     {
-        parent::__construct($bag, $algorithm, "manifest-{$algorithm}.txt", $load);
+        parent::__construct($bag, $algorithm, "manifest-$algorithm.txt", $load);
     }
 
   /**

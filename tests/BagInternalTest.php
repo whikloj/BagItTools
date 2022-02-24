@@ -2,6 +2,7 @@
 
 namespace whikloj\BagItTools\Test;
 
+use ReflectionClass;
 use whikloj\BagItTools\Bag;
 
 /**
@@ -77,7 +78,7 @@ class BagInternalTest extends BagItTestFramework
 
         // There are no invalid paths as makeAbsolute only promises to prepend bagRoot + DIRECTORY_SEPARATOR to the
         // incoming value once normalized.
-        foreach ($invalid_paths as $path => $expected) {
+        foreach ($invalid_paths as $expected) {
             $fullpath = $baseDir . DIRECTORY_SEPARATOR . $expected;
             $absolute = $bag->makeAbsolute($fullpath);
             $this->assertEquals($fullpath, $absolute);
@@ -274,7 +275,7 @@ class BagInternalTest extends BagItTestFramework
     {
         $bag = Bag::create($this->tmpdir);
         $payload = $bag->getPayloadManifests()['sha512'];
-        $class = new \ReflectionClass('whikloj\BagItTools\PayloadManifest');
+        $class = new ReflectionClass('whikloj\BagItTools\PayloadManifest');
         $methodCall = $class->getMethod('checkIncomingFilePath');
         $methodCall->setAccessible(true);
         $loadIssues = $class->getProperty('loadIssues');

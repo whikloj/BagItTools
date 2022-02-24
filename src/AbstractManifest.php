@@ -2,6 +2,7 @@
 
 namespace whikloj\BagItTools;
 
+use Normalizer;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
@@ -49,13 +50,6 @@ abstract class AbstractManifest
     protected $filename;
 
     /**
-     * Array of files on disk to validate against.
-     *
-     * @var array
-     */
-    protected $filesOnDisk = [];
-
-    /**
      * Errors while validating this manifest.
      *
      * @var array
@@ -91,6 +85,8 @@ abstract class AbstractManifest
      *   The manifest filename.
      * @param boolean $load
      *   Whether we are loading an existing file
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   Unable to read manifest file.
      */
     protected function __construct(Bag $bag, string $algorithm, string $filename, bool $load = false)
     {
@@ -178,8 +174,8 @@ abstract class AbstractManifest
                 $calculatedHash = strtolower($this->calculateHash($fullPath));
                 $hash = strtolower($hash);
                 if ($hash !== $calculatedHash) {
-                    $this->addError("{$path} calculated hash ({$calculatedHash}) does not match manifest " .
-                        "({$hash})");
+                    $this->addError("$path calculated hash ($calculatedHash) does not match manifest " .
+                        "($hash)");
                 }
             }
         }
@@ -211,9 +207,9 @@ abstract class AbstractManifest
     protected function validatePath(string $path, string $filepath): void
     {
         if (!file_exists($filepath)) {
-            $this->addError("{$path} does not exist.");
+            $this->addError("$path does not exist.");
         } elseif ($this->bag->makeRelative($filepath) === "") {
-            $this->addError("{$path} resolves to a path outside of the data/ directory.");
+            $this->addError("$path resolves to a path outside of the data/ directory.");
         }
     }
 
@@ -231,7 +227,7 @@ abstract class AbstractManifest
         if (file_exists($fullPath)) {
             $file_contents = file_get_contents($fullPath);
             if ($file_contents === false) {
-                throw new FilesystemException("Unable to read file {$fullPath}");
+                throw new FilesystemException("Unable to read file $fullPath");
             }
             $lineCount = 0;
             $lines = BagUtils::splitFileDataOnLineEndings($file_contents);
@@ -250,17 +246,17 @@ abstract class AbstractManifest
                     // Normalized path in lowercase (for matching)
                     $lowerNormalized = $this->normalizePath($path);
                     if (array_key_exists($path, $this->hashes)) {
-                        $this->addLoadError("Line {$lineCount} : Path {$originalPath} appears more than once in " .
+                        $this->addLoadError("Line $lineCount: Path $originalPath appears more than once in " .
                             "manifest.");
                     } elseif ($this->matchNormalizedList($lowerNormalized)) {
-                        $this->addLoadWarning("Line {$lineCount} : Path {$originalPath} matches another file when " .
+                        $this->addLoadWarning("Line $lineCount: Path $originalPath matches another file when " .
                             "normalized for case and characters.");
                     } else {
                         $this->hashes[$path] = $hash;
                         $this->addToNormalizedList($lowerNormalized);
                     }
                 } else {
-                    $this->addLoadError("Line $lineCount : Line is not of the form 'checksum path'");
+                    $this->addLoadError("Line $lineCount: Line is not of the form 'checksum path'");
                 }
             }
         }
@@ -280,11 +276,11 @@ abstract class AbstractManifest
         }
         $fp = fopen(addslashes($fullPath), "w");
         if ($fp === false) {
-            throw new FilesystemException("Unable to write {$fullPath}");
+            throw new FilesystemException("Unable to write $fullPath");
         }
         foreach ($this->hashes as $path => $hash) {
             $path = BagUtils::encodeFilepath($path);
-            $line = "{$hash} {$path}" . PHP_EOL;
+            $line = "$hash $path" . PHP_EOL;
             $line = $this->bag->encodeText($line);
             BagUtils::checkedFwrite($fp, $line);
         }
@@ -399,19 +395,15 @@ abstract class AbstractManifest
      *
      * @param string $path
      *   The path.
-     * @param bool $toLower
-     *   Whether to also lowercase the string.
      * @return string
      *   The normalized path.
      */
-    private function normalizePath(string $path, bool $toLower = true): string
+    private function normalizePath(string $path): string
     {
         $path = urldecode($path);
-        if ($toLower) {
-            $path = strtolower($path);
-        }
-        if (!\Normalizer::isNormalized($path)) {
-            $path = \Normalizer::normalize($path);
+        $path = strtolower($path);
+        if (!Normalizer::isNormalized($path)) {
+            $path = Normalizer::normalize($path);
         }
         return $path;
     }

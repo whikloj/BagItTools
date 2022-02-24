@@ -2,6 +2,7 @@
 
 namespace whikloj\BagItTools;
 
+use Normalizer;
 use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
@@ -81,7 +82,7 @@ class Fetch
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Unable to read fetch.txt for existing bag.
      */
-    public function __construct(Bag $bag, $load = false)
+    public function __construct(Bag $bag, bool $load = false)
     {
         $this->bag = $bag;
         $this->files = [];
@@ -143,13 +144,13 @@ class Fetch
         $dest = BagUtils::baseInData($fetchData['destination']);
         if (!$this->validateUrl($uri)) {
             // skip invalid URLs or non-http URLs
-            throw new BagItException("URL {$uri} does not seem to have a scheme or host");
+            throw new BagItException("URL $uri does not seem to have a scheme or host");
         }
         if (!$this->internalValidateUrl($uri)) {
             throw new BagItException("This library only supports http/https URLs");
         }
         if (!$this->bag->pathInBagData($dest)) {
-            throw new BagItException("Path {$dest} resolves outside the bag.");
+            throw new BagItException("Path $dest resolves outside the bag.");
         }
     }
 
@@ -192,16 +193,16 @@ class Fetch
         $this->validateData($fetchData);
         $uri = $fetchData['uri'];
         if ($this->urlExistsInFile($uri)) {
-            throw new BagItException("This URL ({$uri}) is already in fetch.txt");
+            throw new BagItException("This URL ($uri) is already in fetch.txt");
         }
         $dest = BagUtils::baseInData($fetchData['destination']);
         if ($this->destinationExistsInFile($dest)) {
-            throw new BagItException("This destination ({$dest}) is already in the fetch.txt");
+            throw new BagItException("This destination ($dest) is already in the fetch.txt");
         }
         $fullDest = $this->bag->makeAbsolute($dest);
-        $fullDest = \Normalizer::normalize($fullDest);
+        $fullDest = Normalizer::normalize($fullDest);
         if (file_exists($fullDest)) {
-            throw new BagItException("File already exists at the destination path {$dest}");
+            throw new BagItException("File already exists at the destination path $dest");
         }
         $size = $fetchData['size'] ?? null;
         $ch = $this->createCurl($uri, true, $size);
@@ -209,7 +210,7 @@ class Fetch
         $error = curl_error($ch);
         curl_close($ch);
         if (!empty($error) || $output === false) {
-            throw new BagItException("Error with download of {$uri} : {$error}");
+            throw new BagItException("Error with download of $uri : $error");
         }
         $this->saveFileData($output, $dest);
         $this->files[] = [
@@ -331,7 +332,7 @@ class Fetch
         if (file_exists($this->filename)) {
             $file_contents = file_get_contents($this->filename);
             if ($file_contents === false) {
-                throw new FilesystemException("Unable to read file {$this->filename}");
+                throw new FilesystemException("Unable to read file $this->filename");
             }
             $lineCount = 0;
             $lines = BagUtils::splitFileDataOnLineEndings($file_contents);
@@ -383,7 +384,7 @@ class Fetch
     {
         if (strlen($content) > 0) {
             $fullDest = $this->bag->makeAbsolute($destination);
-            $fullDest = \Normalizer::normalize($fullDest);
+            $fullDest = Normalizer::normalize($fullDest);
             $dirname = dirname($fullDest);
             if (substr($this->bag->makeRelative($dirname), 0, 5) == "data/") {
                 // Create any missing missing directories inside data.
@@ -515,7 +516,7 @@ class Fetch
                     $error = curl_error($curl_handles[$x]);
                     $url = curl_getinfo($curl_handles[$x], CURLINFO_EFFECTIVE_URL);
                     if (!empty($error)) {
-                        $this->addError("Failed to fetch URL ({$url}) : {$error}");
+                        $this->addError("Failed to fetch URL ($url) : $error");
                     } else {
                         $content = curl_multi_getcontent($curl_handles[$x]);
                         $this->saveFileData($content, $destinations[$x]);
@@ -542,7 +543,7 @@ class Fetch
         if (count($this->files) > 0) {
             $fp = fopen($this->filename, "wb");
             if ($fp === false) {
-                throw new FilesystemException("Unable to write {$this->filename}");
+                throw new FilesystemException("Unable to write $this->filename");
             }
             foreach ($this->files as $fileData) {
                 $destination = BagUtils::encodeFilepath($fileData['destination']);

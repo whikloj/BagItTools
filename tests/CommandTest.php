@@ -39,7 +39,7 @@ class CommandTest extends BagItTestFramework
             'bag-path' => $path,
         ]);
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsStringWithoutNewlines("Path {$path} does not exist, cannot validate.", $output);
+        $this->assertStringContainsStringWithoutNewlines("Path $path does not exist, cannot validate.", $output);
     }
 
     /**

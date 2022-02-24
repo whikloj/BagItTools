@@ -51,7 +51,7 @@ class ValidateCommand extends Command
             $realpath = realpath($path);
         }
         if ((isset($realpath) && $realpath === false) || !file_exists($path)) {
-            $error_io->error("Path {$path} does not exist, cannot validate.");
+            $error_io->error("Path $path does not exist, cannot validate.");
         } else {
             try {
                 if (isset($realpath) && $realpath !== false) {

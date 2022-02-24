@@ -47,16 +47,16 @@ class ExtendedBagTest extends BagItTestFramework
         $manifests = $bag->getTagManifests();
         $this->assertNull($manifests);
 
-        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . "manifest-{$hash}.txt");
-        $this->assertFileDoesNotExist($bag->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-{$hash}.txt");
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . "manifest-$hash.txt");
+        $this->assertFileDoesNotExist($bag->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-$hash.txt");
         // Make an extended bag
         $bag->setExtended(true);
         // Tag manifest not written.
-        $this->assertFileDoesNotExist($bag->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-{$hash}.txt");
+        $this->assertFileDoesNotExist($bag->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-$hash.txt");
 
         $bag->update();
         // Now it exists.
-        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-{$hash}.txt");
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-$hash.txt");
         $manifests = $bag->getTagManifests();
         $this->assertNotEmpty($manifests);
         $this->assertArrayHasKey($hash, $manifests);

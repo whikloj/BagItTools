@@ -2,6 +2,7 @@
 
 namespace whikloj\BagItTools;
 
+use TypeError;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
@@ -98,7 +99,7 @@ class BagUtils
     {
         $matches = glob($pattern);
         if ($matches === false) {
-            throw new FilesystemException("Error matching pattern {$pattern}");
+            throw new FilesystemException("Error matching pattern $pattern");
         }
         return $matches;
     }
@@ -132,12 +133,12 @@ class BagUtils
     public static function getAbsolute(string $path, bool $add_absolute = false): string
     {
         // Cleaning path regarding OS
-        $path = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $path, 'msr');
+        $path = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $path);
         // Check if path start with a separator (UNIX)
         $startWithSeparator = $path[0] === DIRECTORY_SEPARATOR;
         // Check if start with drive letter
         preg_match('/^[a-z]:/', $path, $matches);
-        $startWithLetterDir = isset($matches[0]) ? $matches[0] : false;
+        $startWithLetterDir = $matches[0] ?? false;
 
         // whikloj - 2021-07-05 : Make sure we are using an absolute path.
         if (!($startWithLetterDir || $startWithSeparator) && $add_absolute) {
@@ -245,7 +246,7 @@ class BagUtils
     public static function checkedCopy(string $sourceFile, string $destFile): void
     {
         if (!@copy($sourceFile, $destFile)) {
-            throw new FilesystemException("Unable to copy file ({$sourceFile}) to ({$destFile})");
+            throw new FilesystemException("Unable to copy file ($sourceFile) to ($destFile)");
         }
     }
 
@@ -265,7 +266,7 @@ class BagUtils
     public static function checkedMkdir(string $path, int $mode = 0777, bool $recursive = false): void
     {
         if (!@mkdir($path, $mode, $recursive)) {
-            throw new FilesystemException("Unable to create directory {$path}");
+            throw new FilesystemException("Unable to create directory $path");
         }
     }
 
@@ -288,7 +289,7 @@ class BagUtils
     {
         $res = @file_put_contents($path, $contents, $flags);
         if ($res === false) {
-            throw new FilesystemException("Unable to put contents to file {$path}");
+            throw new FilesystemException("Unable to put contents to file $path");
         }
         return $res;
     }
@@ -305,7 +306,7 @@ class BagUtils
     public static function checkedUnlink(string $path): void
     {
         if (!@unlink($path)) {
-            throw new FilesystemException("Unable to delete path {$path}");
+            throw new FilesystemException("Unable to delete path $path");
         }
     }
 
@@ -326,8 +327,8 @@ class BagUtils
     {
         $res = @tempnam($directory, $prefix);
         if ($res === false) {
-            throw new FilesystemException("Unable to create a temporary file with directory ${directory}, prefix" .
-            " {$prefix}");
+            throw new FilesystemException("Unable to create a temporary file with directory $directory, prefix" .
+            " $prefix");
         }
         return $res;
     }
@@ -349,7 +350,7 @@ class BagUtils
             if ($res === false) {
                 throw new FilesystemException("Error writing to file");
             }
-        } catch (\TypeError $e) {
+        } catch (TypeError $e) {
             throw new FilesystemException("Error writing to file");
         }
     }

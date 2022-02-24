@@ -216,10 +216,10 @@ class FetchTest extends BagItTestFramework
         $bag->addFetchFile(self::$remote_urls[0], $file_one_dest);
         $this->assertFileExists($bag->makeAbsolute($file_one_dest));
         $manifest = $bag->getPayloadManifests()['sha512'];
-        $this->assertFalse(array_key_exists($file_one_dest, $manifest->getHashes()));
+        $this->assertArrayNotHasKey($file_one_dest, $manifest->getHashes());
         $bag->update();
         $manifest = $bag->getPayloadManifests()['sha512'];
-        $this->assertTrue(array_key_exists($file_one_dest, $manifest->getHashes()));
+        $this->assertArrayHasKey($file_one_dest, $manifest->getHashes());
         $contents = file_get_contents($bag->makeAbsolute($file_one_dest));
         $this->assertEquals(self::$response_content[0], $contents);
     }
@@ -536,7 +536,7 @@ class FetchTest extends BagItTestFramework
         ];
         for ($foo = 0; $foo < 2; $foo += 1) {
             $f_num = $foo + 1;
-            $hashes[] = self::WEBSERVER_FILES["remote_file{$f_num}.txt"]['checksums']['sha512'] . " " .
+            $hashes[] = self::WEBSERVER_FILES["remote_file$f_num.txt"]['checksums']['sha512'] . " " .
                 BagUtils::baseInData($destinations[$foo]);
         }
         array_splice($hashes, 1, 0, [
@@ -574,11 +574,11 @@ class FetchTest extends BagItTestFramework
             $dest = $destinations[$foo];
             $dest = BagUtils::getAbsolute(BagUtils::baseInData($dest));
             $this->assertArrayHasKey($dest, $hashes);
-            if ($foo == 0 || $foo == 2) {
+            if ($foo == 1) {
                 // First and third URLs succeed
-                $this->assertFileExists($newbag->makeAbsolute($dest));
-            } else {
                 $this->assertFileDoesNotExist($newbag->makeAbsolute($dest));
+            } else {
+                $this->assertFileExists($newbag->makeAbsolute($dest));
             }
         }
     }
