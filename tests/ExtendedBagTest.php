@@ -16,7 +16,7 @@ class ExtendedBagTest extends BagItTestFramework
 {
     /**
      * @group Extended
-     * @covers ::validate
+     * @covers ::isValid
      * @covers ::getErrors
      * @covers \whikloj\BagItTools\AbstractManifest::getErrors
      * @covers ::getWarnings
@@ -26,7 +26,7 @@ class ExtendedBagTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertCount(0, $bag->getErrors());
         $this->assertCount(0, $bag->getWarnings());
     }
@@ -172,7 +172,7 @@ class ExtendedBagTest extends BagItTestFramework
         ];
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertTrue($bag->isExtended());
         $this->assertCount(7, $bag->getBagInfoData());
         $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));
@@ -445,7 +445,7 @@ class ExtendedBagTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertTrue($bag->isExtended());
         $bag->addAlgorithm('SHA-224');
         $bag->update();
@@ -504,7 +504,7 @@ class ExtendedBagTest extends BagItTestFramework
         $bag->update();
 
         $testbag = Bag::load($this->tmpdir);
-        $this->assertTrue($testbag->validate());
+        $this->assertTrue($testbag->isValid());
         $this->assertEquals('A really long long long long long long long long long long long title with a ' .
             'colon : between and more information are on the way', $testbag->getBagInfoByTag('Title')[0]);
     }
@@ -618,5 +618,38 @@ class ExtendedBagTest extends BagItTestFramework
                 str_replace("\n", $newEnding, file_get_contents($path))
             );
         }
+    }
+
+    /**
+     * Ensure that a bag-info that starts with a continuation is listed as an error.
+     * @covers ::loadBagInfo
+     */
+    public function testBagInfoStartWithContinuation(): void
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        // Alter the bag-info.txt
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . 'bag-info.txt',
+            "  the next line.\nExternal-Description: This is the start of a very long information that" .
+            " is expected to wrap on to\n"
+        );
+        // Update the hash for bag-info.txt
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt',
+            "1d9349f1fe77430540a75b996220b41d8ae571cf  bag-info.txt\n8010d7758f1793d0221c529fef818ff988dda141  " .
+            "bagit.txt\nfdead00cc124f82eef20c051e699518c43adc561  manifest-sha1.txt\n" .
+            "e939f78371e07a59c7a91e113618fd70cfa1e7ca  alt_tags/random_tags.txt\n"
+        );
+        $bag = Bag::load($this->tmpdir);
+        $this->assertFalse($bag->isValid());
+        $this->assertCount(1, $bag->getErrors());
+        $this->assertEquals(
+            "bag-info.txt",
+            $bag->getErrors()[0]["file"]
+        );
+        $this->assertEquals(
+            "Line 1: Appears to be continuation but there is no preceding tag.",
+            $bag->getErrors()[0]["message"]
+        );
     }
 }

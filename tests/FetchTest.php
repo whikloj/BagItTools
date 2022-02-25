@@ -477,7 +477,7 @@ class FetchTest extends BagItTestFramework
             $this->assertArrayHasKey($dest, $hashes);
             $this->assertFileDoesNotExist($newbag->makeAbsolute($dest));
         }
-        $this->assertTrue($newbag->validate());
+        $this->assertTrue($newbag->isValid());
         foreach ($destinations as $dest) {
             $dest = BagUtils::getAbsolute(BagUtils::baseInData($dest));
             $this->assertArrayHasKey($dest, $hashes);
@@ -569,7 +569,7 @@ class FetchTest extends BagItTestFramework
             $this->assertArrayHasKey($dest, $hashes);
             $this->assertFileDoesNotExist($newbag->makeAbsolute($dest));
         }
-        $this->assertFalse($newbag->validate());
+        $this->assertFalse($newbag->isValid());
         $this->assertCount(1, $newbag->getErrors());
         $hashes = $newbag->getPayloadManifests()['sha512']->getHashes();
         for ($foo = 0; $foo < 2; $foo += 1) {
@@ -678,7 +678,7 @@ class FetchTest extends BagItTestFramework
             self::$remote_urls[4] . " 2 data/download1.jpg\n"
         );
         $bag = Bag::load($this->tmpdir);
-        $this->assertFalse($bag->validate());
+        $this->assertFalse($bag->isValid());
         $this->assertFileDoesNotExist($bag->makeAbsolute('data/download1.jpg'));
         $expected = [
             'file' => 'fetch.txt',

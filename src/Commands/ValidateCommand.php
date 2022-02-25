@@ -60,7 +60,7 @@ class ValidateCommand extends Command
                     $path = $realpath;
                 }
                 $bag = Bag::load($path);
-                $valid = $bag->validate();
+                $valid = $bag->isValid();
                 $verbose = $output->getVerbosity();
                 if ($verbose >= OutputInterface::VERBOSITY_VERBOSE) {
                     // Print warnings

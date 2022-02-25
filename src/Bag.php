@@ -331,14 +331,14 @@ class Bag
     }
 
     /**
-     * Validate the bag as it appears on disk.
+     * Is the bag valid as it appears on disk.
      *
      * @return boolean
      *   True if the bag is valid
      * @throws \whikloj\BagItTools\Exceptions\BagItException
      *   Problems writing to disk.
      */
-    public function validate(): bool
+    public function isValid(): bool
     {
         if (!$this->loaded || $this->changed) {
             // If we created this bag or have changed stuff we need to write it.
@@ -361,6 +361,21 @@ class Bag
             $this->mergeWarnings($manifest->getWarnings());
         }
         return (count($this->bagErrors) == 0);
+    }
+
+    /**
+     * Validate the bag as it appears on disk.
+     *
+     * @return bool
+     *   True if bag is valid.
+     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     *   If problems updating the bag.
+     * @deprecated 4.1.0 Name change of same function to better signify the boolean response
+     * @see \whikloj\BagItTools\Bag::isValid()
+     */
+    public function validate(): bool
+    {
+        return $this->isValid();
     }
 
     /**
@@ -974,8 +989,10 @@ class Bag
      */
     public function setExtended(bool $extBag): void
     {
-        $this->isExtended = $extBag;
-        $this->changed = true;
+        if ($this->isExtended !== $extBag) {
+            $this->isExtended = $extBag;
+            $this->changed = true;
+        }
     }
 
     /**
@@ -1105,7 +1122,7 @@ class Bag
             throw new BagItException("You can only upgrade loaded bags.");
         } elseif ($this->getVersion() == self::DEFAULT_BAGIT_VERSION) {
             throw new BagItException("Bag is already at version {$this->getVersionString()}");
-        } elseif (!$this->validate()) {
+        } elseif (!$this->isValid()) {
             throw new BagItException("This bag is not valid, we cannot automatically upgrade it.");
         } else {
             // We can upgrade.
@@ -1233,6 +1250,11 @@ class Bag
                             $previousValue = rtrim($previousValue, "\r\n");
                         }
                         $bagData[count($bagData) - 1]['value'] = $previousValue;
+                    } else {
+                        $this->addBagError(
+                            $info_file,
+                            "Line $lineCount: Appears to be continuation but there is no preceding tag."
+                        );
                     }
                 } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:(.*)~", $line, $matches)) {
                     // First line
