@@ -372,6 +372,7 @@ class Bag
      *   If problems updating the bag.
      * @deprecated 4.1.0 Name change of same function to better signify the boolean response
      * @see \whikloj\BagItTools\Bag::isValid()
+     * @codeCoverageIgnore
      */
     public function validate(): bool
     {
