@@ -155,14 +155,14 @@ class Bag
      *
      * @var array
      */
-    private $currentVersion;
+    private $currentVersion = self::DEFAULT_BAGIT_VERSION;
 
     /**
      * Current bag file encoding.
      *
      * @var string
      */
-    private $currentFileEncoding = null;
+    private $currentFileEncoding = self::DEFAULT_FILE_ENCODING;
 
     /**
      * Array of payload manifests.
@@ -449,8 +449,7 @@ class Bag
             } elseif (isset($this->fetchFile) && $this->fetchFile->reservedPath($dest)) {
                 throw new BagItException("The path ($dest) is used in the fetch.txt file.");
             } else {
-                $fullDest = $this->makeAbsolute($dest);
-                $fullDest = Normalizer::normalize($fullDest);
+                $fullDest = Normalizer::normalize($this->makeAbsolute($dest));
                 if (file_exists($fullDest)) {
                     throw new BagItException("File $dest already exists in the bag.");
                 }
@@ -701,13 +700,8 @@ class Bag
         $charset = BagUtils::getValidCharset($encoding);
         if (is_null($charset)) {
             throw new BagItException("Character set $encoding is not supported.");
-        } else {
-            if ($encoding == self::trimLower(self::DEFAULT_FILE_ENCODING)) {
-                // go back to default.
-                unset($this->currentFileEncoding);
-            } else {
-                $this->currentFileEncoding = $charset;
-            }
+        } elseif (strcasecmp($encoding, $this->currentFileEncoding) !== 0) {
+            $this->currentFileEncoding = $charset;
             $this->changed = true;
         }
     }
@@ -720,10 +714,7 @@ class Bag
      */
     public function getFileEncoding(): string
     {
-        if (isset($this->currentFileEncoding)) {
-            return $this->currentFileEncoding;
-        }
-        return self::DEFAULT_FILE_ENCODING;
+        return $this->currentFileEncoding;
     }
 
     /**
@@ -927,10 +918,7 @@ class Bag
      */
     public function getVersion(): array
     {
-        if (isset($this->currentVersion)) {
-            return $this->currentVersion;
-        }
-        return self::DEFAULT_BAGIT_VERSION;
+        return $this->currentVersion;
     }
 
     /**
@@ -1125,7 +1113,7 @@ class Bag
             if (count($hashes) == 1 && $hashes[0] == 'md5') {
                 $this->setAlgorithm(self::DEFAULT_HASH_ALGORITHM);
             }
-            unset($this->currentVersion);
+            $this->currentVersion = self::DEFAULT_BAGIT_VERSION;
             $this->update();
         }
     }
