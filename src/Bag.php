@@ -162,7 +162,7 @@ class Bag
      *
      * @var string
      */
-    private $currentFileEncoding;
+    private $currentFileEncoding = null;
 
     /**
      * Array of payload manifests.
@@ -1227,61 +1227,59 @@ class Bag
             $lines = BagUtils::splitFileDataOnLineEndings($file_contents);
             foreach ($lines as $line) {
                 $lineCount += 1;
-                if (trim($line) == "") {
+                if (empty(trim($line))) {
                     continue;
                 }
                 $line = $this->decodeText($line) . PHP_EOL;
-                if (!empty($line)) {
-                    $lineLength = strlen($line);
-                    if (substr($line, 0, 2) == "  " || $line[0] == "\t") {
-                        // Continuation of a line
-                        if (count($bagData) > 0) {
-                            $previousValue = $bagData[count($bagData) - 1]['value'];
-                            // Add a space only if the previous character was not a line break.
-                            $lastChar = substr($previousValue, -1);
-                            $previousValue .= ($lastChar != "\r" && $lastChar != "\n" ? " " : "");
-                            $previousValue .= Bag::trimSpacesOnly($line);
-                            if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
-                                // Line is max length or longer, should be autowrapped
-                                $previousValue = rtrim($previousValue, "\r\n");
-                            }
-                            $bagData[count($bagData) - 1]['value'] = $previousValue;
-                        }
-                    } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:(.*)~", $line, $matches)) {
-                        // First line
-                        $current_tag = $matches[2];
-                        if ($this->mustNotRepeatBagInfoExists($current_tag)) {
-                            $this->addBagError(
-                                $info_file,
-                                "Line $lineCount: Tag $current_tag MUST not be repeated."
-                            );
-                        } elseif ($this->shouldNotRepeatBagInfoExists($current_tag)) {
-                            $this->addBagWarning(
-                                $info_file,
-                                "Line $lineCount: Tag $current_tag SHOULD NOT be repeated."
-                            );
-                        }
-                        if (($this->compareVersion('1.0') <= 0) && (!empty($matches[1]) || !empty($matches[3]))) {
-                            $this->addBagError(
-                                $info_file,
-                                "Line $lineCount: Labels cannot begin or end with a whitespace."
-                            );
-                        }
+                $lineLength = strlen($line);
+                if (substr($line, 0, 2) == "  " || $line[0] == "\t") {
+                    // Continuation of a line
+                    if (count($bagData) > 0) {
+                        $previousValue = $bagData[count($bagData) - 1]['value'];
+                        // Add a space only if the previous character was not a line break.
+                        $lastChar = substr($previousValue, -1);
+                        $previousValue .= ($lastChar != "\r" && $lastChar != "\n" ? " " : "");
+                        $previousValue .= Bag::trimSpacesOnly($line);
                         if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
                             // Line is max length or longer, should be autowrapped
-                            $value = $matches[4];
-                        } else {
-                            // Shorter line, save the newline.
-                            $value = $matches[4] . PHP_EOL;
+                            $previousValue = rtrim($previousValue, "\r\n");
                         }
-                        $bagData[] = [
-                            'tag' => $current_tag,
-                            // Newline is removed by preg_match, re-add it here.
-                            'value' => Bag::trimSpacesOnly($value),
-                        ];
-                    } else {
-                        $this->addBagError($info_file, "Invalid tag.");
+                        $bagData[count($bagData) - 1]['value'] = $previousValue;
                     }
+                } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:(.*)~", $line, $matches)) {
+                    // First line
+                    $current_tag = $matches[2];
+                    if ($this->mustNotRepeatBagInfoExists($current_tag)) {
+                        $this->addBagError(
+                            $info_file,
+                            "Line $lineCount: Tag $current_tag MUST not be repeated."
+                        );
+                    } elseif ($this->shouldNotRepeatBagInfoExists($current_tag)) {
+                        $this->addBagWarning(
+                            $info_file,
+                            "Line $lineCount: Tag $current_tag SHOULD NOT be repeated."
+                        );
+                    }
+                    if (($this->compareVersion('1.0') <= 0) && (!empty($matches[1]) || !empty($matches[3]))) {
+                        $this->addBagError(
+                            $info_file,
+                            "Line $lineCount: Labels cannot begin or end with a whitespace."
+                        );
+                    }
+                    if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
+                        // Line is max length or longer, should be autowrapped
+                        $value = $matches[4];
+                    } else {
+                        // Shorter line, save the newline.
+                        $value = $matches[4] . PHP_EOL;
+                    }
+                    $bagData[] = [
+                        'tag' => $current_tag,
+                        // Newline is removed by preg_match, re-add it here.
+                        'value' => Bag::trimSpacesOnly($value),
+                    ];
+                } else {
+                    $this->addBagError($info_file, "Invalid tag.");
                 }
             }
             // We left newlines on the end of each tag value, those can be stripped.
@@ -1310,7 +1308,7 @@ class Bag
 
     /**
      * Just trim spaces NOT newlines and carriage returns.
-     * @param $text
+     * @param string $text
      *   The original text
      * @return string
      *   The text with surrounding spaces trimmed away.
