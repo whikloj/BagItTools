@@ -29,7 +29,7 @@ class BagTest extends BagItTestFramework
         $this->assertTrue(is_file($this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt"));
         $this->assertFileExists($this->tmpdir . DIRECTORY_SEPARATOR . "data");
         $this->assertTrue(is_dir($this->tmpdir . DIRECTORY_SEPARATOR . "data"));
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
     }
 
     /**
@@ -42,7 +42,7 @@ class BagTest extends BagItTestFramework
     {
         $this->assertFileDoesNotExist($this->tmpdir);
         $bag = Bag::create($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
     }
 
     /**
@@ -60,7 +60,7 @@ class BagTest extends BagItTestFramework
         $curr = getcwd();
         chdir($this->tmpdir);
         $bag = Bag::create("some-new-dir");
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertDirectoryExists($newDir);
         chdir($curr);
     }
@@ -78,7 +78,7 @@ class BagTest extends BagItTestFramework
         $curr = getcwd();
         chdir($this->tmpdir);
         $bag = Bag::create("./some-new-dir");
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertDirectoryExists($newDir);
         chdir($curr);
     }
@@ -92,7 +92,7 @@ class BagTest extends BagItTestFramework
    * @covers ::loadBagInfo
    * @covers ::loadTagManifests
    * @covers ::isExtended
-   * @covers ::validate
+   * @covers ::isValid
    * @covers \whikloj\BagItTools\AbstractManifest::loadFile
    * @covers \whikloj\BagItTools\AbstractManifest::cleanUpRelPath
    * @covers \whikloj\BagItTools\AbstractManifest::addToNormalizedList
@@ -104,7 +104,7 @@ class BagTest extends BagItTestFramework
         $this->assertCount(0, $bag->getErrors());
         $this->assertArrayHasKey('sha256', $bag->getPayloadManifests());
         $this->assertFalse($bag->isExtended());
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertCount(0, $bag->getErrors());
         $this->assertCount(0, $bag->getWarnings());
     }
@@ -568,7 +568,7 @@ class BagTest extends BagItTestFramework
     /**
      * Test getting a warning when validating an MD5 bag.
      * @group Bag
-     * @covers ::validate
+     * @covers ::isValid
      * @covers \whikloj\BagItTools\AbstractManifest::loadFile
      * @covers \whikloj\BagItTools\AbstractManifest::validate
      */
@@ -576,12 +576,12 @@ class BagTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareBasicTestBag();
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertCount(0, $bag->getWarnings());
         $bag->setAlgorithm('md5');
         $bag->update();
         $newBag = Bag::load($this->tmpdir);
-        $this->assertTrue($newBag->validate());
+        $this->assertTrue($newBag->isValid());
         $this->assertCount(1, $newBag->getWarnings());
     }
 
@@ -615,7 +615,7 @@ class BagTest extends BagItTestFramework
     public function testUncompressTarGz(): void
     {
         $bag = Bag::load(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testtar.tgz');
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertTrue($bag->hasAlgorithm('sha224'));
         $manifest = $bag->getPayloadManifests()['sha224'];
         foreach ($manifest->getHashes() as $path => $hash) {
@@ -639,7 +639,7 @@ class BagTest extends BagItTestFramework
     public function testUncompressTarBzip(): void
     {
         $bag = Bag::load(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testtar.tar.bz2');
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertTrue($bag->hasAlgorithm('sha224'));
         $manifest = $bag->getPayloadManifests()['sha224'];
         foreach ($manifest->getHashes() as $path => $hash) {
@@ -662,7 +662,7 @@ class BagTest extends BagItTestFramework
     public function testUncompressZip(): void
     {
         $bag = Bag::load(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testzip.zip');
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertTrue($bag->hasAlgorithm('sha224'));
         $manifest = $bag->getPayloadManifests()['sha224'];
         foreach ($manifest->getHashes() as $path => $hash) {
@@ -694,7 +694,7 @@ class BagTest extends BagItTestFramework
         $this->assertFileExists($archivefile);
 
         $newbag = Bag::load($archivefile);
-        $this->assertTrue($newbag->validate());
+        $this->assertTrue($newbag->isValid());
 
         $this->assertEquals(
             $bag->getPayloadManifests()['sha256']->getHashes(),
@@ -722,7 +722,7 @@ class BagTest extends BagItTestFramework
         $this->assertFileExists($archivefile);
 
         $newbag = Bag::load($archivefile);
-        $this->assertTrue($newbag->validate());
+        $this->assertTrue($newbag->isValid());
 
         $this->assertEquals(
             $bag->getPayloadManifests()['sha256']->getHashes(),
@@ -750,7 +750,7 @@ class BagTest extends BagItTestFramework
         $this->assertFileExists($archivefile);
 
         $newbag = Bag::load($archivefile);
-        $this->assertTrue($newbag->validate());
+        $this->assertTrue($newbag->isValid());
 
         $this->assertEquals(
             $bag->getPayloadManifests()['sha256']->getHashes(),
@@ -778,7 +778,7 @@ class BagTest extends BagItTestFramework
         $this->assertFileExists($archivefile);
 
         $newbag = Bag::load($archivefile);
-        $this->assertTrue($newbag->validate());
+        $this->assertTrue($newbag->isValid());
 
         $this->assertEquals(
             $bag->getPayloadManifests()['sha256']->getHashes(),
@@ -822,7 +822,7 @@ class BagTest extends BagItTestFramework
         $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
         $bag = Bag::load($this->tmpdir);
         $this->assertEquals('0.97', $bag->getVersionString());
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $fp = fopen($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt', 'r');
         while (!feof($fp)) {
             $line = (string) fgets($fp);
@@ -836,7 +836,7 @@ class BagTest extends BagItTestFramework
         fclose($fp);
         $bag->upgrade();
         $this->assertEquals('1.0', $bag->getVersionString());
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $fp = fopen($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt', 'r');
         while (!feof($fp)) {
             $line = (string) fgets($fp);
@@ -896,7 +896,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $this->assertEquals('0.97', $bag->getVersionString());
         touch($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'oops.txt');
-        $this->assertFalse($bag->validate());
+        $this->assertFalse($bag->isValid());
         $bag->upgrade();
     }
 
@@ -905,13 +905,13 @@ class BagTest extends BagItTestFramework
      * @covers ::__construct
      * @covers ::createNewBag
      * @covers ::update
-     * @covers ::validate
+     * @covers ::isValid
      */
     public function testEmptyBagShouldValidate(): void
     {
         $this->assertFileDoesNotExist($this->tmpdir);
         $bag = Bag::create($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
     }
 
     /**

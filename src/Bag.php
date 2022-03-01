@@ -155,14 +155,14 @@ class Bag
      *
      * @var array
      */
-    private $currentVersion;
+    private $currentVersion = self::DEFAULT_BAGIT_VERSION;
 
     /**
      * Current bag file encoding.
      *
      * @var string
      */
-    private $currentFileEncoding;
+    private $currentFileEncoding = self::DEFAULT_FILE_ENCODING;
 
     /**
      * Array of payload manifests.
@@ -331,14 +331,14 @@ class Bag
     }
 
     /**
-     * Validate the bag as it appears on disk.
+     * Is the bag valid as it appears on disk.
      *
      * @return boolean
      *   True if the bag is valid
      * @throws \whikloj\BagItTools\Exceptions\BagItException
      *   Problems writing to disk.
      */
-    public function validate(): bool
+    public function isValid(): bool
     {
         if (!$this->loaded || $this->changed) {
             // If we created this bag or have changed stuff we need to write it.
@@ -361,6 +361,22 @@ class Bag
             $this->mergeWarnings($manifest->getWarnings());
         }
         return (count($this->bagErrors) == 0);
+    }
+
+    /**
+     * Validate the bag as it appears on disk.
+     *
+     * @return bool
+     *   True if bag is valid.
+     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     *   If problems updating the bag.
+     * @deprecated 4.1.0 Name change of same function to better signify the boolean response
+     * @see \whikloj\BagItTools\Bag::isValid()
+     * @codeCoverageIgnore
+     */
+    public function validate(): bool
+    {
+        return $this->isValid();
     }
 
     /**
@@ -449,8 +465,7 @@ class Bag
             } elseif (isset($this->fetchFile) && $this->fetchFile->reservedPath($dest)) {
                 throw new BagItException("The path ($dest) is used in the fetch.txt file.");
             } else {
-                $fullDest = $this->makeAbsolute($dest);
-                $fullDest = Normalizer::normalize($fullDest);
+                $fullDest = Normalizer::normalize($this->makeAbsolute($dest));
                 if (file_exists($fullDest)) {
                     throw new BagItException("File $dest already exists in the bag.");
                 }
@@ -701,13 +716,8 @@ class Bag
         $charset = BagUtils::getValidCharset($encoding);
         if (is_null($charset)) {
             throw new BagItException("Character set $encoding is not supported.");
-        } else {
-            if ($encoding == self::trimLower(self::DEFAULT_FILE_ENCODING)) {
-                // go back to default.
-                unset($this->currentFileEncoding);
-            } else {
-                $this->currentFileEncoding = $charset;
-            }
+        } elseif (strcasecmp($encoding, $this->currentFileEncoding) !== 0) {
+            $this->currentFileEncoding = $charset;
             $this->changed = true;
         }
     }
@@ -720,10 +730,7 @@ class Bag
      */
     public function getFileEncoding(): string
     {
-        if (isset($this->currentFileEncoding)) {
-            return $this->currentFileEncoding;
-        }
-        return self::DEFAULT_FILE_ENCODING;
+        return $this->currentFileEncoding;
     }
 
     /**
@@ -927,10 +934,7 @@ class Bag
      */
     public function getVersion(): array
     {
-        if (isset($this->currentVersion)) {
-            return $this->currentVersion;
-        }
-        return self::DEFAULT_BAGIT_VERSION;
+        return $this->currentVersion;
     }
 
     /**
@@ -986,8 +990,10 @@ class Bag
      */
     public function setExtended(bool $extBag): void
     {
-        $this->isExtended = $extBag;
-        $this->changed = true;
+        if ($this->isExtended !== $extBag) {
+            $this->isExtended = $extBag;
+            $this->changed = true;
+        }
     }
 
     /**
@@ -1117,7 +1123,7 @@ class Bag
             throw new BagItException("You can only upgrade loaded bags.");
         } elseif ($this->getVersion() == self::DEFAULT_BAGIT_VERSION) {
             throw new BagItException("Bag is already at version {$this->getVersionString()}");
-        } elseif (!$this->validate()) {
+        } elseif (!$this->isValid()) {
             throw new BagItException("This bag is not valid, we cannot automatically upgrade it.");
         } else {
             // We can upgrade.
@@ -1125,7 +1131,7 @@ class Bag
             if (count($hashes) == 1 && $hashes[0] == 'md5') {
                 $this->setAlgorithm(self::DEFAULT_HASH_ALGORITHM);
             }
-            unset($this->currentVersion);
+            $this->currentVersion = self::DEFAULT_BAGIT_VERSION;
             $this->update();
         }
     }
@@ -1227,61 +1233,64 @@ class Bag
             $lines = BagUtils::splitFileDataOnLineEndings($file_contents);
             foreach ($lines as $line) {
                 $lineCount += 1;
-                if (trim($line) == "") {
+                if (empty(trim($line))) {
                     continue;
                 }
                 $line = $this->decodeText($line) . PHP_EOL;
-                if (!empty($line)) {
-                    $lineLength = strlen($line);
-                    if (substr($line, 0, 2) == "  " || $line[0] == "\t") {
-                        // Continuation of a line
-                        if (count($bagData) > 0) {
-                            $previousValue = $bagData[count($bagData) - 1]['value'];
-                            // Add a space only if the previous character was not a line break.
-                            $lastChar = substr($previousValue, -1);
-                            $previousValue .= ($lastChar != "\r" && $lastChar != "\n" ? " " : "");
-                            $previousValue .= Bag::trimSpacesOnly($line);
-                            if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
-                                // Line is max length or longer, should be autowrapped
-                                $previousValue = rtrim($previousValue, "\r\n");
-                            }
-                            $bagData[count($bagData) - 1]['value'] = $previousValue;
-                        }
-                    } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:(.*)~", $line, $matches)) {
-                        // First line
-                        $current_tag = $matches[2];
-                        if ($this->mustNotRepeatBagInfoExists($current_tag)) {
-                            $this->addBagError(
-                                $info_file,
-                                "Line $lineCount: Tag $current_tag MUST not be repeated."
-                            );
-                        } elseif ($this->shouldNotRepeatBagInfoExists($current_tag)) {
-                            $this->addBagWarning(
-                                $info_file,
-                                "Line $lineCount: Tag $current_tag SHOULD NOT be repeated."
-                            );
-                        }
-                        if (($this->compareVersion('1.0') <= 0) && (!empty($matches[1]) || !empty($matches[3]))) {
-                            $this->addBagError(
-                                $info_file,
-                                "Line $lineCount: Labels cannot begin or end with a whitespace."
-                            );
-                        }
+                $lineLength = strlen($line);
+                if (substr($line, 0, 2) == "  " || $line[0] == "\t") {
+                    // Continuation of a line
+                    if (count($bagData) > 0) {
+                        $previousValue = $bagData[count($bagData) - 1]['value'];
+                        // Add a space only if the previous character was not a line break.
+                        $lastChar = substr($previousValue, -1);
                         if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
                             // Line is max length or longer, should be autowrapped
-                            $value = $matches[4];
-                        } else {
-                            // Shorter line, save the newline.
-                            $value = $matches[4] . PHP_EOL;
+                            $previousValue = rtrim($previousValue, "\r\n");
                         }
-                        $bagData[] = [
-                            'tag' => $current_tag,
-                            // Newline is removed by preg_match, re-add it here.
-                            'value' => Bag::trimSpacesOnly($value),
-                        ];
+                        $previousValue .= ($lastChar != "\r" && $lastChar != "\n" ? " " : "");
+                        $previousValue .= Bag::trimSpacesOnly($line);
+                        $bagData[count($bagData) - 1]['value'] = $previousValue;
                     } else {
-                        $this->addBagError($info_file, "Invalid tag.");
+                        $this->addBagError(
+                            $info_file,
+                            "Line $lineCount: Appears to be continuation but there is no preceding tag."
+                        );
                     }
+                } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:(.*)~", $line, $matches)) {
+                    // First line
+                    $current_tag = $matches[2];
+                    if (self::mustNotRepeatBagInfoExists($current_tag, $bagData)) {
+                        $this->addBagError(
+                            $info_file,
+                            "Line $lineCount: Tag $current_tag MUST not be repeated."
+                        );
+                    } elseif (self::shouldNotRepeatBagInfoExists($current_tag, $bagData)) {
+                        $this->addBagWarning(
+                            $info_file,
+                            "Line $lineCount: Tag $current_tag SHOULD NOT be repeated."
+                        );
+                    }
+                    if (($this->compareVersion('1.0') <= 0) && (!empty($matches[1]) || !empty($matches[3]))) {
+                        $this->addBagError(
+                            $info_file,
+                            "Line $lineCount: Labels cannot begin or end with a whitespace."
+                        );
+                    }
+                    if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
+                        // Line is max length or longer, should be autowrapped
+                        $value = $matches[4];
+                    } else {
+                        // Shorter line, save the newline.
+                        $value = $matches[4] . PHP_EOL;
+                    }
+                    $bagData[] = [
+                        'tag' => $current_tag,
+                        // Newline is removed by preg_match, re-add it here.
+                        'value' => Bag::trimSpacesOnly($value),
+                    ];
+                } else {
+                    $this->addBagError($info_file, "Invalid tag.");
                 }
             }
             // We left newlines on the end of each tag value, those can be stripped.
@@ -1310,7 +1319,7 @@ class Bag
 
     /**
      * Just trim spaces NOT newlines and carriage returns.
-     * @param $text
+     * @param string $text
      *   The original text
      * @return string
      *   The text with surrounding spaces trimmed away.
@@ -2277,28 +2286,30 @@ class Bag
      * Check that the key is not non-repeatable and already in the bagInfo.
      *
      * @param string $key The key being added.
+     * @param array $bagData The current bag data.
      *
      * @return boolean
      *   True if the key is non-repeatable and already in the
      */
-    private function mustNotRepeatBagInfoExists(string $key): bool
+    private static function mustNotRepeatBagInfoExists(string $key, array $bagData): bool
     {
         return (in_array(strtolower($key), self::BAG_INFO_MUST_NOT_REPEAT) &&
-            self::arrayKeyExistsNoCase($key, 'tag', $this->bagInfoData));
+            self::arrayKeyExistsNoCase($key, 'tag', $bagData));
     }
 
     /**
      * Check that the key is not non-repeatable and already in the bagInfo.
      *
      * @param string $key The key being added.
+     * @param array $bagData The current bag data.
      *
      * @return boolean
      *   True if the key is non-repeatable and already in the
      */
-    private function shouldNotRepeatBagInfoExists(string $key): bool
+    private static function shouldNotRepeatBagInfoExists(string $key, array $bagData): bool
     {
         return (in_array(strtolower($key), self::BAG_INFO_SHOULD_NOT_REPEAT) &&
-            self::arrayKeyExistsNoCase($key, 'tag', $this->bagInfoData));
+            self::arrayKeyExistsNoCase($key, 'tag', $bagData));
     }
 
     /**

@@ -434,12 +434,12 @@ class Fetch
      *   The URL to download.
      * @param bool $single
      *   If this is a download() call versus a downloadAll() call.
-     * @param int|null size
+     * @param int|null $size
      *   Expected download size or null if unknown
      * @return false|resource
      *   False on error, otherwise the cUl resource.
      */
-    private function createCurl(string $url, bool $single = false, int $size = null)
+    private function createCurl(string $url, bool $single = false, ?int $size = null)
     {
         $ch = curl_init($url);
         $options = $this->curlOptions;

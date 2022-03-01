@@ -15,8 +15,13 @@ use whikloj\BagItTools\Exceptions\BagItException;
 class ExtendedBagTest extends BagItTestFramework
 {
     /**
+     * @var string The directory to the bag-info files.
+     */
+    private const BAG_INFO_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "bag-infos";
+
+    /**
      * @group Extended
-     * @covers ::validate
+     * @covers ::isValid
      * @covers ::getErrors
      * @covers \whikloj\BagItTools\AbstractManifest::getErrors
      * @covers ::getWarnings
@@ -26,7 +31,7 @@ class ExtendedBagTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertCount(0, $bag->getErrors());
         $this->assertCount(0, $bag->getWarnings());
     }
@@ -172,7 +177,7 @@ class ExtendedBagTest extends BagItTestFramework
         ];
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertTrue($bag->isExtended());
         $this->assertCount(7, $bag->getBagInfoData());
         $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));
@@ -369,8 +374,10 @@ class ExtendedBagTest extends BagItTestFramework
     public function testInvalidBagInfov1(): void
     {
         $bag = Bag::create($this->tmpdir);
-        copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
-            'invalid-leading-spaces.txt', $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt');
+        copy(
+            self::BAG_INFO_DIR . DIRECTORY_SEPARATOR . 'invalid-leading-spaces.txt',
+            $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt'
+        );
         touch($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-md5.txt');
         $testbag = Bag::load($this->tmpdir);
         $this->assertCount(2, $testbag->getErrors());
@@ -385,8 +392,10 @@ class ExtendedBagTest extends BagItTestFramework
     public function testInvalidBagInfov097(): void
     {
         $bag = Bag::create($this->tmpdir);
-        copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
-            'invalid-leading-spaces.txt', $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt');
+        copy(
+            self::BAG_INFO_DIR . DIRECTORY_SEPARATOR . 'invalid-leading-spaces.txt',
+            $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt'
+        );
         file_put_contents(
             $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bagit.txt',
             "BagIt-Version: 0.97" . PHP_EOL . "Tag-File-Character-Encoding: UTF-8" . PHP_EOL
@@ -445,7 +454,7 @@ class ExtendedBagTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertTrue($bag->isExtended());
         $bag->addAlgorithm('SHA-224');
         $bag->update();
@@ -504,7 +513,7 @@ class ExtendedBagTest extends BagItTestFramework
         $bag->update();
 
         $testbag = Bag::load($this->tmpdir);
-        $this->assertTrue($testbag->validate());
+        $this->assertTrue($testbag->isValid());
         $this->assertEquals('A really long long long long long long long long long long long title with a ' .
             'colon : between and more information are on the way', $testbag->getBagInfoByTag('Title')[0]);
     }
@@ -517,8 +526,10 @@ class ExtendedBagTest extends BagItTestFramework
     public function testLoadWrappedLines(): void
     {
         $bag = Bag::create($this->tmpdir);
-        copy(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos' . DIRECTORY_SEPARATOR .
-            'long-lines-and-line-returns.txt', $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt');
+        copy(
+            self::BAG_INFO_DIR . DIRECTORY_SEPARATOR . 'long-lines-and-line-returns.txt',
+            $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt'
+        );
         touch($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt');
 
         // Load tag values as they exist on disk. Long lines (over 70 characters) get the newline removed
@@ -618,5 +629,132 @@ class ExtendedBagTest extends BagItTestFramework
                 str_replace("\n", $newEnding, file_get_contents($path))
             );
         }
+    }
+
+    /**
+     * Ensure that a bag-info that starts with a continuation is listed as an error.
+     * @covers ::loadBagInfo
+     */
+    public function testBagInfoStartWithContinuation(): void
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        // Alter the bag-info.txt
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . 'bag-info.txt',
+            "  the next line.\nExternal-Description: This is the start of a very long information that" .
+            " is expected to wrap on to\n"
+        );
+        // Update the hash for bag-info.txt
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt',
+            "1d9349f1fe77430540a75b996220b41d8ae571cf  bag-info.txt\n8010d7758f1793d0221c529fef818ff988dda141  " .
+            "bagit.txt\nfdead00cc124f82eef20c051e699518c43adc561  manifest-sha1.txt\n" .
+            "e939f78371e07a59c7a91e113618fd70cfa1e7ca  alt_tags/random_tags.txt\n"
+        );
+        $bag = Bag::load($this->tmpdir);
+        $this->assertFalse($bag->isValid());
+        $this->assertCount(1, $bag->getErrors());
+        $this->assertEquals(
+            "bag-info.txt",
+            $bag->getErrors()[0]["file"]
+        );
+        $this->assertEquals(
+            "Line 1: Appears to be continuation but there is no preceding tag.",
+            $bag->getErrors()[0]["message"]
+        );
+    }
+
+    /**
+     * Ensure that a bag-info that has lines over 77 characters get autowrapped.
+     * @covers ::loadBagInfo
+     */
+    public function testBagInfoWithLongLines(): void
+    {
+        $expected = [
+            "tag" => "External-Description",
+            "value" => "This is the start of a very long information that" .
+            " is expected to wrap on to the next line eventually. This action will cause the line that comes" .
+            " next to be placed directly in line with above line, no newline."
+        ];
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        // Alter the bag-info.txt
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . 'bag-info.txt',
+            "External-Description: This is the start of a very long information that" .
+            " is expected to wrap on to the next line eventually. This action will cause the line that comes\n" .
+            "\tnext to be placed directly in line with above line, no newline."
+        );
+        // Update the hash for bag-info.txt
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt',
+            "bec1f727e714a0821610c4a2b28f9b0ef48e086b  bag-info.txt\n8010d7758f1793d0221c529fef818ff988dda141  " .
+            "bagit.txt\nfdead00cc124f82eef20c051e699518c43adc561  manifest-sha1.txt\n" .
+            "e939f78371e07a59c7a91e113618fd70cfa1e7ca  alt_tags/random_tags.txt\n"
+        );
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->isValid());
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(1, $bag->getBagInfoData());
+        $this->assertArrayEquals($expected, $bag->getBagInfoData()[0]);
+    }
+
+    /**
+     * Ensure that MUST not repeat fields are flagged as errors on load
+     * @covers ::loadBagInfo
+     * @covers ::mustNotRepeatBagInfoExists
+     */
+    public function testMustNotRepeatBagInfoTags(): void
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . "bag-info.txt",
+            "Payload-Oxum: 19845.3\nSource-Organization: Museum of Arts and Crafts\nPayload-Oxum: 19845.3\n" .
+            "External-Description: This file will fail because you can only have one payload-oxum line.\n"
+        );
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt',
+            "39546af37cf32cfce71b8d88a4aa4829105e11e6  bag-info.txt\n8010d7758f1793d0221c529fef818ff988dda141  " .
+            "bagit.txt\nfdead00cc124f82eef20c051e699518c43adc561  manifest-sha1.txt\n" .
+            "e939f78371e07a59c7a91e113618fd70cfa1e7ca  alt_tags/random_tags.txt\n"
+        );
+        $bag = Bag::load($this->tmpdir);
+        $this->assertFalse($bag->isValid());
+        $this->assertCount(1, $bag->getErrors());
+        $expected = [
+            "file" => "bag-info.txt",
+            "message" => "Line 3: Tag Payload-Oxum MUST not be repeated."
+        ];
+        $this->assertArrayEquals($expected, $bag->getErrors()[0]);
+    }
+
+    /**
+     * Ensure that SHOULD not repeat fields are flagged as warnings on load
+     * @covers ::loadBagInfo
+     * @covers ::shouldNotRepeatBagInfoExists
+     */
+    public function testShouldNotRepeatBagInfoTags(): void
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . "bag-info.txt",
+            "Payload-Oxum: 19845.3\nBag-Size: 2MB\nSource-Organization: Museum of Arts and Crafts\n" .
+            "External-Description: This file will fail because you can only have one payload-oxum line.\n" .
+            "Bag-Size: 2MB\n"
+        );
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt',
+            "1a8c17edfec75662a05fad0276a08212af53c656  bag-info.txt\n8010d7758f1793d0221c529fef818ff988dda141  " .
+            "bagit.txt\nfdead00cc124f82eef20c051e699518c43adc561  manifest-sha1.txt\n" .
+            "e939f78371e07a59c7a91e113618fd70cfa1e7ca  alt_tags/random_tags.txt\n"
+        );
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->isValid());
+        $this->assertCount(0, $bag->getErrors());
+        $this->assertCount(1, $bag->getWarnings());
+        $expected = [
+            "file" => "bag-info.txt",
+            "message" => "Line 5: Tag Bag-Size SHOULD NOT be repeated."
+        ];
+        $this->assertArrayEquals($expected, $bag->getWarnings()[0]);
     }
 }

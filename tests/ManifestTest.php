@@ -100,10 +100,10 @@ class ManifestTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
 
         file_put_contents($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'oops.txt', "Slip up");
-        $this->assertFalse($bag->validate());
+        $this->assertFalse($bag->isValid());
     }
 
     /**
@@ -117,7 +117,7 @@ class ManifestTest extends BagItTestFramework
     {
         $this->prepareManifest('manifest-with-relative-paths-sha256.txt');
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertCount(0, $bag->getErrors());
         $this->assertCount(1, $bag->getWarnings());
     }
@@ -133,7 +133,7 @@ class ManifestTest extends BagItTestFramework
     {
         $this->prepareManifest('manifest-with-duplicate-lines-sha256.txt');
         $bag = Bag::load($this->tmpdir);
-        $this->assertFalse($bag->validate());
+        $this->assertFalse($bag->isValid());
         $this->assertCount(1, $bag->getErrors());
         $this->assertCount(0, $bag->getWarnings());
     }
@@ -149,7 +149,7 @@ class ManifestTest extends BagItTestFramework
     {
         $this->prepareManifest('manifest-with-case-insensitive-duplicates-sha256.txt');
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $this->assertCount(0, $bag->getErrors());
         $this->assertCount(1, $bag->getWarnings());
     }
@@ -170,7 +170,7 @@ class ManifestTest extends BagItTestFramework
         ];
         $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestEncodingBag");
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $manifest = $bag->getPayloadManifests();
         $paths = array_keys($manifest['sha256']->getHashes());
         $this->assertArrayEquals($expected, $paths);
@@ -218,7 +218,7 @@ class ManifestTest extends BagItTestFramework
     {
         $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestBadFilePathsBag");
         $bag = Bag::load($this->tmpdir);
-        $this->assertFalse($bag->validate());
+        $this->assertFalse($bag->isValid());
         // 1 errors for bad payload lines, 1 for missing files and 1 for files in the bag not in the payload manifest.
         $this->assertCount(3, $bag->getErrors());
         $payload = $bag->getPayloadManifests()['sha256'];
@@ -232,7 +232,7 @@ class ManifestTest extends BagItTestFramework
     {
         $this->prepareManifest("TestBag-manifest-CR-sha256.txt");
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $payload = $bag->getPayloadManifests()['sha256'];
         $this->assertCount(3, $payload->getHashes());
     }
@@ -244,7 +244,7 @@ class ManifestTest extends BagItTestFramework
     {
         $this->prepareManifest("TestBag-manifest-CRLF-sha256.txt");
         $bag = Bag::load($this->tmpdir);
-        $this->assertTrue($bag->validate());
+        $this->assertTrue($bag->isValid());
         $payload = $bag->getPayloadManifests()['sha256'];
         $this->assertCount(3, $payload->getHashes());
     }

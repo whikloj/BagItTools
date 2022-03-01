@@ -188,7 +188,7 @@ class BagInternalTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $this->assertEquals('0.97', $bag->getVersionString());
         touch($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'oops.txt');
-        $this->assertFalse($bag->validate());
+        $this->assertFalse($bag->isValid());
         $this->assertCount(1, $bag->getErrors());
         $this->assertCount(2, $bag->getWarnings());
 

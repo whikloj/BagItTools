@@ -277,7 +277,7 @@ class BagUtils
      *
      * @param string $path
      *   The path of the file.
-     * @param mixed $contents
+     * @param string $contents
      *   The contents to put
      * @param int $flags
      *   Flags to pass on to file_put_contents.
