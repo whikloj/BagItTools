@@ -40,9 +40,9 @@ class ValidateCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        // TODO: This is simplified in Console 5.0, remove this then.
+
         if ($output instanceof ConsoleOutputInterface) {
-            $error_io = new SymfonyStyle($input, $output->getErrorOutput());
+            $error_io = $io->getErrorStyle();
         } else {
             $error_io = $io;
         }
