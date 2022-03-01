@@ -1244,12 +1244,12 @@ class Bag
                         $previousValue = $bagData[count($bagData) - 1]['value'];
                         // Add a space only if the previous character was not a line break.
                         $lastChar = substr($previousValue, -1);
-                        $previousValue .= ($lastChar != "\r" && $lastChar != "\n" ? " " : "");
-                        $previousValue .= Bag::trimSpacesOnly($line);
                         if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
                             // Line is max length or longer, should be autowrapped
                             $previousValue = rtrim($previousValue, "\r\n");
                         }
+                        $previousValue .= ($lastChar != "\r" && $lastChar != "\n" ? " " : "");
+                        $previousValue .= Bag::trimSpacesOnly($line);
                         $bagData[count($bagData) - 1]['value'] = $previousValue;
                     } else {
                         $this->addBagError(
@@ -1260,12 +1260,12 @@ class Bag
                 } elseif (preg_match("~^(\s+)?([^:]+?)(\s+)?:(.*)~", $line, $matches)) {
                     // First line
                     $current_tag = $matches[2];
-                    if ($this->mustNotRepeatBagInfoExists($current_tag)) {
+                    if (self::mustNotRepeatBagInfoExists($current_tag, $bagData)) {
                         $this->addBagError(
                             $info_file,
                             "Line $lineCount: Tag $current_tag MUST not be repeated."
                         );
-                    } elseif ($this->shouldNotRepeatBagInfoExists($current_tag)) {
+                    } elseif (self::shouldNotRepeatBagInfoExists($current_tag, $bagData)) {
                         $this->addBagWarning(
                             $info_file,
                             "Line $lineCount: Tag $current_tag SHOULD NOT be repeated."
@@ -2286,28 +2286,30 @@ class Bag
      * Check that the key is not non-repeatable and already in the bagInfo.
      *
      * @param string $key The key being added.
+     * @param array $bagData The current bag data.
      *
      * @return boolean
      *   True if the key is non-repeatable and already in the
      */
-    private function mustNotRepeatBagInfoExists(string $key): bool
+    private static function mustNotRepeatBagInfoExists(string $key, array $bagData): bool
     {
         return (in_array(strtolower($key), self::BAG_INFO_MUST_NOT_REPEAT) &&
-            self::arrayKeyExistsNoCase($key, 'tag', $this->bagInfoData));
+            self::arrayKeyExistsNoCase($key, 'tag', $bagData));
     }
 
     /**
      * Check that the key is not non-repeatable and already in the bagInfo.
      *
      * @param string $key The key being added.
+     * @param array $bagData The current bag data.
      *
      * @return boolean
      *   True if the key is non-repeatable and already in the
      */
-    private function shouldNotRepeatBagInfoExists(string $key): bool
+    private static function shouldNotRepeatBagInfoExists(string $key, array $bagData): bool
     {
         return (in_array(strtolower($key), self::BAG_INFO_SHOULD_NOT_REPEAT) &&
-            self::arrayKeyExistsNoCase($key, 'tag', $this->bagInfoData));
+            self::arrayKeyExistsNoCase($key, 'tag', $bagData));
     }
 
     /**
