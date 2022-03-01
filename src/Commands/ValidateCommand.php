@@ -7,7 +7,6 @@ namespace whikloj\BagItTools\Commands;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use whikloj\BagItTools\Bag;
@@ -40,12 +39,6 @@ class ValidateCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        // TODO: This is simplified in Console 5.0, remove this then.
-        if ($output instanceof ConsoleOutputInterface) {
-            $error_io = new SymfonyStyle($input, $output->getErrorOutput());
-        } else {
-            $error_io = $io;
-        }
 
         $path = $input->getArgument('bag-path');
         if ($path[0] !== DIRECTORY_SEPARATOR) {
@@ -53,7 +46,7 @@ class ValidateCommand extends Command
             $realpath = realpath($path);
         }
         if ((isset($realpath) && $realpath === false) || !file_exists($path)) {
-            $error_io->error("Path $path does not exist, cannot validate.");
+            $io->error("Path $path does not exist, cannot validate.");
         } else {
             try {
                 if (isset($realpath) && $realpath !== false) {
@@ -66,14 +59,14 @@ class ValidateCommand extends Command
                     // Print warnings
                     $warnings = $bag->getWarnings();
                     foreach ($warnings as $warning) {
-                        $error_io->warning("{$warning['message']} -- file: {$warning['file']}");
+                        $io->warning("{$warning['message']} -- file: {$warning['file']}");
                     }
                 }
                 if ($verbose >= OutputInterface::VERBOSITY_VERBOSE) {
                     // Print errors
                     $errors = $bag->getErrors();
                     foreach ($errors as $error) {
-                        $error_io->error("{$error['message']} -- file: {$error['file']}");
+                        $io->error("{$error['message']} -- file: {$error['file']}");
                     }
                 }
                 if ($verbose >= OutputInterface::VERBOSITY_NORMAL) {
@@ -85,7 +78,7 @@ class ValidateCommand extends Command
                 }
                 return($valid ? 0 : 1);
             } catch (BagItException $e) {
-                $error_io->error("Exception: {$e->getMessage()}");
+                $io->error("Exception: {$e->getMessage()}");
             }
         }
         return(1);
