@@ -625,7 +625,7 @@ class Bag
         $tag = self::trimLower($tag);
         if ($this->bagInfoTagExists($tag)) {
             $compare_fn = function ($o) use ($tag) {
-                return strcmp($tag, strtolower($o["tag"]));
+                return strcmp($tag, strtolower($o["tag"])) !== 0;
             };
             // array_values fixes numeric indexes for individual tag arrays after filtering
             $this->bagInfoData = array_values(array_filter($this->bagInfoData, $compare_fn));
