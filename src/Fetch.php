@@ -269,7 +269,7 @@ class Fetch
     public function cleanup(): void
     {
         foreach ($this->files as $file) {
-            $fullPath = BagUtils::getAbsolute($this->bag->makeAbsolute($file['destination']));
+            $fullPath = $this->bag->makeAbsolute($file['destination']);
             if (file_exists($fullPath)) {
                 // Remove the file because we are being packaged or finalized.
                 BagUtils::checkedUnlink($fullPath);
@@ -514,7 +514,8 @@ class Fetch
                 if ($status != CURLM_OK) {
                     $this->addError("Problems with multifile download.");
                 }
-                for ($x = 0; $x < count($curl_handles); $x += 1) {
+                $handle_count = count($curl_handles);
+                for ($x = 0; $x < $handle_count; $x += 1) {
                     $error = curl_error($curl_handles[$x]);
                     $url = curl_getinfo($curl_handles[$x], CURLINFO_EFFECTIVE_URL);
                     if (!empty($error)) {

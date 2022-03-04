@@ -170,7 +170,6 @@ abstract class AbstractManifest
         }
         foreach ($this->hashes as $path => $hash) {
             $fullPath = $this->bag->makeAbsolute($path);
-            $fullPath = $this->cleanUpAbsPath($fullPath);
             $this->validatePath($path, $fullPath);
             if (file_exists($fullPath)) {
                 $calculatedHash = strtolower($this->calculateHash($fullPath));
@@ -435,7 +434,6 @@ abstract class AbstractManifest
     private function cleanUpRelPath(string $filepath): string
     {
         $filepath = $this->bag->makeAbsolute($filepath);
-        $filepath = $this->cleanUpAbsPath($filepath);
         $filepath = BagUtils::decodeFilepath($filepath);
         return $this->bag->makeRelative($filepath);
     }

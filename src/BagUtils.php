@@ -155,29 +155,24 @@ class BagUtils
 
         $absolutes = [];
         foreach ($subPaths as $subPath) {
-            if ('.' === $subPath) {
-                continue;
-            }
-            // if $startWithSeparator is false
-            // and $startWithLetterDir
-            // and (absolutes is empty or all previous values are ..)
+            $abs_size = count($absolutes);
+            // if $subPath == '..'
+            // and $startWithSeparator is false
+            // and $startWithLetterDir is false
+            // and absolutes is empty
             // save absolute cause that's a relative and we can't deal with that and just forget that we want go up
             if (
                 '..' === $subPath
                 && !$startWithSeparator
                 && !$startWithLetterDir
-                && empty(array_filter($absolutes, function ($value) {
-                    return !('..' === $value);
-                }))
+                && $abs_size == 0
             ) {
                 $absolutes[] = $subPath;
-                continue;
-            }
-            if ('..' === $subPath) {
+            } elseif ('..' === $subPath) {
                 array_pop($absolutes);
-                continue;
+            } elseif ($subPath !== '.') {
+                $absolutes[] = $subPath;
             }
-            $absolutes[] = $subPath;
         }
 
         return
@@ -216,7 +211,8 @@ class BagUtils
         $paths = [$directory];
         $found_files = [];
 
-        while (count($paths) > 0) {
+        $loops = count($paths);
+        while ($loops--) {
             $currentPath = array_shift($paths);
             $files = scandir($currentPath);
             foreach ($files as $file) {
@@ -226,6 +222,7 @@ class BagUtils
                 $fullPath = $currentPath . DIRECTORY_SEPARATOR . $file;
                 if (is_dir($fullPath) && !in_array($file, $exclusions)) {
                     $paths[] = $fullPath;
+                    $loops = count($paths);
                 } elseif (is_file($fullPath)) {
                     $found_files[] = $fullPath;
                 }

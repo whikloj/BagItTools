@@ -43,6 +43,9 @@
     "phpstan": [
       "php -d memory_limit=-1 ./vendor/bin/phpstan analyze -l 3 src tests"
     ],
+    "profile": [
+      "php -d xdebug.mode=profile -d xdebug.output_dir=mytracedir/ -d xdebug.start_with_request=yes -d xdebug.use_compression=true ./vendor/bin/phpunit"
+    ],
     "check": [
       "./vendor/bin/phpcs --standard=PSR12 src tests",
       "./vendor/bin/phpcpd --suffix='.php' src"
