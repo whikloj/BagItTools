@@ -155,22 +155,24 @@ class BagUtils
 
         $absolutes = [];
         foreach ($subPaths as $subPath) {
-            $abs_size = count($absolutes);
+            if ($subPath == ".") {
+                continue;
+            }
             // if $subPath == '..'
             // and $startWithSeparator is false
             // and $startWithLetterDir is false
-            // and absolutes is empty
+            // and absolutes is empty or only contains '..' subpaths.
             // save absolute cause that's a relative and we can't deal with that and just forget that we want go up
             if (
                 '..' === $subPath
                 && !$startWithSeparator
                 && !$startWithLetterDir
-                && $abs_size == 0
+                && empty(array_filter($absolutes, function ($value) { return !('..' === $value); }))
             ) {
                 $absolutes[] = $subPath;
             } elseif ('..' === $subPath) {
                 array_pop($absolutes);
-            } elseif ($subPath !== '.') {
+            } else {
                 $absolutes[] = $subPath;
             }
         }
@@ -211,9 +213,7 @@ class BagUtils
         $paths = [$directory];
         $found_files = [];
 
-        $loops = count($paths);
-        while ($loops--) {
-            $currentPath = array_shift($paths);
+        while ($currentPath = array_shift($paths)) {
             $files = scandir($currentPath);
             foreach ($files as $file) {
                 if (self::isDotDir($file)) {
@@ -222,7 +222,6 @@ class BagUtils
                 $fullPath = $currentPath . DIRECTORY_SEPARATOR . $file;
                 if (is_dir($fullPath) && !in_array($file, $exclusions)) {
                     $paths[] = $fullPath;
-                    $loops = count($paths);
                 } elseif (is_file($fullPath)) {
                     $found_files[] = $fullPath;
                 }

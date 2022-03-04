@@ -72,10 +72,24 @@ class BagUtilsTest extends BagItTestFramework
      */
     public function testGetAbsolute(): void
     {
-        $this->assertEquals('data/dir1/dir2', BagUtils::getAbsolute('data/./dir1//dir2'));
-        $this->assertEquals('data/dir1/dir3', BagUtils::getAbsolute('data/dir1/dir2/../dir3'));
-        $this->assertEquals('', BagUtils::getAbsolute('data/dir1/../../'));
-        $this->assertEquals('..', BagUtils::getAbsolute('data/dir1/../../../'));
+        $paths = [
+            'data/./dir1//dir2' => 'data/dir1/dir2',
+            'data/dir1/dir2/../dir3' => 'data/dir1/dir3',
+            'data/dir1/../../' => '',
+            'data/dir1/../../../../' => '../..',
+            '/one/two/../two/./three/../../two' => '/one/two',
+            '../one/two/../two/./three/../../two' => '../one/two',
+            '../.././../one/two/../two/./three/../../two' => '../../../one/two',
+            '../././../one/two/../two/./three/../../two' => '../../one/two',
+            '/../one/two/../two/./three/../../two' => '/one/two',
+            '/../../one/two/../two/./three/../../two' => '/one/two',
+            'c:\.\..\one\two\..\two\.\three\..\..\two' => 'c:/one/two',
+            '/path/to/test/.././..//..///..///../one/two/../three/filename' => '/one/three/filename',
+        ];
+        $line = 0;
+        foreach ($paths as $starting => $expected) {
+            $this->assertEquals($expected, BagUtils::getAbsolute($starting), "Test Case " . ++$line . " failed");
+        }
     }
 
     /**
