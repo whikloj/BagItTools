@@ -155,9 +155,12 @@ class BagUtils
 
         $absolutes = [];
         foreach ($subPaths as $subPath) {
-            if ($subPath == ".") {
+            if ('.' === $subPath) {
                 continue;
             }
+            $actual_absolutes = array_filter($absolutes, function ($value) {
+                return !('..' === $value);
+            });
             // if $subPath == '..'
             // and $startWithSeparator is false
             // and $startWithLetterDir is false
@@ -167,7 +170,7 @@ class BagUtils
                 '..' === $subPath
                 && !$startWithSeparator
                 && !$startWithLetterDir
-                && empty(array_filter($absolutes, function ($value) { return !('..' === $value); }))
+                && empty($actual_absolutes)
             ) {
                 $absolutes[] = $subPath;
             } elseif ('..' === $subPath) {
