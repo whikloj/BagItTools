@@ -325,7 +325,7 @@ class ManifestTest extends BagItTestFramework
             "another_picture.txt"
         ];
         // Delete the file from the bag that we are referencing as outside the bag.
-        unlink(implode($path, DIRECTORY_SEPARATOR));
+        unlink(implode(DIRECTORY_SEPARATOR, $path));
         $bag = Bag::load($this->tmpdir);
         $this->assertFalse($bag->isValid());
         $this->assertCount(1, $bag->getErrors());
