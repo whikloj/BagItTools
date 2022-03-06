@@ -158,26 +158,26 @@ class BagUtils
             if ('.' === $subPath) {
                 continue;
             }
-            // if $startWithSeparator is false
-            // and $startWithLetterDir
-            // and (absolutes is empty or all previous values are ..)
+            $actual_absolutes = array_filter($absolutes, function ($value) {
+                return !('..' === $value);
+            });
+            // if $subPath == '..'
+            // and $startWithSeparator is false
+            // and $startWithLetterDir is false
+            // and absolutes is empty or only contains '..' subpaths.
             // save absolute cause that's a relative and we can't deal with that and just forget that we want go up
             if (
                 '..' === $subPath
                 && !$startWithSeparator
                 && !$startWithLetterDir
-                && empty(array_filter($absolutes, function ($value) {
-                    return !('..' === $value);
-                }))
+                && empty($actual_absolutes)
             ) {
                 $absolutes[] = $subPath;
-                continue;
-            }
-            if ('..' === $subPath) {
+            } elseif ('..' === $subPath) {
                 array_pop($absolutes);
-                continue;
+            } else {
+                $absolutes[] = $subPath;
             }
-            $absolutes[] = $subPath;
         }
 
         return
@@ -216,8 +216,7 @@ class BagUtils
         $paths = [$directory];
         $found_files = [];
 
-        while (count($paths) > 0) {
-            $currentPath = array_shift($paths);
+        while ($currentPath = array_shift($paths)) {
             $files = scandir($currentPath);
             foreach ($files as $file) {
                 if (self::isDotDir($file)) {

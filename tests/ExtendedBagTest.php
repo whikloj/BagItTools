@@ -190,6 +190,74 @@ class ExtendedBagTest extends BagItTestFramework
     }
 
     /**
+     * @covers ::removeBagInfoTagValue
+     */
+    public function testRemoveBagInfoByTagValue(): void
+    {
+        $original = [
+            'Robert Smith',
+            'Randy Moss',
+            'Cris Carter',
+        ];
+        $final = [
+            'Robert Smith',
+            'Cris Carter',
+        ];
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->isValid());
+        $this->assertTrue($bag->isExtended());
+        $this->assertCount(7, $bag->getBagInfoData());
+        $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));
+        $this->assertCount(3, $bag->getBagInfoByTag('CONTACT-name'));
+        $this->assertArrayEquals($original, $bag->getBagInfoByTag('CONTACT-name'));
+        // remove by value is case-sensitive
+        $bag->removeBagInfoTagValue('Contact-NAME', "RANDY MOSS");
+        $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));
+        $this->assertCount(3, $bag->getBagInfoByTag('ConTAct-NamE'));
+        $this->assertArrayEquals($original, $bag->getBagInfoByTag('contact-name'));
+        // So you have to be exact, even spaces matter
+        $bag->removeBagInfoTagValue('Contact-NAME', "Randy Moss ");
+        $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));
+        $this->assertCount(3, $bag->getBagInfoByTag('ConTAct-NamE'));
+        $this->assertArrayEquals($original, $bag->getBagInfoByTag('contact-name'));
+        // Be careful
+        $bag->removeBagInfoTagValue('Contact-NAME', "Randy Moss");
+        $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));
+        $this->assertCount(2, $bag->getBagInfoByTag('ConTAct-NamE'));
+        $this->assertArrayEquals($final, $bag->getBagInfoByTag('contact-name'));
+    }
+
+    /**
+     * @covers ::removeBagInfoTagValue
+     */
+    public function testRemoveBagInfoByTagValueCase(): void
+    {
+        $original = [
+            'Robert Smith',
+            'Randy Moss',
+            'Cris Carter',
+        ];
+        $final = [
+            'Robert Smith',
+            'Cris Carter',
+        ];
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->isValid());
+        $this->assertTrue($bag->isExtended());
+        $this->assertCount(7, $bag->getBagInfoData());
+        $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));
+        $this->assertCount(3, $bag->getBagInfoByTag('CONTACT-name'));
+        $this->assertArrayEquals($original, $bag->getBagInfoByTag('CONTACT-name'));
+        // remove by value can also be case-insensitive
+        $bag->removeBagInfoTagValue('Contact-NAME', "RANDY MOSS", false);
+        $this->assertTrue($bag->hasBagInfoTag('CONTACT-NAME'));
+        $this->assertCount(2, $bag->getBagInfoByTag('ConTAct-NamE'));
+        $this->assertArrayEquals($final, $bag->getBagInfoByTag('contact-name'));
+    }
+
+    /**
      * Test getting, adding and removing valid algorithms using common names.
      *
      * @group Bag

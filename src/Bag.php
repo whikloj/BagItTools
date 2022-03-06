@@ -540,7 +540,7 @@ class Bag
      */
     public function makeAbsolute(string $path): string
     {
-        $length = strlen($this->bagRoot);
+        $length = strlen(trim($this->bagRoot));
         $path = $this->internalPath($path);
         $path = BagUtils::getAbsolute($path);
         if (substr($path, 0, $length) == $this->bagRoot) {
@@ -624,14 +624,11 @@ class Bag
     {
         $tag = self::trimLower($tag);
         if ($this->bagInfoTagExists($tag)) {
-            $newInfo = [];
-            foreach ($this->bagInfoData as $row) {
-                $rowTag = self::trimLower($row['tag']);
-                if ($rowTag !== $tag) {
-                    $newInfo[] = $row;
-                }
-            }
-            $this->bagInfoData = $newInfo;
+            $compare_fn = function ($o) use ($tag) {
+                return strcmp($tag, strtolower($o["tag"])) !== 0;
+            };
+            // array_values fixes numeric indexes for individual tag arrays after filtering
+            $this->bagInfoData = array_values(array_filter($this->bagInfoData, $compare_fn));
             $this->updateBagInfoIndex();
             $this->changed = true;
         }
@@ -668,6 +665,32 @@ class Bag
                     $this->updateBagInfoIndex();
                     $this->changed = true;
                 }
+            }
+        }
+    }
+
+    /**
+     * Remove a specific entry for a tag by the tag value.
+     *
+     * @param string $tag
+     *   The tag we are removing a value of.
+     * @param string $value
+     *   The value to remove from the above tag.
+     * @param bool $case_sensitive
+     *   Whether to perform a case-sensitive match.
+     */
+    public function removeBagInfoTagValue(string $tag, string $value, bool $case_sensitive = true): void
+    {
+        if (!empty($tag) && !empty($value)) {
+            $tag = self::trimLower($tag);
+            if ($this->hasBagInfoTag($tag)) {
+                $compare_value = ($case_sensitive ? "strcmp" : "strcasecmp");
+                $compare_fn = function ($o) use ($tag, $value, $compare_value) {
+                    return (strcasecmp($tag, $o["tag"]) !== 0 || $compare_value($value, $o["value"]) !== 0);
+                };
+                // array_values fixes numeric indexes for individual tag arrays after filtering
+                $this->bagInfoData = array_values(array_filter($this->bagInfoData, $compare_fn));
+                $this->updateBagInfoIndex();
             }
         }
     }
@@ -1077,8 +1100,6 @@ class Bag
     public function pathInBagData(string $filepath): bool
     {
         $external = $this->makeAbsolute($filepath);
-        $external = trim($external);
-        $external = BagUtils::getAbsolute($external);
         $relative = $this->makeRelative($external);
         return ($relative !== "" && substr($relative, 0, 5) === "data/");
     }
@@ -1503,12 +1524,14 @@ class Bag
                 }
             );
             $length -= 1;
-        } while ($length > 0 && count($too_long) > 0);
-        if (count($too_long) > 0) {
+            $num_too_long = count($too_long);
+        } while ($length > 0 && $num_too_long > 0);
+        if ($num_too_long > 0) {
             // No matter the size we couldn't get it to fit in 79 characters. So we give up.
             $rows = self::wrapAtLength($text, Bag::BAGINFO_AUTOWRAP_START);
         }
-        for ($foo = 1; $foo < count($rows); $foo += 1) {
+        $row_count = count($rows);
+        for ($foo = 1; $foo < $row_count; $foo += 1) {
             $rows[$foo] = "  " . $rows[$foo];
         }
         return $rows;

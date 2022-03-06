@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace whikloj\BagItTools\Test;
 
 use whikloj\BagItTools\Bag;
+use whikloj\BagItTools\Exceptions\BagItException;
 
 /**
  * Class ManifestTest
@@ -87,7 +88,6 @@ class ManifestTest extends BagItTestFramework
     /**
      * @group Manifest
      * @covers ::validate
-     * @covers ::validatePath
      * @covers ::calculateHash
      * @covers ::loadFile
      * @covers ::normalizePath
@@ -112,6 +112,7 @@ class ManifestTest extends BagItTestFramework
      * @covers ::loadFile
      * @covers ::addLoadWarning
      * @covers ::normalizePath
+     * @covers ::checkIncomingFilePath
      */
     public function testRelativeManifestPaths(): void
     {
@@ -279,5 +280,71 @@ class ManifestTest extends BagItTestFramework
         $line = fgets($fp);
         $line = mb_convert_encoding($line, 'UTF-8', $file_encoding);
         return trim($line);
+    }
+
+    /**
+     * @covers \whikloj\BagItTools\AbstractManifest::validate
+     */
+    public function testValidatePathDoesNotExist(): void
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . "manifest-sha256.txt",
+            "3663a4f1d58f56248bf3708a27c1f143a9ec96ea5dbb78d627a4330b73f8b6db  data/jekyll_and_hyde.txt\n" .
+            "0fd56c020e20bf86fd89b3357b30203c684411afca5c7aa98023f32f7536e936  data/pictures/another_picture.txt\n" .
+            "2c9d71a5db0a38b99b897f2397f7e252f451a7d219d044a47f22ffd3637e64e3  data/pictures/some_more_data.txt\n" .
+            "a56107d41b5a3ebc6da1734616cbca60513e5873d44024d5dfff3a14e090b4da  data/non_existant_file.txt\n"
+        );
+        $bag = Bag::load($this->tmpdir);
+        $this->assertFalse($bag->isValid());
+        $this->assertCount(1, $bag->getErrors());
+        $expected = [
+            "file" => "manifest-sha256.txt",
+            "message" => "data/non_existant_file.txt does not exist."
+        ];
+        $this->assertArrayEquals($expected, $bag->getErrors()[0]);
+    }
+
+    /**
+     * @covers \whikloj\BagItTools\AbstractManifest::loadFile
+     */
+    public function testValidatePathOutsideBagLoad(): void
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        file_put_contents(
+            $this->tmpdir . DIRECTORY_SEPARATOR . "manifest-sha256.txt",
+            "3663a4f1d58f56248bf3708a27c1f143a9ec96ea5dbb78d627a4330b73f8b6db  data/jekyll_and_hyde.txt\n" .
+            "0fd56c020e20bf86fd89b3357b30203c684411afca5c7aa98023f32f7536e936  data/../../pictures/" .
+            "another_picture.txt\n2c9d71a5db0a38b99b897f2397f7e252f451a7d219d044a47f22ffd3637e64e3  " .
+            "data/pictures/some_more_data.txt\n"
+        );
+        $path = [
+            $this->tmpdir,
+            "data",
+            "pictures",
+            "another_picture.txt"
+        ];
+        // Delete the file from the bag that we are referencing as outside the bag.
+        unlink(implode(DIRECTORY_SEPARATOR, $path));
+        $bag = Bag::load($this->tmpdir);
+        $this->assertFalse($bag->isValid());
+        $this->assertCount(1, $bag->getErrors());
+        $expected = [
+            "file" => "manifest-sha256.txt",
+            "message" => "Line 2: Path data/../../pictures/another_picture.txt resolves to a path outside of " .
+                "the data/ directory."
+        ];
+        $this->assertArrayEquals($expected, $bag->getErrors()[0]);
+    }
+
+    /**
+     * @covers \whikloj\BagItTools\Bag::addFile
+     */
+    public function testValidatePathOutsideBagCreate(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->expectException(BagItException::class);
+        $this->expectErrorMessage("Path data/../../pictures/another_picture.txt resolves outside the bag.");
+        $bag->addFile(self::TEST_IMAGE['filename'], "data/../../pictures/another_picture.txt");
     }
 }
