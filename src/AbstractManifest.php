@@ -170,7 +170,6 @@ abstract class AbstractManifest
         }
         foreach ($this->hashes as $path => $hash) {
             $fullPath = $this->bag->makeAbsolute($path);
-            $this->validatePath($path, $fullPath);
             if (file_exists($fullPath)) {
                 $calculatedHash = strtolower($this->calculateHash($fullPath));
                 $hash = strtolower($hash);
@@ -178,6 +177,8 @@ abstract class AbstractManifest
                     $this->addError("$path calculated hash ($calculatedHash) does not match manifest " .
                         "($hash)");
                 }
+            } else {
+                $this->addError("$path does not exist.");
             }
         }
     }
@@ -196,23 +197,6 @@ abstract class AbstractManifest
     /*
      * Protected functions.
      */
-
-    /**
-     * Common checks for paths being added to a manifest.
-     *
-     * @param string $path
-     *   The path relative to the bag root.
-     * @param string $filepath
-     *   The absolute filepath.
-     */
-    protected function validatePath(string $path, string $filepath): void
-    {
-        if (!file_exists($filepath)) {
-            $this->addError("$path does not exist.");
-        } elseif ($this->bag->makeRelative($filepath) === "") {
-            $this->addError("$path resolves to a path outside of the data/ directory.");
-        }
-    }
 
     /**
      * Load the paths and hashes from the file on disk, does not validate.
@@ -252,6 +236,9 @@ abstract class AbstractManifest
                     } elseif ($this->matchNormalizedList($lowerNormalized)) {
                         $this->addLoadWarning("Line $lineCount: Path $originalPath matches another file when " .
                             "normalized for case and characters.");
+                    } elseif (empty($path)) {
+                        $this->addLoadError("Line $lineCount: Path $originalPath resolves to a path outside of the " .
+                            "data/ directory.");
                     } else {
                         $this->hashes[$path] = $hash;
                         $this->addToNormalizedList($lowerNormalized);
@@ -407,20 +394,6 @@ abstract class AbstractManifest
             $path = Normalizer::normalize($path);
         }
         return $path;
-    }
-
-    /**
-     * Clean up file paths to remove extraneous period, double period and slashes
-     *
-     * @param string $filepath
-     *   The absolute file path
-     * @return string
-     *   The cleaned up absolute file path, not resolved on disk.
-     */
-    private function cleanUpAbsPath(string $filepath): string
-    {
-        $filepath = trim($filepath);
-        return BagUtils::getAbsolute($filepath);
     }
 
     /**
