@@ -331,6 +331,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test setting a specific algorithm.
      * @group Bag
      * @covers ::setAlgorithm
+     * @covers ::setAlgorithmsInternal
      * @covers ::removeAllPayloadManifests
      * @covers ::removePayloadManifest
      * @covers ::removeAllTagManifests
@@ -377,6 +378,34 @@ class ExtendedBagTest extends BagItTestFramework
         // And the new one does
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-md5.txt');
         $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-md5.txt');
+    }
+
+    /**
+     * Test setting multiple algorithms in one call.
+     * @group Extended
+     * @covers ::setAlgorithms
+     * @covers ::setAlgorithmsInternal
+     * @covers ::removeAllPayloadManifests
+     * @covers ::removeAllTagManifests
+     */
+    public function testSetAlgorithms(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->setExtended(true);
+        $bag->update();
+        $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha512.txt');
+
+        $bag->setAlgorithms(['sha1', 'SHA-224']);
+        $bag->update();
+        $this->assertArrayEquals(['sha1', 'sha224'], $bag->getAlgorithms());
+        $this->assertFileDoesNotExist($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha512.txt');
+        $this->assertFileDoesNotExist($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha512.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha1.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha1.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha224.txt');
+        $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha224.txt');
     }
 
     /**

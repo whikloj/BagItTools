@@ -537,6 +537,7 @@ class BagTest extends BagItTestFramework
      * Test setting a specific algorithm.
      * @group Bag
      * @covers ::setAlgorithm
+     * @covers ::setAlgorithmsInternal
      * @covers ::removeAllPayloadManifests
      * @covers ::removePayloadManifest
      */
@@ -548,6 +549,52 @@ class BagTest extends BagItTestFramework
         $this->assertArrayEquals(['sha512', 'sha1', 'sha224'], $bag->getAlgorithms());
         $bag->setAlgorithm('md5');
         $this->assertArrayEquals(['md5'], $bag->getAlgorithms());
+    }
+
+    /**
+     * Test setting a specific algorithm with an invalid algorithm.
+     * @group Bag
+     * @covers ::setAlgorithm
+     * @covers ::setAlgorithmsInternal
+     */
+    public function testSetAlgorithmFailure(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->addAlgorithm('sha1');
+        $bag->addAlgorithm('SHA-224');
+        $this->assertArrayEquals(['sha512', 'sha1', 'sha224'], $bag->getAlgorithms());
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Algorithm bad-algorithm is not supported.");
+        $bag->setAlgorithm("bad-algorithm");
+    }
+
+    /**
+     * Test setting more than one algorithm.
+     * @group Bag
+     * @covers ::setAlgorithms
+     * @covers ::setAlgorithmsInternal
+     */
+    public function testSetAlgorithms(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
+        $bag->setAlgorithms(['sha1', 'SHA-224']);
+        $this->assertArrayEquals(['sha1', 'sha224'], $bag->getAlgorithms());
+    }
+
+    /**
+     * Test setting more than one algorithm, but one is invalid
+     * @group Bag
+     * @covers ::setAlgorithms
+     * @covers ::setAlgorithmsInternal
+     */
+    public function testSetAlgorithmsFailure(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("One or more of the algorithms provided are supported.");
+        $bag->setAlgorithms(['sha1', 'SHA-224', "bad-algorithm"]);
     }
 
     /**
