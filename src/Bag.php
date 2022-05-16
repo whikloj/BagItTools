@@ -863,6 +863,8 @@ class Bag
      *
      * @param  string $algorithm
      *   Algorithm to use.
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   Problems removing/reading/
      * @throws \whikloj\BagItTools\Exceptions\BagItException
      *   Asking for an unsupported algorithm.
      */
@@ -870,21 +872,58 @@ class Bag
     {
         $internal_name = $this->getHashName($algorithm);
         if ($this->hashIsSupported($internal_name)) {
-            $this->removeAllPayloadManifests([$internal_name]);
-            if (count($this->payloadManifests) == 0) {
-                $this->payloadManifests[$internal_name] = new PayloadManifest($this, $internal_name);
-            }
-            $this->removeAllTagManifests([$internal_name]);
-            if ($this->isExtended) {
-                $this->ensureTagManifests();
-                if (count($this->tagManifests) == 0) {
-                    $this->tagManifests[$internal_name] = new TagManifest($this, $internal_name);
-                }
-            }
-            $this->changed = true;
+            $this->setAlgorithmsInternal([$internal_name]);
         } else {
             throw new BagItException("Algorithm $algorithm is not supported.");
         }
+    }
+
+    /**
+     * Replaces any existing hash algorithms with the ones requested.
+     *
+     * @param array $algorithms
+     *   Array of algorithms to use.
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   Problems removing/reading/creating the new payload/tag manifest files.
+     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     *   If an unsupported algorithm is provided.
+     */
+    public function setAlgorithms(array $algorithms): void
+    {
+        $internal_names = array_map('self::getHashName', $algorithms);
+        $valid_algorithms = array_filter($internal_names, [$this, 'hashIsSupported']);
+        if (count($valid_algorithms) !== count($algorithms)) {
+            throw new BagItException("One or more of the algorithms provided are supported.");
+        }
+        $this->setAlgorithmsInternal($valid_algorithms);
+    }
+
+    /**
+     * Internal utility to remove all algorithms not specified and add any missing.
+     *
+     * @param array $algorithms
+     *   Array of algorithms using their internal names.
+     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     *   Errors
+     */
+    private function setAlgorithmsInternal(array $algorithms): void
+    {
+        $this->removeAllPayloadManifests($algorithms);
+        if ($this->isExtended) {
+            $this->removeAllTagManifests($algorithms);
+            $this->ensureTagManifests();
+        }
+        foreach ($algorithms as $algorithm) {
+            if (!array_key_exists($algorithm, $this->payloadManifests)) {
+                $this->payloadManifests[$algorithm] = new PayloadManifest($this, $algorithm);
+            }
+            if ($this->isExtended) {
+                if (!array_key_exists($algorithm, $this->tagManifests)) {
+                    $this->tagManifests[$algorithm] = new TagManifest($this, $algorithm);
+                }
+            }
+        }
+        $this->changed = true;
     }
 
     /**
