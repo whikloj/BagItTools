@@ -714,14 +714,58 @@ class Bag
         if (in_array($internal_tag, self::BAG_INFO_GENERATED_ELEMENTS)) {
             throw new BagItException("Field $tag is auto-generated and cannot be manually set.");
         }
-        if (!$this->bagInfoTagExists($internal_tag)) {
-            $this->bagInfoTagIndex[$internal_tag] = [];
+        $this->addBagInfoTagsInternal([$tag => $value]);
+    }
+
+    /**
+     * Add multiple bag info tags from an array.
+     *
+     * @param array $tags
+     *   Associative array of tag => value
+     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     *   When you try to set an auto-generated tag value.
+     */
+    public function addBagInfoTags(array $tags): void
+    {
+        if (!$this->isExtended) {
+            throw new BagItException("This bag is not extended, you need '\$bag->setExtended(true);'");
         }
-        $this->bagInfoTagIndex[$internal_tag][] = $value;
-        $this->bagInfoData[] = [
-            'tag' => trim($tag),
-            'value' => trim($value),
-        ];
+        $normalized_keys = array_keys($tags);
+        $normalized_keys = array_map('self::trimLower', $normalized_keys);
+        $overlap = array_intersect($normalized_keys, self::BAG_INFO_GENERATED_ELEMENTS);
+        if (count($overlap) !== 0) {
+            throw new BagItException(
+                "The field(s) " . implode(", ", $overlap) . " are auto-generated and cannot be manually set."
+            );
+        }
+        $this->addBagInfoTagsInternal($tags);
+    }
+
+    /**
+     * Internal function adding the values to the various tag arrays.
+     *
+     * @param array $tags
+     *   Associative array of tag => value
+     */
+    private function addBagInfoTagsInternal(array $tags): void
+    {
+        foreach ($tags as $key => $value) {
+            $internal_key = self::trimLower($key);
+            if (!$this->bagInfoTagExists($internal_key)) {
+                $this->bagInfoTagIndex[$internal_key] = [];
+            }
+            if (!is_array($value)) {
+                // Make value an array
+                $value = [$value];
+            }
+            foreach ($value as $val) {
+                $this->bagInfoTagIndex[$internal_key][] = $val;
+                $this->bagInfoData[] = [
+                    'tag' => trim($key),
+                    'value' => trim($val),
+                ];
+            }
+        }
         $this->changed = true;
     }
 
