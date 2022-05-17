@@ -522,6 +522,26 @@ class ExtendedBagTest extends BagItTestFramework
     }
 
     /**
+     * Test that addBagInfoTags() throws an exception if the bag is not extended.
+     * @group Extended
+     * @covers ::addBagInfoTags
+     */
+    public function testAddBagInfoTagsNotExtended(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $inputTags = [
+            'Source-organization' => 'The Pyramid',
+            'CONTACT-NAME' => [
+                'Bob Barker',
+                'Monty Hall',
+            ],
+        ];
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("This bag is not extended, you need '\$bag->setExtended(true);'");
+        $bag->addBagInfoTags($inputTags);
+    }
+
+    /**
      * Test that for a v1.0 bag you CAN'T have spaces at the start or end of a tag.
      * @group Extended
      * @covers ::loadBagInfo
