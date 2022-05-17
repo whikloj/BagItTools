@@ -384,6 +384,7 @@ class ExtendedBagTest extends BagItTestFramework
      * @group Extended
      * @covers ::addBagInfoTag
      * @covers ::bagInfoTagExists
+     * @covers ::addBagInfoTagsInternal
      */
     public function testSetBagInfoElement(): void
     {
@@ -416,6 +417,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test the exception when trying to set a generated field.
      * @group Extended
      * @covers ::addBagInfoTag
+     * @covers ::addBagInfoTagsInternal
      * @covers ::setExtended
      */
     public function testSetGeneratedField(): void
@@ -431,6 +433,92 @@ class ExtendedBagTest extends BagItTestFramework
 
         // Now we explode.
         $bag->addBagInfoTag('payload-oxum', '123');
+    }
+
+    /**
+     * Test that we can add multiple tags at once.
+     * @group Extended
+     * @covers ::setExtended
+     * @covers ::addBagInfoTags
+     * @covers ::addBagInfoTagsInternal
+     */
+    public function testAddBagInfoTags(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->setExtended(true);
+        $this->assertArrayEquals([], $bag->getBagInfoData());
+        $baginfo = $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt';
+
+        $inputTags = [
+            'Source-organization' => 'The Pyramid',
+            'CONTACT-NAME' => 'Bob Barker',
+            'Contact-Name' => 'Monty Hall',
+        ];
+        $bag->addBagInfoTags($inputTags);
+
+        $tags = $bag->getBagInfoByTag('CONTACT-NAME');
+        $this->assertArrayEquals(['Monty Hall', 'Bob Barker'], $tags);
+
+        $bag->update();
+        $expected = 'Source-organization: The Pyramid' . PHP_EOL . 'CONTACT-NAME: Bob Barker' . PHP_EOL .
+            'Contact-Name: Monty Hall' . PHP_EOL . 'Payload-Oxum: 0.0' . PHP_EOL . 'Bag-Size: 0 B' . PHP_EOL .
+            'Bagging-Date: ' . date('Y-m-d', time()) . PHP_EOL;
+        $this->assertEquals($expected, file_get_contents($baginfo));
+    }
+
+    /**
+     * Test setting multiple values for a single bag-info tag.
+     * @group Extended
+     * @covers ::addBagInfoTags
+     * @covers ::addBagInfoTagsInternal
+     */
+    public function testAddBagInfoTagsMultiple(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->setExtended(true);
+        $this->assertArrayEquals([], $bag->getBagInfoData());
+        $baginfo = $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt';
+
+        $inputTags = [
+            'Source-organization' => 'The Pyramid',
+            'CONTACT-NAME' => [
+                'Bob Barker',
+                'Monty Hall',
+            ],
+        ];
+        $bag->addBagInfoTags($inputTags);
+
+        $tags = $bag->getBagInfoByTag('Contact-name');
+        $this->assertArrayEquals(['Monty Hall', 'Bob Barker'], $tags);
+
+        $bag->update();
+        $expected = 'Source-organization: The Pyramid' . PHP_EOL . 'CONTACT-NAME: Bob Barker' . PHP_EOL .
+            'CONTACT-NAME: Monty Hall' . PHP_EOL . 'Payload-Oxum: 0.0' . PHP_EOL . 'Bag-Size: 0 B' . PHP_EOL .
+            'Bagging-Date: ' . date('Y-m-d', time()) . PHP_EOL;
+        $this->assertEquals($expected, file_get_contents($baginfo));
+    }
+
+    /**
+     * Test trying to set multiple tags where one is an auto-generated tag.
+     * @group Extended
+     * @covers ::addBagInfoTags
+     * @covers ::addBagInfoTagsInternal
+     */
+    public function testAddBagInfoTagsGenerated(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->setExtended(true);
+        $this->assertArrayEquals([], $bag->getBagInfoData());
+
+        $inputTags = [
+            'Source-organization' => 'The Pyramid',
+            'CONTACT-NAME' => 'Bob Barker',
+            'Contact-Name' => 'Monty Hall',
+            'payload-OXUM' => '123',
+        ];
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("The field(s) payload-oxum are auto-generated and cannot be manually set.");
+        $bag->addBagInfoTags($inputTags);
     }
 
     /**
