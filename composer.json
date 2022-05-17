@@ -55,7 +55,6 @@
     ],
     "test": [
       "@check",
-      "@phpstan",
       "@phpunit"
     ]
   },
