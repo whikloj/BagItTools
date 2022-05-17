@@ -602,11 +602,7 @@ class Fetch
      */
     private function urlExistsInFile(string $url): bool
     {
-        $uris = array_column($this->files, 'uri');
-        array_walk($uris, function (&$item) {
-            $item = strtolower($item);
-        });
-        return (in_array(strtolower($url), $uris));
+        return $this->existsInFile($url, 'uri');
     }
 
     /**
@@ -619,11 +615,24 @@ class Fetch
      */
     private function destinationExistsInFile(string $dest): bool
     {
-        $paths = array_column($this->files, 'destination');
-        array_walk($paths, function (&$item) {
-            $item = strtolower($item);
-        });
-        return (in_array(strtolower($dest), $paths));
+        return $this->existsInFile($dest, 'destination');
+    }
+
+    /**
+     * Check multi-dimensional array for a specific value in a specific field.
+     *
+     * @param string $arg
+     *   The value to look for.
+     * @param string $key
+     *   The key in the $this->files array to check in.
+     * @return bool
+     *   True if the value is located in the specified field.
+     */
+    private function existsInFile(string $arg, string $key): bool
+    {
+        $values = array_column($this->files, $key);
+        $values = array_map('strtolower', $values);
+        return (in_array(strtolower($arg), $values));
     }
 
     /**

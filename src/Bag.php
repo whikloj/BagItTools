@@ -514,7 +514,7 @@ class Bag
      * @param  string $dest
      *   The name of the file in the bag.
      * @throws \whikloj\BagItTools\Exceptions\BagItException
-     *   Source file does not exist or the destination is outside the data directory.
+     *   Generated source file does not exist or the destination is outside the data directory. Should not occur.
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Issues creating/deleting temporary file.
      */
@@ -1198,13 +1198,7 @@ class Bag
         $parentPath = dirname($path);
         if (substr($this->makeRelative($parentPath), 0, 5) == "data/") {
             $files = scandir($parentPath);
-            $payload = array_filter(
-                $files,
-                function ($o) {
-                    // Don't count directory specifiers.
-                    return (!BagUtils::isDotDir($o));
-                }
-            );
+            $payload = array_diff($files, [".", ".."]);
             if (count($payload) == 0) {
                 rmdir($parentPath);
             }
@@ -2210,13 +2204,10 @@ class Bag
      */
     private static function getDirectory(string $filepath): string
     {
-        $files = scandir($filepath);
+        $files = array_diff(scandir($filepath), [".", ".."]);
         $dirs = [];
         if (count($files) > 0) {
             foreach ($files as $file) {
-                if (BagUtils::isDotDir($file)) {
-                    continue;
-                }
                 $fullpath = $filepath . DIRECTORY_SEPARATOR . $file;
                 if (is_dir($fullpath)) {
                     $dirs[] = $fullpath;

@@ -234,6 +234,7 @@ class FetchTest extends BagItTestFramework
      * @covers ::addFile
      * @covers ::download
      * @covers ::urlExistsInFile
+     * @covers ::existsInFile
      */
     public function testAddFetchUrlTwice(): void
     {
@@ -258,6 +259,7 @@ class FetchTest extends BagItTestFramework
      * @covers ::addFile
      * @covers ::download
      * @covers ::destinationExistsInFile
+     * @covers ::existsInFile
      */
     public function testAddFetchDestTwice(): void
     {

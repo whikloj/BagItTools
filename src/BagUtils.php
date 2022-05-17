@@ -57,19 +57,6 @@ class BagUtils
     }
 
     /**
-     * Utility to test a filename as . or ..
-     *
-     * @param string $filename
-     *    Basename of a file or directory.
-     * @return bool
-     *    True if it is a dot directory name.
-     */
-    public static function isDotDir(string $filename): bool
-    {
-        return ($filename == "." || $filename == "..");
-    }
-
-    /**
      * Rebase the path in the data directory as payloads only deal in there.
      *
      * @param string $path
@@ -217,11 +204,8 @@ class BagUtils
         $found_files = [];
 
         while ($currentPath = array_shift($paths)) {
-            $files = scandir($currentPath);
+            $files = array_diff(scandir($currentPath), [".", ".."]);
             foreach ($files as $file) {
-                if (self::isDotDir($file)) {
-                    continue;
-                }
                 $fullPath = $currentPath . DIRECTORY_SEPARATOR . $file;
                 if (is_dir($fullPath) && !in_array($file, $exclusions)) {
                     $paths[] = $fullPath;

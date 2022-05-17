@@ -121,11 +121,8 @@ class BagItTestFramework extends TestCase
     protected static function deleteDirAndContents(string $path): void
     {
         if (is_dir($path)) {
-            $files = scandir($path);
+            $files = array_diff(scandir($path), [".", ".."]);
             foreach ($files as $file) {
-                if (BagUtils::isDotDir($file)) {
-                    continue;
-                }
                 $currentFile = $path . DIRECTORY_SEPARATOR . $file;
                 if (is_dir($currentFile)) {
                     self::deleteDirAndContents($currentFile);
@@ -198,10 +195,8 @@ class BagItTestFramework extends TestCase
      */
     private static function copyDir(string $src, string $dest): void
     {
-        foreach (scandir($src) as $item) {
-            if (BagUtils::isDotDir($item)) {
-                continue;
-            }
+        $files = array_diff(scandir($src), [".", ".."]);
+        foreach ($files as $item) {
             if (is_dir("$src/$item")) {
                 if (!is_dir("$dest/$item")) {
                     mkdir("$dest/$item");

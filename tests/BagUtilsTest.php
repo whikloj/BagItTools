@@ -16,18 +16,6 @@ use whikloj\BagItTools\Exceptions\FilesystemException;
 class BagUtilsTest extends BagItTestFramework
 {
     /**
-     * @covers ::isDotDir
-     */
-    public function testIsDotDir(): void
-    {
-        $this->assertTrue(BagUtils::isDotDir('.'));
-        $this->assertTrue(BagUtils::isDotDir('..'));
-        $this->assertFalse(BagUtils::isDotDir('.hidden'));
-        $this->assertFalse(BagUtils::isDotDir('./upAdirectory'));
-        $this->assertFalse(BagUtils::isDotDir('random.file'));
-    }
-
-    /**
      * @covers ::baseInData
      */
     public function testBaseInData(): void
