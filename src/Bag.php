@@ -287,7 +287,7 @@ class Bag
             array($this, 'normalizeHashAlgorithmName')
         );
         $this->bagRoot = $this->internalPath($rootPath);
-        $this->bagRoot = BagUtils::getAbsolute($this->bagRoot, true);
+        $this->bagRoot = $this->internalPath(BagUtils::getAbsolute($this->bagRoot, true));
         $this->loaded = (!$new);
         if ($new) {
             $this->createNewBag();
@@ -541,8 +541,7 @@ class Bag
     public function makeAbsolute(string $path): string
     {
         $length = strlen(trim($this->bagRoot));
-        $path = $this->internalPath($path);
-        $path = BagUtils::getAbsolute($path);
+        $path = $this->internalPath(BagUtils::getAbsolute($path));
         if (substr($path, 0, $length) == $this->bagRoot) {
             return $path;
         }
@@ -562,14 +561,13 @@ class Bag
      */
     public function makeRelative(string $path): string
     {
-        $path = $this->internalPath($path);
-        $path = BagUtils::getAbsolute($path);
+        $path = $this->internalPath(BagUtils::getAbsolute($path));
         $rootLength = strlen($this->bagRoot);
         if (substr($path, 0, $rootLength) !== $this->bagRoot) {
             // We are not in bag root so return nothing.
             return '';
         }
-        return substr($path, strlen($this->bagRoot) + 1);
+        return $this->internalPath(substr($path, strlen($this->bagRoot) + 1));
     }
 
     /**
