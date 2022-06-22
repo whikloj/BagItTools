@@ -569,7 +569,7 @@ class Bag
             // We are not in bag root so return nothing.
             return '';
         }
-        return $this->internalPath(substr($path, strlen($this->bagRoot) + 1));
+        return substr($path, strlen($this->bagRoot) + 1);
     }
 
     /**
