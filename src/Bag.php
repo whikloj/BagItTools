@@ -541,13 +541,14 @@ class Bag
     {
         $length = strlen(trim($this->bagRoot));
         $path = $this->internalPath(BagUtils::getAbsolute($path));
-        if (substr($path, 0, $length) == $this->bagRoot) {
-            return $path;
+        if (substr($path, 0, $length) === $this->bagRoot) {
+            return mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $path);
         }
         $components = array_filter(explode("/", $path));
         $rootComponents = array_filter(explode("/", $this->bagRoot));
         $components = array_merge($rootComponents, $components);
-        return DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $components);
+        $prefix = (preg_match('/^[a-z]:/i', $rootComponents[0] ?? '', $matches) ? '' : DIRECTORY_SEPARATOR);
+        return $prefix . implode(DIRECTORY_SEPARATOR, $components);
     }
 
     /**
@@ -1060,7 +1061,7 @@ class Bag
      */
     public function getBagRoot(): string
     {
-        return $this->bagRoot;
+        return BagUtils::getAbsolute($this->bagRoot);
     }
 
     /**
@@ -1277,10 +1278,11 @@ class Bag
     private function createNewBag(): void
     {
         $this->resetErrorsAndWarnings();
-        if (file_exists($this->bagRoot)) {
-            throw new BagItException("New bag directory $this->bagRoot exists");
+        $root = $this->getBagRoot();
+        if (file_exists($root)) {
+            throw new BagItException("New bag directory $root exists");
         }
-        BagUtils::checkedMkdir($this->bagRoot . DIRECTORY_SEPARATOR . "data", 0777, true);
+        BagUtils::checkedMkdir($root . DIRECTORY_SEPARATOR . "data", 0777, true);
         $this->updateBagIt();
         $this->payloadManifests = [
             self::DEFAULT_HASH_ALGORITHM => new PayloadManifest($this, self::DEFAULT_HASH_ALGORITHM)
