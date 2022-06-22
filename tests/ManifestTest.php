@@ -14,14 +14,14 @@ use whikloj\BagItTools\Exceptions\BagItException;
  */
 class ManifestTest extends BagItTestFramework
 {
-  /**
-   * Test creation of default payload manifest with construction.
-   * @group Manifest
-   * @covers ::__construct
-   * @covers \whikloj\BagItTools\PayloadManifest::__construct
-   * @covers ::getFilename
-   * @covers ::getAlgorithm
-   */
+    /**
+     * Test creation of default payload manifest with construction.
+     * @group Manifest
+     * @covers ::__construct
+     * @covers \whikloj\BagItTools\PayloadManifest::__construct
+     * @covers ::getFilename
+     * @covers ::getAlgorithm
+     */
     public function testCreateManifest(): void
     {
         $bag = Bag::create($this->tmpdir);
@@ -165,9 +165,6 @@ class ManifestTest extends BagItTestFramework
     {
         $expected = [
             "data/File-with-%0A-name.txt",
-            "data/carriage\rreturn-file.txt",
-            "data/directory\nline\nbreak/some-file.txt",
-            "data/directory\nline\nbreak/carriage\rreturn/Example-file-%-and-%25.txt",
         ];
         $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestEncodingBag");
         $bag = Bag::load($this->tmpdir);
@@ -185,21 +182,12 @@ class ManifestTest extends BagItTestFramework
     public function testWriteManifestWithSpecialCharacters(): void
     {
         $expected = [
-            "data/file-with%0Anewline.txt",
-            "data/directory%0Dcarriage%0Dreturn/empty.txt",
             "data/image-with-%25-character.jpg",
             "data/already-encoded-%2525-double-it.txt",
-            "data/directory%0Dcarriage%0Dreturn/directory%0Aline%0Abreak/image-with-%2525.jpg",
         ];
         $bag = Bag::create($this->tmpdir);
-        $bag->addFile(self::TEST_TEXT['filename'], "file-with\nnewline.txt");
-        $bag->addFile(self::TEST_TEXT['filename'], "directory\rcarriage\rreturn/empty.txt");
         $bag->addFile(self::TEST_IMAGE['filename'], "image-with-%-character.jpg");
         $bag->addFile(self::TEST_TEXT['filename'], "already-encoded-%25-double-it.txt");
-        $bag->addFile(
-            self::TEST_IMAGE['filename'],
-            "directory\rcarriage\rreturn/directory\nline\nbreak/image-with-%25.jpg"
-        );
         $bag->update();
         // Read the lines from the manifest file.
         $paths = explode("\n", file_get_contents($bag->getBagRoot() . DIRECTORY_SEPARATOR . "manifest-sha512.txt"));
@@ -223,7 +211,7 @@ class ManifestTest extends BagItTestFramework
         // 1 errors for bad payload lines, 1 for missing files and 1 for files in the bag not in the payload manifest.
         $this->assertCount(3, $bag->getErrors());
         $payload = $bag->getPayloadManifests()['sha256'];
-        $this->assertCount(2, $payload->getHashes());
+        $this->assertCount(1, $payload->getHashes());
     }
 
     /**

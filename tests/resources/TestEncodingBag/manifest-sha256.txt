@@ -1,4 +1,1 @@
-762654958f1129415f3aec2baa72935dde0d9ce0ec06938a77a27ec48d6754aa  data/directory%0Aline%0Abreak/carriage%0Dreturn/Example-file-%25-and-%2525.txt
-99d0a905687235e157fe89c31d04de46b6261ce84cac3d6b7715825ed123be60  data/directory%0Aline%0Abreak/some-file.txt
-7c0ff6b2c3895970b6e696d1702adc572780c59aea722d09ab34b807bc2e0fba  data/carriage%0Dreturn-file.txt
 6d3bdfa7b318db3ce4efc2e3ade95ee0245ff38f1894802c1dd00203c6f335a1  data/File-with-%250A-name.txt
