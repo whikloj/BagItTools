@@ -30,9 +30,9 @@ class TagManifest extends AbstractManifest
         parent::__construct($bag, $algorithm, "tagmanifest-$algorithm.txt", $load);
     }
 
-  /**
-   * {@inheritdoc}
-   */
+    /**
+     * {@inheritdoc}
+     */
     public function update(): void
     {
         $this->hashes = [];
