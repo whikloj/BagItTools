@@ -47,7 +47,7 @@ class BagUtilsTest extends BagItTestFramework
             self::TEST_BAG_DIR . '/bagit.txt',
             self::TEST_BAG_DIR . '/manifest-sha256.txt',
         ];
-        $files = BagUtils::findAllByPattern(self::TEST_BAG_DIR . '/*\.txt');
+        $files = BagUtils::findAllByPattern(self::TEST_BAG_DIR . '/*.txt');
         $this->assertArrayEquals($txt_files, $files);
 
         $manifest = [
@@ -88,7 +88,7 @@ class BagUtilsTest extends BagItTestFramework
         ];
         $line = 0;
         foreach ($paths as $starting => $expected) {
-            $this->assertEquals($expected, BagUtils::getAbsolute($starting), "Test Case " . ++$line . " failed");
+            $this->assertEquals(mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $expected), BagUtils::getAbsolute($starting), "Test Case " . ++$line . " failed");
         }
     }
 

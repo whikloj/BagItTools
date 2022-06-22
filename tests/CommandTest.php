@@ -127,7 +127,7 @@ class CommandTest extends BagItTestFramework
         // Split this in two as we don't know what the actual root directory with be
         $this->assertStringContainsString("[ERROR] Path", $output);
         $this->assertStringContainsStringWithoutNewlines(
-            "/subdirectory/to/bag does not exist, cannot validate.",
+            DIRECTORY_SEPARATOR . "subdirectory" . DIRECTORY_SEPARATOR . "to" . DIRECTORY_SEPARATOR . "bag does not exist, cannot validate.",
             $output
         );
     }
