@@ -1,1 +1,0 @@
-This is some data in a file which filename has a carriage return.
