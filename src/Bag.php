@@ -2167,7 +2167,8 @@ class Bag
      */
     private static function isCompressed(string $filepath): bool
     {
-        return self::hasExtension($filepath,
+        return self::hasExtension(
+            $filepath,
             array_merge(
                 self::ZIP_EXTENSIONS,
                 self::TAR_EXTENSIONS

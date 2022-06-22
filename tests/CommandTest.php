@@ -124,10 +124,11 @@ class CommandTest extends BagItTestFramework
             'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
         ]);
         $output = $this->commandTester->getDisplay();
+        $ds = DIRECTORY_SEPARATOR;
         // Split this in two as we don't know what the actual root directory with be
         $this->assertStringContainsString("[ERROR] Path", $output);
         $this->assertStringContainsStringWithoutNewlines(
-            DIRECTORY_SEPARATOR . "subdirectory" . DIRECTORY_SEPARATOR . "to" . DIRECTORY_SEPARATOR . "bag does not exist, cannot validate.",
+            $ds . "subdirectory" . $ds . "to" . $ds . "bag does not exist, cannot validate.",
             $output
         );
     }

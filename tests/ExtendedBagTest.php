@@ -712,10 +712,10 @@ class ExtendedBagTest extends BagItTestFramework
     {
         $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
-        $title = 'A really long long long long long long long long long long long title with a colon : between and more information are on the way';
+        $title = 'A really long long long long long long long long long long long title'
+            . ' with a colon : between and more information are on the way';
         $bag->addBagInfoTag('Title', $title);
         $bag->update();
-        
         $testbag = Bag::load($this->tmpdir);
         $this->assertTrue($testbag->isValid());
         $this->assertEquals($title, $testbag->getBagInfoByTag('Title')[0]);

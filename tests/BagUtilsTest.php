@@ -88,7 +88,11 @@ class BagUtilsTest extends BagItTestFramework
         ];
         $line = 0;
         foreach ($paths as $starting => $expected) {
-            $this->assertEquals(mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $expected), BagUtils::getAbsolute($starting), "Test Case " . ++$line . " failed");
+            $this->assertEquals(
+                mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $expected),
+                BagUtils::getAbsolute($starting),
+                "Test Case " . ++$line . " failed"
+            );
         }
     }
 
