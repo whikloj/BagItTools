@@ -40,8 +40,8 @@ class ValidateCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $path = $input->getArgument('bag-path');
-        if ($path[0] !== DIRECTORY_SEPARATOR) {
+        $path = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $input->getArgument('bag-path'));
+        if (($path[0] ?? "") !== DIRECTORY_SEPARATOR && !preg_match("/^[a-z]:/i", $path)) {
             $path = getcwd() . DIRECTORY_SEPARATOR . $path;
             $realpath = realpath($path);
         }
