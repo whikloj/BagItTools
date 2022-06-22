@@ -430,8 +430,7 @@ class Bag
      */
     public function package(string $filepath): void
     {
-        $extension = self::getExtensions($filepath);
-        if (!in_array($extension, $this->packageExtensions)) {
+        if (!self::hasExtension($filepath, $this->packageExtensions)) {
             throw new BagItException(
                 "Unknown archive type, the file extension must be one of (" .
                 implode(", ", $this->packageExtensions) . ")"
@@ -1987,10 +1986,9 @@ class Bag
      */
     private function makePackage(string $filename): void
     {
-        $extension = self::getExtensions($filename);
-        if (in_array($extension, self::ZIP_EXTENSIONS)) {
+        if (self::hasExtension($filename, self::ZIP_EXTENSIONS)) {
             $this->makeZip($filename);
-        } elseif (in_array($extension, self::TAR_EXTENSIONS)) {
+        } elseif (self::hasExtension($filename, self::TAR_EXTENSIONS)) {
             $this->makeTar($filename);
         } else {
             throw new BagItException("Unable to determine archive format.");
@@ -2032,8 +2030,7 @@ class Bag
      */
     private function makeTar(string $filename): void
     {
-        $extension = self::getExtensions($filename);
-        $compression = self::extensionTarCompression($extension);
+        $compression = self::extensionTarCompression($filename);
         $tar = new Archive_Tar($filename, $compression);
         if ($tar === false) {
             throw new FilesystemException("Error creating Tar file.");
@@ -2073,11 +2070,10 @@ class Bag
         if (!file_exists($filepath)) {
             throw new BagItException("File $filepath does not exist.");
         }
-        $extension = self::getExtensions($filepath);
-        if (in_array($extension, self::ZIP_EXTENSIONS)) {
+        if (self::hasExtension($filepath, self::ZIP_EXTENSIONS)) {
             $directory = self::unzipBag($filepath);
-        } elseif (in_array($extension, self::TAR_EXTENSIONS)) {
-            $directory = self::untarBag($filepath, $extension);
+        } elseif (self::hasExtension($filepath, self::TAR_EXTENSIONS)) {
+            $directory = self::untarBag($filepath);
         } else {
             throw new BagItException("Unable to determine archive format.");
         }
@@ -2113,16 +2109,14 @@ class Bag
      *
      * @param  string $filename
      *   The fullpath to the tar file.
-     * @param  string $extension
-     *   The extension pulled from the filename.
      * @return string
      *   The path the archive file was extracted to.
      * @throws \whikloj\BagItTools\Exceptions\FilesystemException
      *   Problems extracting the zip file.
      */
-    private static function untarBag(string $filename, string $extension): string
+    private static function untarBag(string $filename): string
     {
-        $compression = self::extensionTarCompression($extension);
+        $compression = self::extensionTarCompression($filename);
         $directory = self::extractDir();
         $tar = new Archive_Tar($filename, $compression);
         $res = $tar->extract($directory);
@@ -2135,14 +2129,15 @@ class Bag
     /**
      * Determine the correct compression (if any) from the extension.
      *
-     * @param  string $extension
-     *   The extension.
+     * @param  string $filename
+     *   The filename.
      * @return string|null
      *   The compression string or null for no compression.
      */
-    private static function extensionTarCompression(string $extension): ?string
+    private static function extensionTarCompression(string $filename): ?string
     {
-        return (substr($extension, -3) == 'bz2' ? 'bz2' : (substr($extension, -2) == 'gz' ? 'gz' :
+        $filename = strtolower(basename($filename));
+        return (substr($filename, -3) == 'bz2' ? 'bz2' : (substr($filename, -2) == 'gz' ? 'gz' :
             null));
     }
 
@@ -2172,30 +2167,34 @@ class Bag
      */
     private static function isCompressed(string $filepath): bool
     {
-        return (in_array(
-            self::getExtensions($filepath),
+        return self::hasExtension($filepath,
             array_merge(
                 self::ZIP_EXTENSIONS,
                 self::TAR_EXTENSIONS
             )
-        ));
+        );
     }
 
     /**
-     * Get the file extension from a full path.
+     * Retrieve whether the given filepath has one of the extensions
      *
      * @param  string $filepath
      *   The full file path.
-     * @return string
-     *   The extension or an empty string.
+     * @param  array $extensions
+     *   The list of extensions to check.
+     * @return bool
+     *   The list of extensions or an empty array.
      */
-    private static function getExtensions(string $filepath): string
+    private static function hasExtension(string $filepath, array $extensions): bool
     {
         $filename = strtolower(basename($filepath));
-        if (strpos($filename, '.') !== false) {
-            return substr($filename, strpos($filename, '.') + 1);
+        foreach ($extensions as $extension) {
+            $extension = ".$extension";
+            if (substr($filename, -strlen($extension)) === $extension) {
+                return true;
+            }
         }
-        return '';
+        return false;
     }
 
     /**
