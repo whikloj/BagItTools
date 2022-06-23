@@ -25,6 +25,9 @@ jobs:
           - php-versions: "8.1"
             experimental: true
             host-os: "ubuntu-latest"
+          - php-versions: "8.1"
+            experimental: true
+            host-os: "windows-latest"
 
     name: PHP ${{ matrix.php-versions }}
     steps:
