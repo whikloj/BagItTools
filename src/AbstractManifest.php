@@ -209,43 +209,44 @@ abstract class AbstractManifest
         $this->hashes = [];
         $this->resetLoadIssues();
         $fullPath = $this->bag->makeAbsolute($this->filename);
-        if (file_exists($fullPath)) {
-            $file_contents = file_get_contents($fullPath);
-            if ($file_contents === false) {
-                throw new FilesystemException("Unable to read file $fullPath");
+        if (!file_exists($fullPath)) {
+            return;
+        }
+        $file_contents = file_get_contents($fullPath);
+        if ($file_contents === false) {
+            throw new FilesystemException("Unable to read file $fullPath");
+        }
+        $lineCount = 0;
+        $lines = BagUtils::splitFileDataOnLineEndings($file_contents);
+        foreach ($lines as $line) {
+            $lineCount += 1;
+            $line = $this->bag->decodeText($line);
+            $line = trim($line);
+            if (empty($line)) {
+                continue;
             }
-            $lineCount = 0;
-            $lines = BagUtils::splitFileDataOnLineEndings($file_contents);
-            foreach ($lines as $line) {
-                $lineCount += 1;
-                $line = $this->bag->decodeText($line);
-                $line = trim($line);
-                if (empty($line)) {
-                    continue;
-                }
-                if (preg_match("~^(\w+)\s+\*?(.*)$~", $line, $matches)) {
-                    $hash = $matches[1];
-                    $originalPath = $matches[2];
-                    $this->checkIncomingFilePath($originalPath, $lineCount);
-                    $path = $this->cleanUpRelPath($originalPath);
-                    // Normalized path in lowercase (for matching)
-                    $lowerNormalized = $this->normalizePath($path);
-                    if (array_key_exists($path, $this->hashes)) {
-                        $this->addLoadError("Line $lineCount: Path $originalPath appears more than once in " .
-                            "manifest.");
-                    } elseif ($this->matchNormalizedList($lowerNormalized)) {
-                        $this->addLoadWarning("Line $lineCount: Path $originalPath matches another file when " .
-                            "normalized for case and characters.");
-                    } elseif (empty($path)) {
-                        $this->addLoadError("Line $lineCount: Path $originalPath resolves to a path outside of the " .
-                            "data/ directory.");
-                    } else {
-                        $this->hashes[$path] = $hash;
-                        $this->addToNormalizedList($lowerNormalized);
-                    }
+            if (preg_match("~^(\w+)\s+\*?(.*)$~", $line, $matches)) {
+                $hash = $matches[1];
+                $originalPath = $matches[2];
+                $this->checkIncomingFilePath($originalPath, $lineCount);
+                $path = $this->cleanUpRelPath($originalPath);
+                // Normalized path in lowercase (for matching)
+                $lowerNormalized = $this->normalizePath($path);
+                if (array_key_exists($path, $this->hashes)) {
+                    $this->addLoadError("Line $lineCount: Path $originalPath appears more than once in " .
+                        "manifest.");
+                } elseif ($this->matchNormalizedList($lowerNormalized)) {
+                    $this->addLoadWarning("Line $lineCount: Path $originalPath matches another file when " .
+                        "normalized for case and characters.");
+                } elseif (empty($path)) {
+                    $this->addLoadError("Line $lineCount: Path $originalPath resolves to a path outside of the " .
+                        "data/ directory.");
                 } else {
-                    $this->addLoadError("Line $lineCount: Line is not of the form 'checksum path'");
+                    $this->hashes[$path] = $hash;
+                    $this->addToNormalizedList($lowerNormalized);
                 }
+            } else {
+                $this->addLoadError("Line $lineCount: Line is not of the form 'checksum path'");
             }
         }
     }

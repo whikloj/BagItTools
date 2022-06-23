@@ -712,15 +712,13 @@ class ExtendedBagTest extends BagItTestFramework
     {
         $bag = Bag::create($this->tmpdir);
         $bag->setExtended(true);
-
-        $bag->addBagInfoTag('Title', 'A really long long long long long long long long long long long ' .
-            'title with a colon : between and more information are on the way');
+        $title = 'A really long long long long long long long long long long long title'
+            . ' with a colon : between and more information are on the way';
+        $bag->addBagInfoTag('Title', $title);
         $bag->update();
-
         $testbag = Bag::load($this->tmpdir);
         $this->assertTrue($testbag->isValid());
-        $this->assertEquals('A really long long long long long long long long long long long title with a ' .
-            'colon : between and more information are on the way', $testbag->getBagInfoByTag('Title')[0]);
+        $this->assertEquals($title, $testbag->getBagInfoByTag('Title')[0]);
     }
 
     /**
@@ -741,7 +739,7 @@ class ExtendedBagTest extends BagItTestFramework
         $testbag = Bag::load($this->tmpdir);
         $this->assertCount(0, $testbag->getErrors());
         $this->assertEquals("This is some crazy information about a new way of searching for : the stuff. " .
-            "Why do this?\nBecause we can.", $testbag->getBagInfoByTag('External-Description')[0]);
+            "Why do this?" . PHP_EOL . "Because we can.", $testbag->getBagInfoByTag('External-Description')[0]);
         $testbag->update();
 
         // We wrote the bag info again, so now it is stripped of newlines

@@ -116,10 +116,7 @@ class BagUtils
      */
     public static function getValidCharset(string $charset): ?string
     {
-        if (in_array($charset, array_keys(self::CHARACTER_SETS))) {
-            return self::CHARACTER_SETS[$charset];
-        }
-        return null;
+        return self::CHARACTER_SETS[$charset] ?? null;
     }
 
     /**
@@ -137,10 +134,14 @@ class BagUtils
         // Cleaning path regarding OS
         $path = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $path);
         // Check if path start with a separator (UNIX)
-        $startWithSeparator = $path[0] === DIRECTORY_SEPARATOR;
+        $startWithSeparator = substr($path, 0, 1) === DIRECTORY_SEPARATOR;
         // Check if start with drive letter
-        preg_match('/^[a-z]:/', $path, $matches);
+        preg_match('/^[a-z]:/i', $path, $matches);
         $startWithLetterDir = $matches[0] ?? false;
+        if ($startWithLetterDir) {
+            // Remove the drive letter (it will be restored later on)
+            $path = substr($path, strlen($startWithLetterDir));
+        }
 
         // whikloj - 2021-07-05 : Make sure we are using an absolute path.
         if (!($startWithLetterDir || $startWithSeparator) && $add_absolute) {
@@ -179,11 +180,10 @@ class BagUtils
                 $absolutes[] = $subPath;
             }
         }
-
-        return
-            (($startWithSeparator ? DIRECTORY_SEPARATOR : $startWithLetterDir) ?
-                $startWithLetterDir . DIRECTORY_SEPARATOR : ''
-            ) . implode(DIRECTORY_SEPARATOR, $absolutes);
+        $prefix = ($startWithSeparator ? DIRECTORY_SEPARATOR : $startWithLetterDir)
+            ? $startWithLetterDir . DIRECTORY_SEPARATOR
+            : "";
+        return $prefix . implode(DIRECTORY_SEPARATOR, $absolutes);
     }
 
     /**
@@ -197,7 +197,7 @@ class BagUtils
     public static function invalidPathCharacters(string $path): bool
     {
         $path = urldecode($path);
-        return ($path[0] === DIRECTORY_SEPARATOR || strpos($path, "~") !== false ||
+        return (in_array($path[0] ?? '', ['/', '\\']) || strpos($path, "~") !== false ||
             substr($path, 0, 3) == "../");
     }
 

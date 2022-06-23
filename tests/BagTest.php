@@ -15,12 +15,12 @@ use whikloj\BagItTools\Exceptions\BagItException;
  */
 class BagTest extends BagItTestFramework
 {
-  /**
-   * @group Bag
-   * @covers ::__construct
-   * @covers ::createNewBag
-   * @covers ::updateBagIt
-   */
+    /**
+     * @group Bag
+     * @covers ::__construct
+     * @covers ::createNewBag
+     * @covers ::updateBagIt
+     */
     public function testConstructNewBag(): void
     {
         $this->assertFileDoesNotExist($this->tmpdir);
@@ -83,20 +83,20 @@ class BagTest extends BagItTestFramework
         chdir($curr);
     }
 
-  /**
-   * @group Bag
-   * @covers ::__construct
-   * @covers ::loadBag
-   * @covers ::loadBagIt
-   * @covers ::loadPayloadManifests
-   * @covers ::loadBagInfo
-   * @covers ::loadTagManifests
-   * @covers ::isExtended
-   * @covers ::isValid
-   * @covers \whikloj\BagItTools\AbstractManifest::loadFile
-   * @covers \whikloj\BagItTools\AbstractManifest::cleanUpRelPath
-   * @covers \whikloj\BagItTools\AbstractManifest::addToNormalizedList
-   */
+    /**
+     * @group Bag
+     * @covers ::__construct
+     * @covers ::loadBag
+     * @covers ::loadBagIt
+     * @covers ::loadPayloadManifests
+     * @covers ::loadBagInfo
+     * @covers ::loadTagManifests
+     * @covers ::isExtended
+     * @covers ::isValid
+     * @covers \whikloj\BagItTools\AbstractManifest::loadFile
+     * @covers \whikloj\BagItTools\AbstractManifest::cleanUpRelPath
+     * @covers \whikloj\BagItTools\AbstractManifest::addToNormalizedList
+     */
     public function testOpenBag(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
@@ -132,12 +132,12 @@ class BagTest extends BagItTestFramework
         );
     }
 
-  /**
-   * Simple tests of reporting bag root and data directory
-   * @group Bag
-   * @covers ::getDataDirectory
-   * @covers ::getBagRoot
-   */
+    /**
+     * Simple tests of reporting bag root and data directory
+     * @group Bag
+     * @covers ::getDataDirectory
+     * @covers ::getBagRoot
+     */
     public function testBagDirs(): void
     {
         $bag = Bag::create($this->tmpdir);
@@ -146,11 +146,11 @@ class BagTest extends BagItTestFramework
         $this->assertEquals($data, $bag->getDataDirectory());
     }
 
-  /**
-   * Test adding a file to a bag.
-   * @group Bag
-   * @covers ::addFile
-   */
+    /**
+     * Test adding a file to a bag.
+     * @group Bag
+     * @covers ::addFile
+     */
     public function testAddFile(): void
     {
         $source_file = self::TEST_IMAGE['filename'];
@@ -162,11 +162,11 @@ class BagTest extends BagItTestFramework
         DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'image.txt');
     }
 
-  /**
-   * Test adding a file that doesn't exist.
-   * @group Bag
-   * @covers ::addFile
-   */
+    /**
+     * Test adding a file that doesn't exist.
+     * @group Bag
+     * @covers ::addFile
+     */
     public function testAddFileNoSource(): void
     {
         $source_file = "some/fake/image.txt";
@@ -178,11 +178,11 @@ class BagTest extends BagItTestFramework
         $bag->addFile($source_file, "some/image.txt");
     }
 
-  /**
-   * Test adding a file with an invalid destination directory.
-   * @group Bag
-   * @covers ::addFile
-   */
+    /**
+     * Test adding a file with an invalid destination directory.
+     * @group Bag
+     * @covers ::addFile
+     */
     public function testAddFileInvalidDestination(): void
     {
         $source_file = self::TEST_IMAGE['filename'];
@@ -636,12 +636,12 @@ class BagTest extends BagItTestFramework
      * Test opening a non-existant compressed file.
      * @group Bag
      * @covers ::load
-     * @covers ::getExtensions
+     * @covers ::hasExtension
      * @covers ::isCompressed
      */
     public function testNonExistantCompressed(): void
     {
-        $path = '/my/directory.tar';
+        $path = DIRECTORY_SEPARATOR . 'my' . DIRECTORY_SEPARATOR . 'directory.tar';
 
         $this->expectException(BagItException::class);
         $this->expectExceptionMessage("Path $path does not exist, could not load Bag.");
@@ -656,7 +656,7 @@ class BagTest extends BagItTestFramework
      * @covers ::load
      * @covers ::isCompressed
      * @covers ::uncompressBag
-     * @covers ::getExtensions
+     * @covers ::hasExtension
      * @covers ::untarBag
      */
     public function testUncompressTarGz(): void
@@ -680,7 +680,7 @@ class BagTest extends BagItTestFramework
      * @covers ::load
      * @covers ::isCompressed
      * @covers ::uncompressBag
-     * @covers ::getExtensions
+     * @covers ::hasExtension
      * @covers ::untarBag
      */
     public function testUncompressTarBzip(): void
@@ -703,7 +703,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::isCompressed
      * @covers ::uncompressBag
-     * @covers ::getExtensions
+     * @covers ::hasExtension
      * @covers ::unzipBag
      */
     public function testUncompressZip(): void

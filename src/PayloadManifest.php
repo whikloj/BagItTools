@@ -30,9 +30,9 @@ class PayloadManifest extends AbstractManifest
         parent::__construct($bag, $algorithm, "manifest-$algorithm.txt", $load);
     }
 
-  /**
-   * {@inheritdoc}
-   */
+    /**
+     * {@inheritdoc}
+     */
     public function update(): void
     {
         $this->hashes = [];

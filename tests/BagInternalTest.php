@@ -13,11 +13,11 @@ use whikloj\BagItTools\Bag;
  */
 class BagInternalTest extends BagItTestFramework
 {
-  /**
-   * Test makeRelative
-   * @group BagInternal
-   * @covers \whikloj\BagItTools\Bag::makeRelative
-   */
+    /**
+     * Test makeRelative
+     * @group BagInternal
+     * @covers \whikloj\BagItTools\Bag::makeRelative
+     */
     public function testMakeRelativePlain(): void
     {
         $bag = Bag::create($this->tmpdir);
@@ -73,7 +73,7 @@ class BagInternalTest extends BagItTestFramework
         ];
 
         foreach ($valid_paths as $path => $expected) {
-            $fullpath = $baseDir . DIRECTORY_SEPARATOR . $expected;
+            $fullpath = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $baseDir . DIRECTORY_SEPARATOR . $expected);
             $absolute = $bag->makeAbsolute($path);
             $this->assertEquals($fullpath, $absolute);
         }
@@ -81,17 +81,17 @@ class BagInternalTest extends BagItTestFramework
         // There are no invalid paths as makeAbsolute only promises to prepend bagRoot + DIRECTORY_SEPARATOR to the
         // incoming value once normalized.
         foreach ($invalid_paths as $expected) {
-            $fullpath = $baseDir . DIRECTORY_SEPARATOR . $expected;
+            $fullpath = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $baseDir . DIRECTORY_SEPARATOR . $expected);
             $absolute = $bag->makeAbsolute($fullpath);
             $this->assertEquals($fullpath, $absolute);
         }
     }
 
-  /**
-   * Test pathInBagData
-   * @group BagInternal
-   * @covers \whikloj\BagItTools\Bag::pathInBagData
-   */
+    /**
+     * Test pathInBagData
+     * @group BagInternal
+     * @covers \whikloj\BagItTools\Bag::pathInBagData
+     */
     public function testPathInBagData(): void
     {
         $bag = Bag::create($this->tmpdir);
