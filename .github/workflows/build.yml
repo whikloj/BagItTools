@@ -15,16 +15,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ["7.4", "8.0"]
-        experimental: [false]
-        host-os: ["ubuntu-latest"]
+        #php-versions: ["7.4", "8.0"]
+        #experimental: [false]
+        #host-os: ["ubuntu-latest"]
         include:
-          - php-versions: "7.3"
-            experimental: false
-            host-os: "ubuntu-18.04"
-          - php-versions: "8.1"
-            experimental: true
-            host-os: "ubuntu-latest"
+        #  - php-versions: "7.3"
+        #    experimental: false
+        #    host-os: "ubuntu-18.04"
+        #  - php-versions: "8.1"
+        #    experimental: true
+        #    host-os: "ubuntu-latest"
           - php-versions: "8.1"
             experimental: true
             host-os: "windows-latest"
@@ -55,8 +55,11 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
+      - name: Check codestyle
+        run: composer check
+
       - name: Run test suite
-        run: composer test
+        run: composer phpunit
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
