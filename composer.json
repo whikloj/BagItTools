@@ -51,7 +51,7 @@
       "./vendor/bin/phpcpd --suffix='.php' src"
     ],
     "phpunit": [
-      "phpdbg -qrr ./vendor/bin/phpunit"
+      "phpdbg -qrr ./vendor/bin/phpunit --verbose --debug"
     ],
     "test": [
       "@check",
