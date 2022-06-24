@@ -39,6 +39,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           coverage: none
+          extensions: sockets, intl
 
       - name: Get composer cache directory
         id: composercache
