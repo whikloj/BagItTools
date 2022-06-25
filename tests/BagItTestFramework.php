@@ -8,7 +8,6 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
 use whikloj\BagItTools\Bag;
-use whikloj\BagItTools\BagUtils;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
@@ -20,29 +19,28 @@ class BagItTestFramework extends TestCase
     /**
      * Path to the test resources directory.
      */
-    protected const TEST_RESOURCES = __DIR__ . DIRECTORY_SEPARATOR . "resources";
+    protected const TEST_RESOURCES = __DIR__ . "/resources";
 
     /**
      * Location of the Test Bag
      */
-    protected const TEST_BAG_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestBag";
+    protected const TEST_BAG_DIR = self::TEST_RESOURCES . "/TestBag";
 
     /**
      * Location of the Test Bag
      */
-    protected const TEST_EXTENDED_BAG_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestExtendedBag";
+    protected const TEST_EXTENDED_BAG_DIR = self::TEST_RESOURCES . "/TestExtendedBag";
 
     /**
      * Location of manifests.
      */
-    protected const TEST_MANIFEST_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "manifests";
+    protected const TEST_MANIFEST_DIR = self::TEST_RESOURCES . "/manifests";
 
     /**
      * Location and hashes of the test image.
      */
     protected const TEST_IMAGE = [
-        'filename' => self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "images" . DIRECTORY_SEPARATOR .
-            "scenic-landscape.jpg",
+        'filename' => self::TEST_RESOURCES . "/images/" . "scenic-landscape.jpg",
         'checksums' => [
             'md5' => 'f181491b485c45ecaefdc3393da4aea6',
             'sha1' => '0cc9a4a7e02edf70650a5a8bb972224657bb48bb',
@@ -56,7 +54,7 @@ class BagItTestFramework extends TestCase
      * Location and hashes of a test text file.
      */
     protected const TEST_TEXT = [
-        'filename' => self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "text" . DIRECTORY_SEPARATOR . "empty.txt",
+        'filename' => self::TEST_RESOURCES . "/text/empty.txt",
         'checksums' => [
             'md5' => 'd41d8cd98f00b204e9800998ecf8427e',
             'sha1' => 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
@@ -123,7 +121,7 @@ class BagItTestFramework extends TestCase
         if (is_dir($path)) {
             $files = array_diff(scandir($path), [".", ".."]);
             foreach ($files as $file) {
-                $currentFile = $path . DIRECTORY_SEPARATOR . $file;
+                $currentFile = $path . '/' . $file;
                 if (is_dir($currentFile)) {
                     self::deleteDirAndContents($currentFile);
                 } elseif (is_file($currentFile)) {
@@ -276,7 +274,7 @@ class BagItTestFramework extends TestCase
 
         $expected = sprintf($template, $use_version, $use_encoding);
 
-        $bagit_file = $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bagit.txt';
+        $bagit_file = $bag->getBagRoot() . '/bagit.txt';
         $this->assertFileExists($bagit_file);
         $contents = file_get_contents($bagit_file);
         $this->assertEquals($expected, $contents);

@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use whikloj\BagItTools\Bag;
+use whikloj\BagItTools\BagUtils;
 use whikloj\BagItTools\Exceptions\BagItException;
 
 /**
@@ -40,9 +41,9 @@ class ValidateCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $path = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $input->getArgument('bag-path'));
-        if (($path[0] ?? "") !== DIRECTORY_SEPARATOR && !preg_match("/^[a-z]:/i", $path)) {
-            $path = getcwd() . DIRECTORY_SEPARATOR . $path;
+        $path = BagUtils::standardizePathSeparators($input->getArgument('bag-path'));
+        if (($path[0] ?? "") !== '/' && !preg_match("/^[a-z]:/i", $path)) {
+            $path = getcwd() . '/' . $path;
             $realpath = realpath($path);
         }
         if ((isset($realpath) && $realpath === false) || !file_exists($path)) {

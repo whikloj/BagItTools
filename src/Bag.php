@@ -286,8 +286,8 @@ class Bag
             $this->validHashAlgorithms,
             array($this, 'normalizeHashAlgorithmName')
         );
-        $this->bagRoot = $this->internalPath($rootPath);
-        $this->bagRoot = $this->internalPath(BagUtils::getAbsolute($this->bagRoot, true));
+        $this->bagRoot = BagUtils::standardizePathSeparators($rootPath);
+        $this->bagRoot = BagUtils::getAbsolute($this->bagRoot, true);
         $this->loaded = (!$new);
         if ($new) {
             $this->createNewBag();
@@ -542,15 +542,15 @@ class Bag
     public function makeAbsolute(string $path): string
     {
         $length = strlen(trim($this->bagRoot));
-        $path = $this->internalPath(BagUtils::getAbsolute($path));
+        $path = BagUtils::getAbsolute($path);
         if (substr($path, 0, $length) === $this->bagRoot) {
-            return mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $path);
+            return $path;
         }
         $components = array_filter(explode("/", $path));
         $rootComponents = array_filter(explode("/", $this->bagRoot));
         $components = array_merge($rootComponents, $components);
-        $prefix = (preg_match('/^[a-z]:/i', $rootComponents[0] ?? '', $matches) ? '' : DIRECTORY_SEPARATOR);
-        return $prefix . implode(DIRECTORY_SEPARATOR, $components);
+        $prefix = (preg_match('/^[a-z]:/i', $rootComponents[0] ?? '', $matches) ? '' : '/');
+        return $prefix . implode('/', $components);
     }
 
     /**
@@ -563,7 +563,7 @@ class Bag
      */
     public function makeRelative(string $path): string
     {
-        $path = $this->internalPath(BagUtils::getAbsolute($path));
+        $path = BagUtils::getAbsolute($path);
         $rootLength = strlen($this->bagRoot);
         if (substr($path, 0, $rootLength) !== $this->bagRoot) {
             // We are not in bag root so return nothing.
@@ -826,7 +826,7 @@ class Bag
     public function hasAlgorithm(string $hashAlgorithm): bool
     {
         $internal_name = $this->getHashName($hashAlgorithm);
-        return $this->hashIsSupported($internal_name) ? $this->hasHash($internal_name) : false;
+        return $this->hashIsSupported($internal_name) && $this->hasHash($internal_name);
     }
 
     /**
@@ -1277,7 +1277,7 @@ class Bag
         if (file_exists($root)) {
             throw new BagItException("New bag directory $root exists");
         }
-        BagUtils::checkedMkdir($root . DIRECTORY_SEPARATOR . "data", 0777, true);
+        BagUtils::checkedMkdir($root . "/data", 0777, true);
         $this->updateBagIt();
         $this->payloadManifests = [
             self::DEFAULT_HASH_ALGORITHM => new PayloadManifest($this, self::DEFAULT_HASH_ALGORITHM)
@@ -1639,7 +1639,7 @@ class Bag
     private function loadTagManifests(): bool
     {
         $tagManifests = [];
-        $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-*.txt";
+        $pattern = $this->getBagRoot() . "/tagmanifest-*.txt";
         $files = BagUtils::findAllByPattern($pattern);
         if (count($files) < 1) {
             return false;
@@ -1701,7 +1701,7 @@ class Bag
      */
     private function clearTagManifests(): void
     {
-        $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "tagmanifest-*.txt";
+        $pattern = $this->getBagRoot() . "/tagmanifest-*.txt";
         $this->clearFilesOfPattern($pattern);
         unset($this->tagManifests);
     }
@@ -1754,7 +1754,7 @@ class Bag
      */
     private function loadPayloadManifests(): void
     {
-        $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "manifest-*.txt";
+        $pattern = $this->getBagRoot() . "/manifest-*.txt";
         $manifests = BagUtils::findAllByPattern($pattern);
         if (count($manifests) == 0) {
             $this->addBagError('manifest-ALG.txt', 'No payload manifest files found.');
@@ -1815,7 +1815,7 @@ class Bag
      */
     private function clearPayloadManifests(): void
     {
-        $pattern = $this->getBagRoot() . DIRECTORY_SEPARATOR . "manifest-*.txt";
+        $pattern = $this->getBagRoot() . "/manifest-*.txt";
         $this->clearFilesOfPattern($pattern);
     }
 
@@ -2208,7 +2208,7 @@ class Bag
         $dirs = [];
         if (count($files) > 0) {
             foreach ($files as $file) {
-                $fullpath = $filepath . DIRECTORY_SEPARATOR . $file;
+                $fullpath = $filepath . '/' . $file;
                 if (is_dir($fullpath)) {
                     $dirs[] = $fullpath;
                 }
@@ -2271,19 +2271,6 @@ class Bag
             'file' => $filename,
             'message' => $message
         ];
-    }
-
-    /**
-     * Convert paths from using the OS directory separator to using /.
-     *
-     * @param  string $path
-     *   The external path.
-     * @return string
-     *   The modified path.
-     */
-    private function internalPath(string $path): string
-    {
-        return str_replace(DIRECTORY_SEPARATOR, "/", $path);
     }
 
     /**

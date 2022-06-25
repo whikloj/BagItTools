@@ -46,9 +46,9 @@ class ManifestTest extends BagItTestFramework
     {
         $bag = Bag::create($this->tmpdir);
         $test_files = [
-            'baginfo' => $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt',
-            'payload' => $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'manifest-sha256.txt',
-            'tag' => $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'tagmanifest-sha256.txt',
+            'baginfo' => $bag->getBagRoot() . '/bag-info.txt',
+            'payload' => $bag->getBagRoot() . '/manifest-sha256.txt',
+            'tag' => $bag->getBagRoot() . '/tagmanifest-sha256.txt',
         ];
         $bag->setExtended(true);
         $bag->addBagInfoTag('Contact-name', 'Jared Whiklo');
@@ -102,7 +102,7 @@ class ManifestTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $this->assertTrue($bag->isValid());
 
-        file_put_contents($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'oops.txt', "Slip up");
+        file_put_contents($bag->getDataDirectory() . '/oops.txt', "Slip up");
         $this->assertFalse($bag->isValid());
     }
 
@@ -166,7 +166,7 @@ class ManifestTest extends BagItTestFramework
         $expected = [
             "data/File-with-%0A-name.txt",
         ];
-        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestEncodingBag");
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . "/TestEncodingBag");
         $bag = Bag::load($this->tmpdir);
         $this->assertTrue($bag->isValid());
         $manifest = $bag->getPayloadManifests();
@@ -190,7 +190,7 @@ class ManifestTest extends BagItTestFramework
         $bag->addFile(self::TEST_TEXT['filename'], "already-encoded-%25-double-it.txt");
         $bag->update();
         // Read the lines from the manifest file.
-        $paths = explode("\n", file_get_contents($bag->getBagRoot() . DIRECTORY_SEPARATOR . "manifest-sha512.txt"));
+        $paths = explode("\n", file_get_contents($bag->getBagRoot() . "/manifest-sha512.txt"));
         $paths = array_filter($paths);
         array_walk($paths, function (&$o) {
             $o = trim(explode(" ", $o)[1]);
@@ -205,7 +205,7 @@ class ManifestTest extends BagItTestFramework
      */
     public function testLoadBagWithUnencodedFilepaths(): void
     {
-        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . "TestBadFilePathsBag");
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . "/TestBadFilePathsBag");
         $bag = Bag::load($this->tmpdir);
         $this->assertFalse($bag->isValid());
         // 1 errors for bad payload lines, 1 for missing files and 1 for files in the bag not in the payload manifest.
@@ -247,9 +247,8 @@ class ManifestTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareBasicTestBag();
         file_put_contents(
-            $this->tmpdir . DIRECTORY_SEPARATOR . 'manifest-sha256.txt',
-            file_get_contents(self::TEST_MANIFEST_DIR . DIRECTORY_SEPARATOR .
-                $manifest_filename)
+            $this->tmpdir . '/manifest-sha256.txt',
+            file_get_contents(self::TEST_MANIFEST_DIR . '/' . $manifest_filename)
         );
     }
 
@@ -277,7 +276,7 @@ class ManifestTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareBasicTestBag();
         file_put_contents(
-            $this->tmpdir . DIRECTORY_SEPARATOR . "manifest-sha256.txt",
+            $this->tmpdir . "/manifest-sha256.txt",
             "3663a4f1d58f56248bf3708a27c1f143a9ec96ea5dbb78d627a4330b73f8b6db  data/jekyll_and_hyde.txt\n" .
             "0fd56c020e20bf86fd89b3357b30203c684411afca5c7aa98023f32f7536e936  data/pictures/another_picture.txt\n" .
             "2c9d71a5db0a38b99b897f2397f7e252f451a7d219d044a47f22ffd3637e64e3  data/pictures/some_more_data.txt\n" .
@@ -300,7 +299,7 @@ class ManifestTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareBasicTestBag();
         file_put_contents(
-            $this->tmpdir . DIRECTORY_SEPARATOR . "manifest-sha256.txt",
+            $this->tmpdir . "/manifest-sha256.txt",
             "3663a4f1d58f56248bf3708a27c1f143a9ec96ea5dbb78d627a4330b73f8b6db  data/jekyll_and_hyde.txt\n" .
             "0fd56c020e20bf86fd89b3357b30203c684411afca5c7aa98023f32f7536e936  data/../../pictures/" .
             "another_picture.txt\n2c9d71a5db0a38b99b897f2397f7e252f451a7d219d044a47f22ffd3637e64e3  " .
@@ -313,7 +312,7 @@ class ManifestTest extends BagItTestFramework
             "another_picture.txt"
         ];
         // Delete the file from the bag that we are referencing as outside the bag.
-        unlink(implode(DIRECTORY_SEPARATOR, $path));
+        unlink(implode('/', $path));
         $bag = Bag::load($this->tmpdir);
         $this->assertFalse($bag->isValid());
         $this->assertCount(1, $bag->getErrors());

@@ -77,7 +77,7 @@ class BagUtilsTest extends BagItTestFramework
         $line = 0;
         foreach ($paths as $starting => $expected) {
             $this->assertEquals(
-                mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $expected),
+                str_replace('\\', '/', $expected),
                 BagUtils::getAbsolute($starting),
                 "Test Case " . ++$line . " failed"
             );
@@ -93,20 +93,9 @@ class BagUtilsTest extends BagItTestFramework
         $current = getcwd();
         chdir($this->tmpdir);
         $bag_name = "new_bag_directory";
-        $full_path = $this->tmpdir . DIRECTORY_SEPARATOR . $bag_name;
+        $full_path = $this->tmpdir . '/' . $bag_name;
         $this->assertEquals($full_path, BagUtils::getAbsolute($bag_name, true));
         chdir($current);
-    }
-
-    /**
-     * @covers ::invalidPathCharacters
-     */
-    public function testInvalidPathCharacters(): void
-    {
-        $this->assertTrue(BagUtils::invalidPathCharacters('/some/directory'));
-        $this->assertTrue(BagUtils::invalidPathCharacters('../some/other/directory'));
-        $this->assertTrue(BagUtils::invalidPathCharacters('some/directory/~host/mine'));
-        $this->assertFalse(BagUtils::invalidPathCharacters('data/something/../whatever/file.txt'));
     }
 
     /**
@@ -114,10 +103,10 @@ class BagUtilsTest extends BagItTestFramework
      */
     public function testGetAllFiles(): void
     {
-        $files = BagUtils::getAllFiles(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'bag-infos');
+        $files = BagUtils::getAllFiles(self::TEST_RESOURCES . '/bag-infos');
         $this->assertCount(2, $files);
 
-        $files = BagUtils::getAllFiles(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'fetchFiles');
+        $files = BagUtils::getAllFiles(self::TEST_RESOURCES . '/fetchFiles');
         $this->assertCount(8, $files);
 
         $files = BagUtils::getAllFiles(self::TEST_EXTENDED_BAG_DIR);
@@ -178,7 +167,7 @@ class BagUtilsTest extends BagItTestFramework
         // Real source file
         $sourceFile = self::TEST_IMAGE['filename'];
         // Fake destination path
-        $destFile = $this->tmpdir . DIRECTORY_SEPARATOR . "someotherfile";
+        $destFile = $this->tmpdir . "/someotherfile";
 
         $this->expectException(FilesystemException::class);
         $this->expectExceptionMessage("Unable to copy file ($sourceFile) to ($destFile)");
@@ -192,7 +181,7 @@ class BagUtilsTest extends BagItTestFramework
      */
     public function testCheckedFilePut(): void
     {
-        $destFile = $this->tmpdir . DIRECTORY_SEPARATOR . "someotherfile";
+        $destFile = $this->tmpdir . "/someotherfile";
 
         $this->expectException(FilesystemException::class);
         $this->expectExceptionMessage("Unable to put contents to file $destFile");
@@ -233,5 +222,21 @@ class BagUtilsTest extends BagItTestFramework
         $this->assertFalse(BagUtils::checkUnencodedFilepath("some/path/with%0Dencoded/carriage/returns"));
         $this->assertTrue(BagUtils::checkUnencodedFilepath("some/path/with%22encoded/quotes"));
         $this->assertFalse(BagUtils::checkUnencodedFilepath("some/path/with/nothing"));
+    }
+
+    /**
+     * @covers ::standardizePathSeparators
+     */
+    public function testStandardizeFilePaths(): void
+    {
+        // array of arrays with expected path and original input
+        $data = [
+            ["data/directory/for/file.txt", "data/directory\\for/file.txt"],
+            ["/some/path/we/are/using", "/some/path\\we\\are\\using"],
+            ["c:/windows/directories/are/weird", "c:\\windows\\directories\\are\\weird"],
+        ];
+        foreach ($data as $item) {
+            $this->assertEquals($item[0], BagUtils::standardizePathSeparators($item[1]));
+        }
     }
 }

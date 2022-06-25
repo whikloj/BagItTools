@@ -21,40 +21,40 @@ class FetchTest extends BagItTestFramework
     /**
      * Location of fetch file test resources.
      */
-    private const FETCH_FILES = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'fetchFiles';
+    private const FETCH_FILES = self::TEST_RESOURCES . '/fetchFiles';
 
     /**
      * Location of webserver response files.
      */
-    private const WEBSERVER_FILES_DIR = self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'webserver_responses';
+    private const WEBSERVER_FILES_DIR = self::TEST_RESOURCES . '/webserver_responses';
 
     /**
      * Array of remote files defined in mock webserver.
      */
     private const WEBSERVER_FILES = [
         'remote_file1.txt' => [
-            'filename' => self::WEBSERVER_FILES_DIR . DIRECTORY_SEPARATOR . 'remote_file1.txt',
+            'filename' => self::WEBSERVER_FILES_DIR . '/remote_file1.txt',
             'checksums' => [
                 'sha512' => 'fd7c6f2a22f5dffac90c4483c9d623206a237a523b8e5a6f291ac0678fb6a3b5d68bb09a779c1809a15d8ef' .
                     '8c7d4e16a6d18d50c9b7f9639fd0d8fcf2b7ef46a',
             ],
         ],
         'remote_file2.txt' => [
-            'filename' => self::WEBSERVER_FILES_DIR . DIRECTORY_SEPARATOR . 'remote_file2.txt',
+            'filename' => self::WEBSERVER_FILES_DIR . '/remote_file2.txt',
             'checksums' => [
                 'sha512' => '29ad87ff27417de3e1526517e1b8583034c9f3a47e3c1f9ff216025229f9a04c85e8bdd5551d8df6838e462' .
                     '71732b98400170f8fd246d47de9312df2bdde3ca9',
             ],
         ],
         'remote_file3.txt' => [
-            'filename' => self::WEBSERVER_FILES_DIR . DIRECTORY_SEPARATOR . 'remote_file3.txt',
+            'filename' => self::WEBSERVER_FILES_DIR . '/remote_file3.txt',
             'checksums' => [
                 'sha512' => '3dccc8db74e74ba8f0d926987e6daf93f78d9d344a0babfaac5d64dd614215c5358014c830706be5f00c920' .
                     'a9ce2fec0949fababfa65f3c6b7de8a3c27ac6f96',
             ],
         ],
         'remote_file4.txt' => [
-            'filename' => self::WEBSERVER_FILES_DIR . DIRECTORY_SEPARATOR . 'remote_file4.txt',
+            'filename' => self::WEBSERVER_FILES_DIR . '/remote_file4.txt',
             'checksums' => [
                 'sha512' => '6b8c5673861b4578c441cd2fe5af209d6684abdfbaea06cbafe39e9fb1c6882b790c294d19b1d61c7504a5f' .
                     '3a916bd4266334e7f1557a3ab0ae114b0068a8c10',
@@ -127,8 +127,8 @@ class FetchTest extends BagItTestFramework
     {
         $bag = Bag::create($this->tmpdir);
         copy(
-            self::FETCH_FILES . DIRECTORY_SEPARATOR . $fetchFile,
-            $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'fetch.txt'
+            self::FETCH_FILES . '/' . $fetchFile,
+            $bag->getBagRoot() . '/fetch.txt'
         );
         return new Fetch($bag, true);
     }
@@ -286,7 +286,7 @@ class FetchTest extends BagItTestFramework
     {
         $bag = Bag::create($this->tmpdir);
         $bag->addFile(self::TEST_IMAGE['filename'], 'pretty.jpg');
-        $this->assertFileExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'pretty.jpg');
+        $this->assertFileExists($bag->getDataDirectory() . '/pretty.jpg');
 
         $this->expectException(BagItException::class);
         $this->expectExceptionMessage("File already exists at the destination path data/pretty.jpg");
@@ -676,7 +676,7 @@ class FetchTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareBasicTestBag();
         file_put_contents(
-            $this->tmpdir . DIRECTORY_SEPARATOR . "fetch.txt",
+            $this->tmpdir . "/fetch.txt",
             self::$remote_urls[4] . " 2 data/download1.jpg\n"
         );
         $bag = Bag::load($this->tmpdir);
@@ -719,7 +719,7 @@ class FetchTest extends BagItTestFramework
         }
         $bag->update();
         // Read the fetch.txt file from disk.
-        $fetch = explode("\n", file_get_contents($bag->getBagRoot() . DIRECTORY_SEPARATOR . "fetch.txt"));
+        $fetch = explode("\n", file_get_contents($bag->getBagRoot() . "/fetch.txt"));
         $fetch = array_filter($fetch);
         array_walk($fetch, function (&$o) {
             $o = trim(explode(" ", $o)[2]);
