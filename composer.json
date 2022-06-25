@@ -50,7 +50,7 @@
       "./vendor/bin/phpcpd --suffix='.php' src"
     ],
     "phpunit": [
-      "phpdbg -qrr ./vendor/bin/phpunit --debug"
+      "phpdbg -qrr ./vendor/bin/phpunit --verbose --debug --testsuite BagIt"
     ],
     "test": [
       "@check",
