@@ -62,7 +62,7 @@ jobs:
         if: ${{ matrix.host-os != 'windows-latest' }}
 
       - name: Run test suite (Windows)
-        run: phpdbg -qrr ./vendor/bin/phpunit --verbose --debug --testsuite BagIt-Windows
+        run: phpdbg -qrr ./vendor/bin/phpunit --testsuite BagIt-Windows
         if: ${{ matrix.host-os == 'windows-latest' }}
 
       - name: Upload coverage to Codecov
