@@ -61,8 +61,13 @@ jobs:
       - name: Check codestyle
         run: composer check
 
-      - name: Run test suite
+      - name: Run test suite (Full)
         run: composer phpunit
+        if: ${{ matrix.host-os }} != "windows-latest"
+
+      - name: Run test suite (Windows)
+        run: phpdbg -qrr ./vendor/bin/phpunit --verbose --debug --testsuite BagIt-Windows
+        if: ${{ matrix.host-os }} == "windows-latest"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1

@@ -406,11 +406,11 @@ class FetchTest extends BagItTestFramework
     }
 
     /**
+     * @group Fetch
      * @covers ::cleanup
      * @covers ::clearData
      * @covers ::update
      * @covers ::writeToDisk
-
      */
     public function testClearFetchFile(): void
     {
