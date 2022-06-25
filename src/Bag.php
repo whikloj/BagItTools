@@ -286,8 +286,8 @@ class Bag
             $this->validHashAlgorithms,
             array($this, 'normalizeHashAlgorithmName')
         );
-        $this->bagRoot = BagUtils::standardizePathSeparators($rootPath);
-        $this->bagRoot = BagUtils::getAbsolute($this->bagRoot, true);
+        $rootPath = BagUtils::standardizePathSeparators($rootPath);
+        $this->bagRoot = BagUtils::getAbsolute($rootPath, true);
         $this->loaded = (!$new);
         if ($new) {
             $this->createNewBag();
