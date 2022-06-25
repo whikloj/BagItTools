@@ -299,7 +299,7 @@ class BagUtils
             throw new FilesystemException("Unable to create a temporary file with directory $directory, prefix" .
             " $prefix");
         }
-        return $res;
+        return self::standardizePathSeparators($res);
     }
 
     /**

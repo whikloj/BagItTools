@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
 use whikloj\BagItTools\Bag;
+use whikloj\BagItTools\BagUtils;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
@@ -104,7 +105,7 @@ class BagItTestFramework extends TestCase
         $tempname = tempnam("", "bagit_");
         if ($tempname !== false) {
             if (unlink($tempname)) {
-                return $tempname;
+                return BagUtils::standardizePathSeparators($tempname);
             }
         }
         throw new FilesystemException("Unable to create temporary directory");
