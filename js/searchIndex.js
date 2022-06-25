@@ -46,11 +46,6 @@ Search.appendIndex(
             "summary": "Return\u0020the\u0020payload\u0020and\u0020hashes\u0020as\u0020an\u0020associative\u0020array.",
             "url": "classes/whikloj-BagItTools-AbstractManifest.html#method_getHashes"
         },                {
-            "fqsen": "\\whikloj\\BagItTools\\AbstractManifest\u003A\u003AvalidatePath\u0028\u0029",
-            "name": "validatePath",
-            "summary": "Common\u0020checks\u0020for\u0020paths\u0020being\u0020added\u0020to\u0020a\u0020manifest.",
-            "url": "classes/whikloj-BagItTools-AbstractManifest.html#method_validatePath"
-        },                {
             "fqsen": "\\whikloj\\BagItTools\\AbstractManifest\u003A\u003AloadFile\u0028\u0029",
             "name": "loadFile",
             "summary": "Load\u0020the\u0020paths\u0020and\u0020hashes\u0020from\u0020the\u0020file\u0020on\u0020disk,\u0020does\u0020not\u0020validate.",
@@ -60,6 +55,11 @@ Search.appendIndex(
             "name": "writeToDisk",
             "summary": "Utility\u0020to\u0020recreate\u0020the\u0020manifest\u0020file\u0020using\u0020the\u0020currently\u0020stored\u0020hashes.",
             "url": "classes/whikloj-BagItTools-AbstractManifest.html#method_writeToDisk"
+        },                {
+            "fqsen": "\\whikloj\\BagItTools\\AbstractManifest\u003A\u003AcheckIncomingFilePath\u0028\u0029",
+            "name": "checkIncomingFilePath",
+            "summary": "Does\u0020validation\u0020on\u0020incoming\u0020file\u0020paths.",
+            "url": "classes/whikloj-BagItTools-AbstractManifest.html#method_checkIncomingFilePath"
         },                {
             "fqsen": "\\whikloj\\BagItTools\\AbstractManifest\u003A\u003AcalculateHash\u0028\u0029",
             "name": "calculateHash",
@@ -95,11 +95,6 @@ Search.appendIndex(
             "name": "normalizePath",
             "summary": "Normalize\u0020a\u0020path\u0020for\u0020character\u0020representation\u0020and\u0020case.",
             "url": "classes/whikloj-BagItTools-AbstractManifest.html#method_normalizePath"
-        },                {
-            "fqsen": "\\whikloj\\BagItTools\\AbstractManifest\u003A\u003AcleanUpAbsPath\u0028\u0029",
-            "name": "cleanUpAbsPath",
-            "summary": "Clean\u0020up\u0020file\u0020paths\u0020to\u0020remove\u0020extraneous\u0020period,\u0020double\u0020period\u0020and\u0020slashes",
-            "url": "classes/whikloj-BagItTools-AbstractManifest.html#method_cleanUpAbsPath"
         },                {
             "fqsen": "\\whikloj\\BagItTools\\AbstractManifest\u003A\u003AcleanUpRelPath\u0028\u0029",
             "name": "cleanUpRelPath",
@@ -146,11 +141,6 @@ Search.appendIndex(
             "summary": "The\u0020filename\u0020for\u0020this\u0020manifest.",
             "url": "classes/whikloj-BagItTools-AbstractManifest.html#property_filename"
         },                {
-            "fqsen": "\\whikloj\\BagItTools\\AbstractManifest\u003A\u003A\u0024filesOnDisk",
-            "name": "filesOnDisk",
-            "summary": "Array\u0020of\u0020files\u0020on\u0020disk\u0020to\u0020validate\u0020against.",
-            "url": "classes/whikloj-BagItTools-AbstractManifest.html#property_filesOnDisk"
-        },                {
             "fqsen": "\\whikloj\\BagItTools\\AbstractManifest\u003A\u003A\u0024manifestErrors",
             "name": "manifestErrors",
             "summary": "Errors\u0020while\u0020validating\u0020this\u0020manifest.",
@@ -185,6 +175,11 @@ Search.appendIndex(
             "name": "load",
             "summary": "Static\u0020constructor\u0020to\u0020load\u0020an\u0020existing\u0020bag.",
             "url": "classes/whikloj-BagItTools-Bag.html#method_load"
+        },                {
+            "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AisValid\u0028\u0029",
+            "name": "isValid",
+            "summary": "Is\u0020the\u0020bag\u0020valid\u0020as\u0020it\u0020appears\u0020on\u0020disk.",
+            "url": "classes/whikloj-BagItTools-Bag.html#method_isValid"
         },                {
             "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003Avalidate\u0028\u0029",
             "name": "validate",
@@ -256,10 +251,25 @@ Search.appendIndex(
             "summary": "Removes\u0020a\u0020specific\u0020entry\u0020for\u0020a\u0020tag\u0020by\u0020the\u0020array\u0020index.\u0020This\u0020can\u0020be\u0020determined\u0020using\u0020the\u0020index\u0020in\u0020the\u0020array\nreturned\u0020by\u0020getBagInfoByKey\u0028\u0029.",
             "url": "classes/whikloj-BagItTools-Bag.html#method_removeBagInfoTagIndex"
         },                {
+            "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AremoveBagInfoTagValue\u0028\u0029",
+            "name": "removeBagInfoTagValue",
+            "summary": "Remove\u0020a\u0020specific\u0020entry\u0020for\u0020a\u0020tag\u0020by\u0020the\u0020tag\u0020value.",
+            "url": "classes/whikloj-BagItTools-Bag.html#method_removeBagInfoTagValue"
+        },                {
             "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AaddBagInfoTag\u0028\u0029",
             "name": "addBagInfoTag",
             "summary": "Add\u0020tag\u0020and\u0020value\u0020to\u0020bag\u002Dinfo.",
             "url": "classes/whikloj-BagItTools-Bag.html#method_addBagInfoTag"
+        },                {
+            "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AaddBagInfoTags\u0028\u0029",
+            "name": "addBagInfoTags",
+            "summary": "Add\u0020multiple\u0020bag\u0020info\u0020tags\u0020from\u0020an\u0020array.",
+            "url": "classes/whikloj-BagItTools-Bag.html#method_addBagInfoTags"
+        },                {
+            "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AaddBagInfoTagsInternal\u0028\u0029",
+            "name": "addBagInfoTagsInternal",
+            "summary": "Internal\u0020function\u0020adding\u0020the\u0020values\u0020to\u0020the\u0020various\u0020tag\u0020arrays.",
+            "url": "classes/whikloj-BagItTools-Bag.html#method_addBagInfoTagsInternal"
         },                {
             "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AsetFileEncoding\u0028\u0029",
             "name": "setFileEncoding",
@@ -300,6 +310,16 @@ Search.appendIndex(
             "name": "setAlgorithm",
             "summary": "Replaces\u0020any\u0020existing\u0020hash\u0020algorithms\u0020with\u0020the\u0020one\u0020requested.",
             "url": "classes/whikloj-BagItTools-Bag.html#method_setAlgorithm"
+        },                {
+            "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AsetAlgorithms\u0028\u0029",
+            "name": "setAlgorithms",
+            "summary": "Replaces\u0020any\u0020existing\u0020hash\u0020algorithms\u0020with\u0020the\u0020ones\u0020requested.",
+            "url": "classes/whikloj-BagItTools-Bag.html#method_setAlgorithms"
+        },                {
+            "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AsetAlgorithmsInternal\u0028\u0029",
+            "name": "setAlgorithmsInternal",
+            "summary": "Internal\u0020utility\u0020to\u0020remove\u0020all\u0020algorithms\u0020not\u0020specified\u0020and\u0020add\u0020any\u0020missing.",
+            "url": "classes/whikloj-BagItTools-Bag.html#method_setAlgorithmsInternal"
         },                {
             "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AaddFetchFile\u0028\u0029",
             "name": "addFetchFile",
@@ -596,10 +616,10 @@ Search.appendIndex(
             "summary": "Test\u0020a\u0020filepath\u0020to\u0020see\u0020if\u0020we\u0020think\u0020it\u0020is\u0020compressed.",
             "url": "classes/whikloj-BagItTools-Bag.html#method_isCompressed"
         },                {
-            "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AgetExtensions\u0028\u0029",
-            "name": "getExtensions",
-            "summary": "Get\u0020the\u0020file\u0020extension\u0020from\u0020a\u0020full\u0020path.",
-            "url": "classes/whikloj-BagItTools-Bag.html#method_getExtensions"
+            "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AhasExtension\u0028\u0029",
+            "name": "hasExtension",
+            "summary": "Retrieve\u0020whether\u0020the\u0020given\u0020filepath\u0020has\u0020one\u0020of\u0020the\u0020extensions",
+            "url": "classes/whikloj-BagItTools-Bag.html#method_hasExtension"
         },                {
             "fqsen": "\\whikloj\\BagItTools\\Bag\u003A\u003AgetDirectory\u0028\u0029",
             "name": "getDirectory",
@@ -911,6 +931,26 @@ Search.appendIndex(
             "summary": "Write\u0020to\u0020a\u0020file\u0020resource\u0020and\u0020check\u0020it\u0020succeeded.",
             "url": "classes/whikloj-BagItTools-BagUtils.html#method_checkedFwrite"
         },                {
+            "fqsen": "\\whikloj\\BagItTools\\BagUtils\u003A\u003AdecodeFilepath\u0028\u0029",
+            "name": "decodeFilepath",
+            "summary": "Decode\u0020a\u0020file\u0020path\u0020according\u0020to\u0020the\u0020special\u0020rules\u0020of\u0020the\u0020spec.",
+            "url": "classes/whikloj-BagItTools-BagUtils.html#method_decodeFilepath"
+        },                {
+            "fqsen": "\\whikloj\\BagItTools\\BagUtils\u003A\u003AencodeFilepath\u0028\u0029",
+            "name": "encodeFilepath",
+            "summary": "Encode\u0020a\u0020file\u0020path\u0020according\u0020to\u0020the\u0020special\u0020rules\u0020of\u0020the\u0020spec.",
+            "url": "classes/whikloj-BagItTools-BagUtils.html#method_encodeFilepath"
+        },                {
+            "fqsen": "\\whikloj\\BagItTools\\BagUtils\u003A\u003AcheckUnencodedFilepath\u0028\u0029",
+            "name": "checkUnencodedFilepath",
+            "summary": "Check\u0020for\u0020unencoded\u0020newlines,\u0020carriage\u0020returns\u0020or\u0020\u0025\u0020symbols\u0020in\u0020a\u0020file\u0020path.",
+            "url": "classes/whikloj-BagItTools-BagUtils.html#method_checkUnencodedFilepath"
+        },                {
+            "fqsen": "\\whikloj\\BagItTools\\BagUtils\u003A\u003AsplitFileDataOnLineEndings\u0028\u0029",
+            "name": "splitFileDataOnLineEndings",
+            "summary": "Split\u0020the\u0020file\u0020data\u0020on\u0020any\u0020of\u0020the\u0020allowed\u0020line\u0020endings.",
+            "url": "classes/whikloj-BagItTools-BagUtils.html#method_splitFileDataOnLineEndings"
+        },                {
             "fqsen": "\\whikloj\\BagItTools\\BagUtils\u003A\u003ACHARACTER_SETS",
             "name": "CHARACTER_SETS",
             "summary": "Valid\u0020character\u0020set\u0020MIME\u0020names\u0020from\u0020IANA.",
@@ -941,6 +981,16 @@ Search.appendIndex(
             "summary": "Errors\u0020related\u0020to\u0020operations\u0020on\u0020the\u0020filesystem.",
             "url": "classes/whikloj-BagItTools-Exceptions-FilesystemException.html"
         },                {
+            "fqsen": "\\CURLMOPT_MAX_TOTAL_CONNECTIONS",
+            "name": "CURLMOPT_MAX_TOTAL_CONNECTIONS",
+            "summary": "",
+            "url": "namespaces/default.html#constant_CURLMOPT_MAX_TOTAL_CONNECTIONS"
+        },                {
+            "fqsen": "\\CURL_PIPEWAIT",
+            "name": "CURL_PIPEWAIT",
+            "summary": "",
+            "url": "namespaces/default.html#constant_CURL_PIPEWAIT"
+        },                {
             "fqsen": "\\whikloj\\BagItTools\\Fetch",
             "name": "Fetch",
             "summary": "Class\u0020for\u0020holding\u0020and\u0020interacting\u0020with\u0020fetch.txt\u0020data.",
@@ -965,6 +1015,11 @@ Search.appendIndex(
             "name": "validateData",
             "summary": "Validate\u0020fetch\u0020data.",
             "url": "classes/whikloj-BagItTools-Fetch.html#method_validateData"
+        },                {
+            "fqsen": "\\whikloj\\BagItTools\\Fetch\u003A\u003AaddFile\u0028\u0029",
+            "name": "addFile",
+            "summary": "Add\u0020a\u0020file\u0020to\u0020this\u0020fetch\u0020file.",
+            "url": "classes/whikloj-BagItTools-Fetch.html#method_addFile"
         },                {
             "fqsen": "\\whikloj\\BagItTools\\Fetch\u003A\u003Adownload\u0028\u0029",
             "name": "download",
@@ -1045,11 +1100,6 @@ Search.appendIndex(
             "name": "internalValidateUrl",
             "summary": "BagItTools\u0020specific\u0020\u0028non\u002Dspec\u0029\u0020requirements\u0020for\u0020URLs.",
             "url": "classes/whikloj-BagItTools-Fetch.html#method_internalValidateUrl"
-        },                {
-            "fqsen": "\\whikloj\\BagItTools\\Fetch\u003A\u003AvalidatePath\u0028\u0029",
-            "name": "validatePath",
-            "summary": "Validate\u0020the\u0020path\u0020for\u0020fetch\u0020files.",
-            "url": "classes/whikloj-BagItTools-Fetch.html#method_validatePath"
         },                {
             "fqsen": "\\whikloj\\BagItTools\\Fetch\u003A\u003AurlExistsInFile\u0028\u0029",
             "name": "urlExistsInFile",
