@@ -32,7 +32,7 @@ jobs:
             experimental: true
             host-os: "windows-latest"
 
-    name: PHP ${{ matrix.php-versions }}
+    name: PHP ${{ matrix.php-versions }} - OS ${{ matrix.host-os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -63,11 +63,11 @@ jobs:
 
       - name: Run test suite (Full)
         run: composer phpunit
-        if: ${{ matrix.host-os }} != "windows-latest"
+        if: ${{ matrix.host-os != "windows-latest" }}
 
       - name: Run test suite (Windows)
         run: phpdbg -qrr ./vendor/bin/phpunit --verbose --debug --testsuite BagIt-Windows
-        if: ${{ matrix.host-os }} == "windows-latest"
+        if: ${{ matrix.host-os == "windows-latest" }}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
