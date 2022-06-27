@@ -408,7 +408,6 @@ class BagUtils
      */
     public static function standardizePathSeparators(string $path): string
     {
-        // Cleaning path regarding OS
         return str_replace('\\', '/', $path);
     }
 }
