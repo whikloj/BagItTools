@@ -7,6 +7,7 @@ namespace whikloj\BagItTools\Test;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
+use whikloj\BagItTools\BagUtils;
 use whikloj\BagItTools\Commands\ValidateCommand;
 
 /**
@@ -36,7 +37,7 @@ class CommandTest extends BagItTestFramework
      */
     public function testValidateInvalidPath(): void
     {
-        $path = __DIR__ . '/DEVNULL';
+        $path = BagUtils::standardizePathSeparators(__DIR__) . '/DEVNULL';
         $this->commandTester->execute([
             'bag-path' => $path,
         ]);
@@ -50,7 +51,7 @@ class CommandTest extends BagItTestFramework
      */
     public function testValidBag(): void
     {
-        $path = __DIR__ . '/resources/TestBag';
+        $path = BagUtils::standardizePathSeparators(__DIR__) . '/resources/TestBag';
         $this->commandTester->execute([
             'bag-path' => $path,
         ]);
