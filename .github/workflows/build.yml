@@ -15,16 +15,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ["7.4", "8.0", "8.1"]
+        php-versions: ["8.0"]
+        host-os: ["windows-latest"]
         experimental: [false]
-        host-os: ["ubuntu-latest", "windows-latest"]
-        include:
-          - php-versions: "7.3"
-            experimental: false
-            host-os: "ubuntu-18.04"
-          - php-versions: "7.3"
-            experimental: false
-            host-os: "windows-latest"
+#        php-versions: ["7.4", "8.0", "8.1"]
+#        host-os: ["ubuntu-latest", "windows-latest"]
+#        include:
+#          - php-versions: "7.3"
+#            experimental: false
+#            host-os: "ubuntu-18.04"
+#          - php-versions: "7.3"
+#            experimental: false
+#            host-os: "windows-latest"
 
     name: PHP ${{ matrix.php-versions }} - OS ${{ matrix.host-os }}
     steps:

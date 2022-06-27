@@ -100,6 +100,7 @@ class ManifestTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
+        var_dump($bag->getErrors());
         $this->assertTrue($bag->isValid());
 
         file_put_contents($bag->getDataDirectory() . '/oops.txt', "Slip up");
@@ -118,6 +119,7 @@ class ManifestTest extends BagItTestFramework
     {
         $this->prepareManifest('manifest-with-relative-paths-sha256.txt');
         $bag = Bag::load($this->tmpdir);
+        var_dump($bag->getErrors());
         $this->assertTrue($bag->isValid());
         $this->assertCount(0, $bag->getErrors());
         $this->assertCount(1, $bag->getWarnings());
