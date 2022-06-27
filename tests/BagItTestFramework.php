@@ -291,7 +291,7 @@ class BagItTestFramework extends TestCase
      */
     protected function assertStringContainsStringWithoutNewlines(string $expected, string $original): void
     {
-        $split_original = explode("\n", $original);
+        $split_original = preg_split("/(\r\n|\r|\r)/", $original);
         array_walk($split_original, function (&$o) {
             $o = trim($o);
         });
