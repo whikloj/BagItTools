@@ -474,12 +474,14 @@ class FetchTest extends BagItTestFramework
         $hashes = $manifest->getHashes();
         foreach ($destinations as $dest) {
             $dest = BagUtils::getAbsolute(BagUtils::baseInData($dest));
+            $dest = str_replace(DIRECTORY_SEPARATOR, '/', $dest);
             $this->assertArrayHasKey($dest, $hashes);
             $this->assertFileDoesNotExist($newbag->makeAbsolute($dest));
         }
         $this->assertTrue($newbag->isValid());
         foreach ($destinations as $dest) {
             $dest = BagUtils::getAbsolute(BagUtils::baseInData($dest));
+            $dest = str_replace(DIRECTORY_SEPARATOR, '/', $dest);
             $this->assertArrayHasKey($dest, $hashes);
             $this->assertFileExists($newbag->makeAbsolute($dest));
         }
@@ -487,6 +489,7 @@ class FetchTest extends BagItTestFramework
         $newbag->finalize();
         foreach ($destinations as $dest) {
             $dest = BagUtils::getAbsolute(BagUtils::baseInData($dest));
+            $dest = str_replace(DIRECTORY_SEPARATOR, '/', $dest);
             $this->assertArrayHasKey($dest, $hashes);
             $this->assertFileDoesNotExist($newbag->makeAbsolute($dest));
         }
@@ -566,6 +569,7 @@ class FetchTest extends BagItTestFramework
         $hashes = $newbag->getPayloadManifests()['sha512']->getHashes();
         foreach ($destinations as $dest) {
             $dest = BagUtils::getAbsolute(BagUtils::baseInData($dest));
+            $dest = str_replace(DIRECTORY_SEPARATOR, '/', $dest);
             $this->assertArrayHasKey($dest, $hashes);
             $this->assertFileDoesNotExist($newbag->makeAbsolute($dest));
         }
@@ -575,6 +579,7 @@ class FetchTest extends BagItTestFramework
         for ($foo = 0; $foo < 2; $foo += 1) {
             $dest = $destinations[$foo];
             $dest = BagUtils::getAbsolute(BagUtils::baseInData($dest));
+            $dest = str_replace(DIRECTORY_SEPARATOR, '/', $dest);
             $this->assertArrayHasKey($dest, $hashes);
             if ($foo == 1) {
                 // First and third URLs succeed
@@ -696,18 +701,12 @@ class FetchTest extends BagItTestFramework
     public function testCreateFetchWithEncodedCharacters(): void
     {
         $expected_on_disk = [
-            "data/file-with%0Anewline.txt",
-            "data/directory%0Dcarriage%0Dreturn/empty.txt",
             "data/image-with-%25-character.jpg",
             "data/already-encoded-%2525-double-it.txt",
-            "data/directory%0Dcarriage%0Dreturn/directory%0Aline%0Abreak/image-with-%2525.jpg",
         ];
         $expected_in_memory = [
-            "data/file-with\nnewline.txt",
-            "data/directory\rcarriage\rreturn/empty.txt",
             "data/image-with-%-character.jpg",
             "data/already-encoded-%25-double-it.txt",
-            "data/directory\rcarriage\rreturn/directory\nline\nbreak/image-with-%25.jpg",
         ];
         // Create a bag with fetch file destinations that are weird.
         $bag = Bag::create($this->tmpdir);
