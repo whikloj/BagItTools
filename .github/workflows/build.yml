@@ -17,6 +17,7 @@ jobs:
       matrix:
         php-versions: ["7.4", "8.0", "8.1"]
         host-os: ["ubuntu-latest", "windows-latest"]
+        experimental: [false]
         include:
           - php-versions: "7.3"
             experimental: false
