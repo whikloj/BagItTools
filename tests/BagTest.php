@@ -25,10 +25,10 @@ class BagTest extends BagItTestFramework
     {
         $this->assertFileDoesNotExist($this->tmpdir);
         $bag = Bag::create($this->tmpdir);
-        $this->assertFileExists($this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt");
-        $this->assertTrue(is_file($this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt"));
-        $this->assertFileExists($this->tmpdir . DIRECTORY_SEPARATOR . "data");
-        $this->assertTrue(is_dir($this->tmpdir . DIRECTORY_SEPARATOR . "data"));
+        $this->assertFileExists($this->tmpdir . "/bagit.txt");
+        $this->assertTrue(is_file($this->tmpdir . "/bagit.txt"));
+        $this->assertFileExists($this->tmpdir . "/data");
+        $this->assertTrue(is_dir($this->tmpdir . "/data"));
         $this->assertTrue($bag->isValid());
     }
 
@@ -55,7 +55,7 @@ class BagTest extends BagItTestFramework
     public function testCreateBagRelative(): void
     {
         mkdir($this->tmpdir);
-        $newDir = $this->tmpdir . DIRECTORY_SEPARATOR . "some-new-dir";
+        $newDir = $this->tmpdir . "/some-new-dir";
         $this->assertDirectoryDoesNotExist($newDir);
         $curr = getcwd();
         chdir($this->tmpdir);
@@ -73,7 +73,7 @@ class BagTest extends BagItTestFramework
     public function testCreateBagRelative2(): void
     {
         mkdir($this->tmpdir);
-        $newDir = $this->tmpdir . DIRECTORY_SEPARATOR . "some-new-dir";
+        $newDir = $this->tmpdir . "/some-new-dir";
         $this->assertDirectoryDoesNotExist($newDir);
         $curr = getcwd();
         chdir($this->tmpdir);
@@ -122,7 +122,7 @@ class BagTest extends BagItTestFramework
             $bag->getVersion()
         );
         file_put_contents(
-            $bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bagit.txt',
+            $bag->getBagRoot() . '/bagit.txt',
             "BagIt-Version: 0.97" . PHP_EOL . "Tag-File-Character-Encoding: UTF-8" . PHP_EOL
         );
         $newbag = Bag::load($this->tmpdir);
@@ -142,7 +142,7 @@ class BagTest extends BagItTestFramework
     {
         $bag = Bag::create($this->tmpdir);
         $this->assertEquals($this->tmpdir, $bag->getBagRoot());
-        $data = $this->tmpdir . DIRECTORY_SEPARATOR . 'data';
+        $data = $this->tmpdir . '/data';
         $this->assertEquals($data, $bag->getDataDirectory());
     }
 
@@ -156,10 +156,8 @@ class BagTest extends BagItTestFramework
         $source_file = self::TEST_IMAGE['filename'];
         $bag = Bag::create($this->tmpdir);
         $bag->addFile($source_file, "some/image.txt");
-        $this->assertDirectoryExists($bag->getDataDirectory() .
-        DIRECTORY_SEPARATOR . 'some');
-        $this->assertFileExists($bag->getDataDirectory() .
-        DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'image.txt');
+        $this->assertDirectoryExists($bag->getDataDirectory() . '/some');
+        $this->assertFileExists($bag->getDataDirectory() . '/some/image.txt');
     }
 
     /**
@@ -207,10 +205,8 @@ class BagTest extends BagItTestFramework
 
         $bag = Bag::create($this->tmpdir);
         $bag->addFile($source_file, $destination);
-        $this->assertDirectoryExists($bag->getDataDirectory() .
-            DIRECTORY_SEPARATOR . 'some');
-        $this->assertFileExists($bag->getDataDirectory() .
-            DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'image.txt');
+        $this->assertDirectoryExists($bag->getDataDirectory() . '/some');
+        $this->assertFileExists($bag->getDataDirectory() . '/some/image.txt');
 
         $this->expectException(BagItException::class);
         $this->expectExceptionMessage("File data/$destination already exists in the bag.");
@@ -227,9 +223,9 @@ class BagTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareBasicTestBag();
         $bag = Bag::load($this->tmpdir);
-        $this->assertFileExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'jekyll_and_hyde.txt');
+        $this->assertFileExists($bag->getDataDirectory() . '/jekyll_and_hyde.txt');
         $bag->removeFile('jekyll_and_hyde.txt');
-        $this->assertFileDoesNotExist($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'jekyll_and_hyde.txt');
+        $this->assertFileDoesNotExist($bag->getDataDirectory() . '/jekyll_and_hyde.txt');
     }
 
     /**
@@ -242,17 +238,12 @@ class BagTest extends BagItTestFramework
     {
         $source = "Hi this is a test";
         $bag = Bag::create($this->tmpdir);
-        $this->assertDirectoryDoesNotExist($bag->getDataDirectory() .
-            DIRECTORY_SEPARATOR . 'some');
-        $this->assertFileDoesNotExist($bag->getDataDirectory() .
-            DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'text.txt');
+        $this->assertDirectoryDoesNotExist($bag->getDataDirectory() . '/some');
+        $this->assertFileDoesNotExist($bag->getDataDirectory() . '/some/text.txt');
         $bag->createFile($source, "some/text.txt");
-        $this->assertDirectoryExists($bag->getDataDirectory() .
-            DIRECTORY_SEPARATOR . 'some');
-        $this->assertFileExists($bag->getDataDirectory() .
-            DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'text.txt');
-        $contents = file_get_contents($bag->getDataDirectory() .
-            DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'text.txt');
+        $this->assertDirectoryExists($bag->getDataDirectory() . '/some');
+        $this->assertFileExists($bag->getDataDirectory() . '/some/text.txt');
+        $contents = file_get_contents($bag->getDataDirectory() . '/some/text.txt');
         $this->assertEquals($source, $contents);
     }
 
@@ -268,8 +259,7 @@ class BagTest extends BagItTestFramework
         $destination = "some/text.txt";
         $bag = Bag::create($this->tmpdir);
         $bag->createFile($source, $destination);
-        $contents = file_get_contents($bag->getDataDirectory() .
-            DIRECTORY_SEPARATOR . 'some' . DIRECTORY_SEPARATOR . 'text.txt');
+        $contents = file_get_contents($bag->getDataDirectory() . '/some/text.txt');
         $this->assertEquals($source, $contents);
 
         $this->expectException(BagItException::class);
@@ -289,7 +279,7 @@ class BagTest extends BagItTestFramework
     {
         $this->tmpdir = $this->prepareBasicTestBag();
 
-        $picturesDir = implode(DIRECTORY_SEPARATOR, [
+        $picturesDir = implode('/', [
             $this->tmpdir,
             'data',
             'pictures',
@@ -297,20 +287,20 @@ class BagTest extends BagItTestFramework
 
         $bag = Bag::load($this->tmpdir);
 
-        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'another_picture.txt');
-        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'some_more_data.txt');
+        $this->assertFileExists($picturesDir . '/another_picture.txt');
+        $this->assertFileExists($picturesDir . '/some_more_data.txt');
 
         // Don't reference the correct path.
         $bag->removeFile('some_more_data.txt');
-        $this->assertFileExists($picturesDir . DIRECTORY_SEPARATOR . 'some_more_data.txt');
+        $this->assertFileExists($picturesDir . '/some_more_data.txt');
 
         // Reference with data/ prefix
         $bag->removeFile('data/pictures/some_more_data.txt');
-        $this->assertFileDoesNotExist($picturesDir . DIRECTORY_SEPARATOR . 'some_more_data.txt');
+        $this->assertFileDoesNotExist($picturesDir . '/some_more_data.txt');
 
         // Reference without data/ prefix
         $bag->removeFile('pictures/another_picture.txt');
-        $this->assertFileDoesNotExist($picturesDir . DIRECTORY_SEPARATOR . 'another_picture.txt');
+        $this->assertFileDoesNotExist($picturesDir . '/another_picture.txt');
 
         // All files are gone so directory data/pictures should have been removed.
         $this->assertDirectoryDoesNotExist($picturesDir);
@@ -328,20 +318,20 @@ class BagTest extends BagItTestFramework
 
         $bag = Bag::load($this->tmpdir);
         // Directory doesn't exist.
-        $this->assertDirectoryDoesNotExist($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'empty');
+        $this->assertDirectoryDoesNotExist($bag->getDataDirectory() . '/empty');
         // Add files.
         $bag->addFile(self::TEST_IMAGE['filename'], 'data/empty/test.jpg');
         $bag->addFile(self::TEST_TEXT['filename'], 'data/empty/.hidden');
         // Directory does exist.
-        $this->assertDirectoryExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'empty');
+        $this->assertDirectoryExists($bag->getDataDirectory() . '/empty');
         // Remove the image but leave a hidden file.
         $bag->removeFile('data/empty/test.jpg');
         // Directory does exist.
-        $this->assertDirectoryExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'empty');
+        $this->assertDirectoryExists($bag->getDataDirectory() . '/empty');
         // Remove the hidden file.
         $bag->removeFile('data/empty/.hidden');
         // Directory is removed too.
-        $this->assertDirectoryDoesNotExist($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'empty');
+        $this->assertDirectoryDoesNotExist($bag->getDataDirectory() . '/empty');
     }
 
     /**
@@ -357,23 +347,23 @@ class BagTest extends BagItTestFramework
         $manifest = $bag->getPayloadManifests()['sha256'];
         // File doesn't exist.
         $this->assertArrayNotHasKey('data/land.jpg', $manifest->getHashes());
-        $this->assertFileDoesNotExist($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
+        $this->assertFileDoesNotExist($bag->getDataDirectory() . '/land.jpg');
 
         // Add the file
         $bag->addFile(self::TEST_IMAGE['filename'], 'data/land.jpg');
         $manifest = $bag->getPayloadManifests()['sha256'];
         $this->assertArrayNotHasKey('data/land.jpg', $manifest->getHashes());
-        $this->assertFileExists($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
+        $this->assertFileExists($bag->getDataDirectory() . '/land.jpg');
         // Update
         $bag->update();
         $manifest = $bag->getPayloadManifests()['sha256'];
         $this->assertArrayHasKey('data/land.jpg', $manifest->getHashes());
 
         // Remove it manually.
-        unlink($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
+        unlink($bag->getDataDirectory() . '/land.jpg');
         $manifest = $bag->getPayloadManifests()['sha256'];
         // File is gone
-        $this->assertFileDoesNotExist($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'land.jpg');
+        $this->assertFileDoesNotExist($bag->getDataDirectory() . '/land.jpg');
         // Still exists in the manifest.
         $this->assertArrayHasKey('data/land.jpg', $manifest->getHashes());
         // Update BagIt files on disk.
@@ -641,7 +631,7 @@ class BagTest extends BagItTestFramework
      */
     public function testNonExistantCompressed(): void
     {
-        $path = DIRECTORY_SEPARATOR . 'my' . DIRECTORY_SEPARATOR . 'directory.tar';
+        $path = '/my/directory.tar';
 
         $this->expectException(BagItException::class);
         $this->expectExceptionMessage("Path $path does not exist, could not load Bag.");
@@ -661,15 +651,15 @@ class BagTest extends BagItTestFramework
      */
     public function testUncompressTarGz(): void
     {
-        $bag = Bag::load(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testtar.tgz');
+        $bag = Bag::load(self::TEST_RESOURCES . '/testtar.tgz');
         $this->assertTrue($bag->isValid());
         $this->assertTrue($bag->hasAlgorithm('sha224'));
         $manifest = $bag->getPayloadManifests()['sha224'];
         foreach ($manifest->getHashes() as $path => $hash) {
-            $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . BagUtils::baseInData($path));
+            $this->assertFileExists($bag->getBagRoot() . '/' . BagUtils::baseInData($path));
         }
         $this->assertNotEquals(
-            self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testtar.tgz',
+            self::TEST_RESOURCES . '/testtar.tgz',
             $bag->getBagRoot()
         );
     }
@@ -685,15 +675,15 @@ class BagTest extends BagItTestFramework
      */
     public function testUncompressTarBzip(): void
     {
-        $bag = Bag::load(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testtar.tar.bz2');
+        $bag = Bag::load(self::TEST_RESOURCES . '/testtar.tar.bz2');
         $this->assertTrue($bag->isValid());
         $this->assertTrue($bag->hasAlgorithm('sha224'));
         $manifest = $bag->getPayloadManifests()['sha224'];
         foreach ($manifest->getHashes() as $path => $hash) {
-            $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . BagUtils::baseInData($path));
+            $this->assertFileExists($bag->getBagRoot() . '/' . BagUtils::baseInData($path));
         }
         $this->assertNotEquals(
-            self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testtar.tar.bz2',
+            self::TEST_RESOURCES . '/testtar.tar.bz2',
             $bag->getBagRoot()
         );
     }
@@ -708,15 +698,15 @@ class BagTest extends BagItTestFramework
      */
     public function testUncompressZip(): void
     {
-        $bag = Bag::load(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testzip.zip');
+        $bag = Bag::load(self::TEST_RESOURCES . '/testzip.zip');
         $this->assertTrue($bag->isValid());
         $this->assertTrue($bag->hasAlgorithm('sha224'));
         $manifest = $bag->getPayloadManifests()['sha224'];
         foreach ($manifest->getHashes() as $path => $hash) {
-            $this->assertFileExists($bag->getBagRoot() . DIRECTORY_SEPARATOR . BagUtils::baseInData($path));
+            $this->assertFileExists($bag->getBagRoot() . '/' . BagUtils::baseInData($path));
         }
         $this->assertNotEquals(
-            self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'testzip.zip',
+            self::TEST_RESOURCES . '/testzip.zip',
             $bag->getBagRoot()
         );
     }
@@ -866,11 +856,11 @@ class BagTest extends BagItTestFramework
         # Only spaces after the colon allowed.
         $v10_regex = "/^.*?\b:\s+\b.*?$/";
 
-        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . '/Test097Bag');
         $bag = Bag::load($this->tmpdir);
         $this->assertEquals('0.97', $bag->getVersionString());
         $this->assertTrue($bag->isValid());
-        $fp = fopen($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt', 'r');
+        $fp = fopen($bag->getBagRoot() . '/bag-info.txt', 'r');
         while (!feof($fp)) {
             $line = (string) fgets($fp);
             $line = trim($line);
@@ -884,7 +874,7 @@ class BagTest extends BagItTestFramework
         $bag->upgrade();
         $this->assertEquals('1.0', $bag->getVersionString());
         $this->assertTrue($bag->isValid());
-        $fp = fopen($bag->getBagRoot() . DIRECTORY_SEPARATOR . 'bag-info.txt', 'r');
+        $fp = fopen($bag->getBagRoot() . '/bag-info.txt', 'r');
         while (!feof($fp)) {
             $line = (string) fgets($fp);
             $line = trim($line);
@@ -939,10 +929,10 @@ class BagTest extends BagItTestFramework
         $this->expectException(BagItException::class);
         $this->expectExceptionMessage("This bag is not valid, we cannot automatically upgrade it.");
 
-        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . '/Test097Bag');
         $bag = Bag::load($this->tmpdir);
         $this->assertEquals('0.97', $bag->getVersionString());
-        touch($bag->getDataDirectory() . DIRECTORY_SEPARATOR . 'oops.txt');
+        touch($bag->getDataDirectory() . '/oops.txt');
         $this->assertFalse($bag->isValid());
         $bag->upgrade();
     }
@@ -969,7 +959,7 @@ class BagTest extends BagItTestFramework
     public function testBagItTooManyLines(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . DIRECTORY_SEPARATOR . 'bagit.txt', 'a');
+        $fp = fopen($this->tmpdir . '/bagit.txt', 'a');
         fwrite($fp, "This is more stuff\n");
         fclose($fp);
         $bag = Bag::load($this->tmpdir);
@@ -984,7 +974,7 @@ class BagTest extends BagItTestFramework
     public function testBagItVersionLineInvalid(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . DIRECTORY_SEPARATOR . 'bagit.txt', 'w');
+        $fp = fopen($this->tmpdir . '/bagit.txt', 'w');
         fwrite($fp, "BagIt-Version: M.N\nTag-File-Character-Encoding: UTF-8\n");
         fclose($fp);
         $bag = Bag::load($this->tmpdir);
@@ -999,7 +989,7 @@ class BagTest extends BagItTestFramework
     public function testBagItEncodingLineError(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . DIRECTORY_SEPARATOR . 'bagit.txt', 'w');
+        $fp = fopen($this->tmpdir . '/bagit.txt', 'w');
         fwrite($fp, "BagIt-Version: 1.0\nTag-File-Encoding: UTF-8\n");
         fclose($fp);
         $bag = Bag::load($this->tmpdir);
@@ -1014,7 +1004,7 @@ class BagTest extends BagItTestFramework
     public function testFailOnEncodedBagIt(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . DIRECTORY_SEPARATOR . 'bagit.txt', 'w');
+        $fp = fopen($this->tmpdir . '/bagit.txt', 'w');
         $encoded_string = mb_convert_encoding("BagIt-Version: 1.0\nTag-File-Encoding: UTF-8\n", "byte4le");
         fwrite($fp, $encoded_string);
         fclose($fp);
@@ -1046,7 +1036,7 @@ class BagTest extends BagItTestFramework
     {
         // Make the directory
         mkdir($this->tmpdir);
-        $fullpath = $this->tmpdir . DIRECTORY_SEPARATOR . "existing_bag";
+        $fullpath = $this->tmpdir . "/existing_bag";
         mkdir($fullpath);
 
         $this->expectException(BagItException::class);
@@ -1072,7 +1062,7 @@ class BagTest extends BagItTestFramework
         // Make the directory
         mkdir($this->tmpdir);
         $curr = getcwd();
-        $full_path = $this->tmpdir . DIRECTORY_SEPARATOR . "existing_bag";
+        $full_path = $this->tmpdir . "/existing_bag";
         chdir($this->tmpdir);
         $bag = Bag::create("existing_bag");
         $bagroot = $bag->getBagRoot();

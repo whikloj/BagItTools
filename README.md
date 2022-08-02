@@ -105,6 +105,13 @@ $bag->addFile('../README.md', 'data/documentation/myreadme.md');
 // Add another algorithm
 $bag->addAlgorithm('sha1');
 
+// Get the algorithms
+$algos = $bag->getAlgorithms();
+var_dump($algos); // array(
+                  //   'sha512',
+                  //   'sha1',
+                  // )
+
 // Add a fetch url
 $bag->addFetchFile('http://www.google.ca', 'data/mywebsite.html');
 
@@ -125,10 +132,35 @@ if ($bag->hasBagInfoTag('contact-name')) {
 
     // Remove a specific tag value using array index from the above listing.
     $bag->removeBagInfoTagIndex('contact-name', 1); 
-    
+
+    // Get tags
+    $tags = $bag->getBagInfoByTag('contact-name');
+
+    var_dump($tags); // array(
+                     //    'Jared Whiklo',
+                     // )
+
+    $bag->addBagInfoTag('Contact-NAME', 'Bob Saget');
     // Get tags
     $tags = $bag->getBagInfoByTag('contact-name');
     
+    var_dump($tags); // array(
+                     //    'Jared Whiklo',
+                     //    'Bob Saget',
+                     // )
+    // Without the case sensitive flag as true, you must be exact.
+    $bag->removeBagInfoTagValue('contact-name', 'bob saget');
+    $tags = $bag->getBagInfoByTag('contact-name');
+
+    var_dump($tags); // array(
+                     //    'Jared Whiklo',
+                     //    'Bob Saget',
+                     // )
+
+    // With the case sensitive flag set to false, you can be less careful
+    $bag->removeBagInfoTagValue('contact-name', 'bob saget', false);
+    $tags = $bag->getBagInfoByTag('contact-name');
+
     var_dump($tags); // array(
                      //    'Jared Whiklo',
                      // )

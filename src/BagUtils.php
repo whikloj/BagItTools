@@ -57,19 +57,6 @@ class BagUtils
     }
 
     /**
-     * Utility to test a filename as . or ..
-     *
-     * @param string $filename
-     *    Basename of a file or directory.
-     * @return bool
-     *    True if it is a dot directory name.
-     */
-    public static function isDotDir(string $filename): bool
-    {
-        return ($filename == "." || $filename == "..");
-    }
-
-    /**
      * Rebase the path in the data directory as payloads only deal in there.
      *
      * @param string $path
@@ -131,10 +118,9 @@ class BagUtils
      */
     public static function getAbsolute(string $path, bool $add_absolute = false): string
     {
-        // Cleaning path regarding OS
-        $path = mb_ereg_replace('\\\\|/', DIRECTORY_SEPARATOR, $path);
+        $path = self::standardizePathSeparators($path);
         // Check if path start with a separator (UNIX)
-        $startWithSeparator = substr($path, 0, 1) === DIRECTORY_SEPARATOR;
+        $startWithSeparator = substr($path, 0, 1) === '/';
         // Check if start with drive letter
         preg_match('/^[a-z]:/i', $path, $matches);
         $startWithLetterDir = $matches[0] ?? false;
@@ -147,12 +133,12 @@ class BagUtils
         if (!($startWithLetterDir || $startWithSeparator) && $add_absolute) {
             // This was relative to start with, prepend the current working directory.
             $current_dir = getcwd();
-            return BagUtils::getAbsolute(rtrim($current_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .
-                ltrim($path, DIRECTORY_SEPARATOR));
+            return BagUtils::getAbsolute(rtrim($current_dir, '/') . '/' .
+                ltrim($path, '/'));
         }
 
         // Get and filter empty sub paths
-        $subPaths = array_filter(explode(DIRECTORY_SEPARATOR, $path), 'mb_strlen');
+        $subPaths = array_filter(explode('/', $path), 'mb_strlen');
 
         $absolutes = [];
         foreach ($subPaths as $subPath) {
@@ -180,25 +166,10 @@ class BagUtils
                 $absolutes[] = $subPath;
             }
         }
-        $prefix = ($startWithSeparator ? DIRECTORY_SEPARATOR : $startWithLetterDir)
-            ? $startWithLetterDir . DIRECTORY_SEPARATOR
+        $prefix = ($startWithSeparator ? '/' : $startWithLetterDir)
+            ? $startWithLetterDir . '/'
             : "";
-        return $prefix . implode(DIRECTORY_SEPARATOR, $absolutes);
-    }
-
-    /**
-     * Paths for new and existing files should not have these conditions.
-     *
-     * @param string $path
-     *   The relative path from an existing bag file or as a destination for a new file.
-     * @return bool
-     *   True if invalid characters/character sequences exist.
-     */
-    public static function invalidPathCharacters(string $path): bool
-    {
-        $path = urldecode($path);
-        return (in_array($path[0] ?? '', ['/', '\\']) || strpos($path, "~") !== false ||
-            substr($path, 0, 3) == "../");
+        return $prefix . implode('/', $absolutes);
     }
 
     /**
@@ -217,12 +188,9 @@ class BagUtils
         $found_files = [];
 
         while ($currentPath = array_shift($paths)) {
-            $files = scandir($currentPath);
+            $files = array_diff(scandir($currentPath), [".", ".."]);
             foreach ($files as $file) {
-                if (self::isDotDir($file)) {
-                    continue;
-                }
-                $fullPath = $currentPath . DIRECTORY_SEPARATOR . $file;
+                $fullPath = $currentPath . '/' . $file;
                 if (is_dir($fullPath) && !in_array($file, $exclusions)) {
                     $paths[] = $fullPath;
                 } elseif (is_file($fullPath)) {
@@ -331,7 +299,7 @@ class BagUtils
             throw new FilesystemException("Unable to create a temporary file with directory $directory, prefix" .
             " $prefix");
         }
-        return $res;
+        return self::standardizePathSeparators($res);
     }
 
     /**
@@ -428,5 +396,18 @@ class BagUtils
     public static function splitFileDataOnLineEndings(string $data): array
     {
         return preg_split("/(\r\n|\r|\n)/", $data);
+    }
+
+    /**
+     * Try using only forward slashes internally to avoid the extraneous checks for \ and or /
+     *
+     * @param string $path
+     *   The original path.
+     * @return string
+     *   The corrected path using /
+     */
+    public static function standardizePathSeparators(string $path): string
+    {
+        return str_replace('\\', '/', $path);
     }
 }

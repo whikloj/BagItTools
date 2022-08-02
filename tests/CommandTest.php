@@ -7,6 +7,7 @@ namespace whikloj\BagItTools\Test;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
+use whikloj\BagItTools\BagUtils;
 use whikloj\BagItTools\Commands\ValidateCommand;
 
 /**
@@ -36,7 +37,7 @@ class CommandTest extends BagItTestFramework
      */
     public function testValidateInvalidPath(): void
     {
-        $path = __DIR__ . DIRECTORY_SEPARATOR . 'DEVNULL';
+        $path = BagUtils::standardizePathSeparators(__DIR__) . '/DEVNULL';
         $this->commandTester->execute([
             'bag-path' => $path,
         ]);
@@ -50,7 +51,7 @@ class CommandTest extends BagItTestFramework
      */
     public function testValidBag(): void
     {
-        $path = __DIR__ . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . "TestBag";
+        $path = BagUtils::standardizePathSeparators(__DIR__) . '/resources/TestBag';
         $this->commandTester->execute([
             'bag-path' => $path,
         ]);
@@ -66,7 +67,7 @@ class CommandTest extends BagItTestFramework
     {
         $this->tmpdir = self::prepareBasicTestBag();
         file_put_contents(
-            $this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt",
+            $this->tmpdir . "/bagit.txt",
             "BagIt-Version: M.N\nTag-File-Character-Encoding:\n"
         );
         $this->commandTester->execute([
@@ -83,7 +84,7 @@ class CommandTest extends BagItTestFramework
     public function testInvalidWithErrors(): void
     {
         $this->tmpdir = self::prepareBasicTestBag();
-        unlink($this->tmpdir . DIRECTORY_SEPARATOR . "bagit.txt");
+        unlink($this->tmpdir . "/bagit.txt");
         $this->commandTester->execute([
             'bag-path' => $this->tmpdir,
         ], [
@@ -100,7 +101,7 @@ class CommandTest extends BagItTestFramework
      */
     public function testInvalidWithWarnings(): void
     {
-        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . DIRECTORY_SEPARATOR . 'Test097Bag');
+        $this->tmpdir = $this->copyTestBag(self::TEST_RESOURCES . '/Test097Bag');
         $this->commandTester->execute([
             'bag-path' => $this->tmpdir,
         ], [
@@ -124,11 +125,10 @@ class CommandTest extends BagItTestFramework
             'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
         ]);
         $output = $this->commandTester->getDisplay();
-        $ds = DIRECTORY_SEPARATOR;
         // Split this in two as we don't know what the actual root directory with be
         $this->assertStringContainsString("[ERROR] Path", $output);
         $this->assertStringContainsStringWithoutNewlines(
-            $ds . "subdirectory" . $ds . "to" . $ds . "bag does not exist, cannot validate.",
+            "/subdirectory/to/bag does not exist, cannot validate.",
             $output
         );
     }

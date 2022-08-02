@@ -15,18 +15,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ["7.4", "8.0"]
+        php-versions: ["7.4", "8.0", "8.1"]
+        host-os: ["ubuntu-latest", "windows-latest"]
         experimental: [false]
-        host-os: ["ubuntu-latest"]
         include:
           - php-versions: "7.3"
             experimental: false
             host-os: "ubuntu-18.04"
-          - php-versions: "8.1"
-            experimental: true
-            host-os: "ubuntu-latest"
+          - php-versions: "7.3"
+            experimental: false
+            host-os: "windows-latest"
 
-    name: PHP ${{ matrix.php-versions }}
+    name: PHP ${{ matrix.php-versions }} - OS ${{ matrix.host-os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -36,23 +36,34 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           coverage: none
+          extensions: sockets, intl, bz2
 
       - name: Get composer cache directory
         id: composercache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies
         uses: actions/cache@v2
         with:
           path: ${{ steps.composercache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+          restore-keys: |
+            ${{ runner.os }}-composer-
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
-      - name: Run test suite
-        run: composer test
+      - name: Check codestyle
+        run: composer check
+
+      - name: Run test suite (Full)
+        run: composer phpunit
+        if: ${{ matrix.host-os != 'windows-latest' }}
+
+      - name: Run test suite (Windows)
+        run: phpdbg -qrr ./vendor/bin/phpunit --testsuite BagIt-Windows
+        if: ${{ matrix.host-os == 'windows-latest' }}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
