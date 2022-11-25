@@ -25,7 +25,7 @@
     "phpunit/phpunit": "^9.0",
     "sebastian/phpcpd": "^6.0",
     "squizlabs/php_codesniffer": "^3.5",
-    "donatj/mock-webserver": "^2.1",
+    "donatj/mock-webserver": "^2.6",
     "phpstan/phpstan": "^1.4"
   },
   "autoload": {
@@ -50,7 +50,7 @@
       "./vendor/bin/phpcpd --suffix='.php' src"
     ],
     "phpunit": [
-      "phpdbg -qrr ./vendor/bin/phpunit --testsuite BagIt"
+      "phpdbg -qrr ./vendor/bin/phpunit -d memory_limit=-1 --testsuite BagIt"
     ],
     "test": [
       "@check",

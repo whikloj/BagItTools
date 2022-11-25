@@ -20,13 +20,7 @@
   </coverage>
   <testsuites>
     <testsuite name="BagIt">
-      <directory suffix=".php">./tests</directory>
-      <exclude>./tests/BagItTestFramework.php</exclude>
-    </testsuite>
-    <testsuite name="BagIt-Windows">
-      <directory suffix=".php">./tests</directory>
-      <exclude>./tests/BagItTestFramework.php</exclude>
-      <exclude>./tests/FetchTest.php</exclude>
+      <directory suffix="Test.php">./tests</directory>
     </testsuite>
   </testsuites>
   <logging/>
