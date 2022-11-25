@@ -25,7 +25,7 @@
     "phpunit/phpunit": "^9.0",
     "sebastian/phpcpd": "^6.0",
     "squizlabs/php_codesniffer": "^3.5",
-    "donatj/mock-webserver": "dev-master",
+    "donatj/mock-webserver": "^2.6",
     "phpstan/phpstan": "^1.4"
   },
   "autoload": {
