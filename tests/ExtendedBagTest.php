@@ -52,7 +52,7 @@ class ExtendedBagTest extends BagItTestFramework
         $payloads = array_keys($bag->getPayloadManifests());
         $hash = reset($payloads);
         $manifests = $bag->getTagManifests();
-        $this->assertNull($manifests);
+        $this->assertCount(0, $manifests);
 
         $this->assertFileExists($bag->getBagRoot() . "/manifest-$hash.txt");
         $this->assertFileDoesNotExist($bag->getBagRoot() . "/tagmanifest-$hash.txt");
@@ -625,7 +625,7 @@ class ExtendedBagTest extends BagItTestFramework
         $this->assertTrue(is_array($payloads));
         $this->assertCount(1, $payloads);
         $tags = $bag->getTagManifests();
-        $this->assertNull($tags);
+        $this->assertCount(0, $tags);
     }
 
     /**
@@ -959,5 +959,37 @@ class ExtendedBagTest extends BagItTestFramework
             "message" => "Line 5: Tag Bag-Size SHOULD NOT be repeated."
         ];
         $this->assertArrayEquals($expected, $bag->getWarnings()[0]);
+    }
+
+    /**
+     * Ensure a bag with a bag-info and no tagmanifest-*.txt still validates.
+     */
+    public function testExtendedBagWithoutTagManifest(): void
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        # Remove extra tag files and tagmanifests
+        unlink($this->tmpdir . "/alt_tags/random_tags.txt");
+        rmdir($this->tmpdir . '/alt_tags');
+        unlink($this->tmpdir . "/tagmanifest-sha1.txt");
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->isValid());
+    }
+
+    /**
+     * Ensure a bag with a tagmanifest-*.txt and no bag-info still validates.
+     */
+    public function testExtendedBagWithoutBagInfo(): void
+    {
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        # Remove bag-info file and update tagmanifest
+        unlink($this->tmpdir . "/bag-info.txt");
+        file_put_contents(
+            $this->tmpdir . '/tagmanifest-sha1.txt',
+            "8010d7758f1793d0221c529fef818ff988dda141  bagit.txt\n" .
+            "fdead00cc124f82eef20c051e699518c43adc561  manifest-sha1.txt\n" .
+            "e939f78371e07a59c7a91e113618fd70cfa1e7ca  alt_tags/random_tags.txt"
+        );
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->isValid());
     }
 }

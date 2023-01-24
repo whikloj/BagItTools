@@ -351,7 +351,7 @@ class Bag
             $this->mergeErrors($this->fetchFile->getErrors());
         }
         $manifests = array_values($this->payloadManifests);
-        if ($this->isExtended) {
+        if (is_array($this->tagManifests) && count($this->tagManifests) > 0) {
             // merge in the tag manifests so we can do them all at once.
             $manifests = array_merge($manifests, array_values($this->tagManifests));
         }
@@ -1638,6 +1638,7 @@ class Bag
      */
     private function loadTagManifests(): bool
     {
+        $this->ensureTagManifests();
         $tagManifests = [];
         $pattern = $this->getBagRoot() . "/tagmanifest-*.txt";
         $files = BagUtils::findAllByPattern($pattern);
