@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - "main"
+  schedule:
+    - cron: '0 0 1 */6 *' # Run at midnight on the first day every 6 months.
 
 jobs:
   build:
@@ -15,16 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ["7.4", "8.0", "8.1"]
+        php-versions: ["7.4", "8.0", "8.1", "8.2"]
         host-os: ["ubuntu-latest", "windows-latest"]
         experimental: [false]
-        include:
-          - php-versions: "7.3"
-            experimental: false
-            host-os: "ubuntu-18.04"
-          - php-versions: "7.3"
-            experimental: false
-            host-os: "windows-latest"
 
     name: PHP ${{ matrix.php-versions }} - OS ${{ matrix.host-os }}
     steps:
@@ -36,7 +31,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           coverage: none
-          extensions: sockets, intl, bz2
+          extensions: sockets, intl, bz2, zip
 
       - name: Get composer cache directory (Ubuntu)
         id: composercache-ubuntu
