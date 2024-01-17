@@ -81,7 +81,7 @@ class BagUtils
      * @return array
      *   Array of matches.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Error in matching pattern.
      */
     public static function findAllByPattern(string $pattern): array
@@ -208,7 +208,7 @@ class BagUtils
      *   The source path.
      * @param string $destFile
      *   The destination path.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   If the copy() call fails.
      * @see \copy()
      */
@@ -228,7 +228,7 @@ class BagUtils
      *   The permissions on the new directories.
      * @param bool $recursive
      *   Whether to create intermediate directories automatically.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   If the mkdir() call fails.
      * @see \mkdir()
      */
@@ -250,7 +250,7 @@ class BagUtils
      *   Flags to pass on to file_put_contents.
      * @return int
      *   Number of bytes written to the file.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   On any error putting the contents to the file.
      * @see \file_put_contents()
      */
@@ -268,7 +268,7 @@ class BagUtils
      *
      * @param string $path
      *   The path to remove.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   If the call to unlink() fails.
      * @see \unlink()
      */
@@ -288,7 +288,7 @@ class BagUtils
      *   The prefix to the file.
      * @return string
      *   The path to the temporary filename.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues creating the file.
      * @see \tempnam()
      */
@@ -309,7 +309,7 @@ class BagUtils
      *   The file pointer.
      * @param string $content
      *   The content to write.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problem writing to file.
      */
     public static function checkedFwrite($fp, string $content): void
@@ -320,7 +320,7 @@ class BagUtils
                 throw new FilesystemException("Error writing to file");
             }
         } catch (TypeError $e) {
-            throw new FilesystemException("Error writing to file");
+            throw new FilesystemException("Error writing to file", $e->getCode(), $e);
         }
     }
 

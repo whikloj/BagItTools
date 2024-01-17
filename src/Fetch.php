@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace whikloj\BagItTools;
 
+use CurlHandle;
+use CurlMultiHandle;
 use Normalizer;
 use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
@@ -25,51 +27,51 @@ class Fetch
     /**
      * The bag this fetch file is part of
      *
-     * @var \whikloj\BagItTools\Bag
+     * @var Bag
      */
-    private $bag;
+    private Bag $bag;
 
     /**
      * The current absolute path to the fetch.txt file.
      *
      * @var string
      */
-    private $filename;
+    private string $filename;
 
     /**
      * Information from the fetch.txt, array of arrays with keys 'uri', 'size', and 'destination'
      *
      * @var array
      */
-    private $files;
+    private array $files;
 
     /**
      * Errors
      *
      * @var array
      */
-    private $fetchErrors = [];
+    private array $fetchErrors = [];
 
     /**
      * Urls and Files that validated and should be downloaded.
      *
      * @var array
      */
-    private $downloadQueue = [];
+    private array $downloadQueue = [];
 
     /**
      * Curl version number string.
      *
      * @var string
      */
-    private $curlVersion;
+    private mixed $curlVersion;
 
     /**
      * Standard curl options to use.
      *
      * @var array
      */
-    private $curlOptions = [
+    private array $curlOptions = [
         CURLOPT_CONNECTTIMEOUT => 10,
         CURLOPT_RETURNTRANSFER => true,
     ];
@@ -77,11 +79,11 @@ class Fetch
     /**
      * Fetch constructor.
      *
-     * @param \whikloj\BagItTools\Bag $bag
+     * @param Bag $bag
      *   The bag this fetch is part of.
      * @param bool $load
      *   Whether to load a fetch.txt
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Unable to read fetch.txt for existing bag.
      */
     public function __construct(Bag $bag, bool $load = false)
@@ -109,10 +111,10 @@ class Fetch
     /**
      * Download the files.
      *
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Unable to open file handle to save to.
      */
-    public function downloadAll()
+    public function downloadAll(): void
     {
         if (count($this->getErrors()) > 0) {
             throw new BagItException("The fetch.txt file has errors, unable to download files.");
@@ -137,10 +139,10 @@ class Fetch
      * @param array $fetchData
      *   Array with mandatory keys 'uri' and 'destination' and optional key 'size'.
      *
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   For all validation errors.
      */
-    private function validateData(array $fetchData)
+    private function validateData(array $fetchData): void
     {
         $uri = $fetchData['uri'];
         $dest = BagUtils::baseInData($fetchData['destination']);
@@ -165,10 +167,10 @@ class Fetch
      *   The bag destination path for the file.
      * @param int|null $size
      *   The expected size of the file, or null for unknown.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Errors with adding this file to your fetch file.
      */
-    public function addFile(string $url, string $destination, int $size = null): void
+    public function addFile(string $url, string $destination, ?int $size = null): void
     {
         $fetchData = [
             'uri' => $url,
@@ -187,7 +189,7 @@ class Fetch
      * @param array $fetchData
      *   Array of data with keys 'uri', 'destination' and optionally 'size'.
      *
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Problems downloading the file.
      */
     public function download(array $fetchData): void
@@ -227,7 +229,7 @@ class Fetch
      *
      * @param string $url
      *   The url to remove.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues removing the file from the filesystem.
      */
     public function removeFile(string $url): void
@@ -251,7 +253,7 @@ class Fetch
     /**
      * Update the fetch.txt on disk with the fetch file records.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   If we can't write to disk.
      */
     public function update(): void
@@ -263,7 +265,7 @@ class Fetch
      * Remove any downloaded files referenced in fetch.txt. This is called before we package up the Bag or finalize the
      * directory.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems removing file from filesystem.
      */
     public function cleanup(): void
@@ -281,7 +283,7 @@ class Fetch
     /**
      * Clean up any downloaded files and then wipe the internal data array.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems removing file from filesystem.
      */
     public function clearData(): void
@@ -325,7 +327,7 @@ class Fetch
     /**
      * Load an existing fetch.txt
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Unable to read the fetch.txt file.
      */
     private function loadFiles(): void
@@ -345,7 +347,7 @@ class Fetch
                 if (empty($line)) {
                     continue;
                 }
-                if (preg_match("~^([^\s]+)\s+(\d+|\-)\s+(.*)$~", $line, $matches)) {
+                if (preg_match("~^(\S+)\s+(\d+|\-)\s+(.*)$~", $line, $matches)) {
                     // We just store what you give us, we'll validate when you load the contents to validate the bag.
                     $uri = $matches[1];
                     $filesize = $matches[2];
@@ -379,7 +381,7 @@ class Fetch
      *   The content from curl.
      * @param string $destination
      *   The relative path to the final file.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Trouble writing to disk.
      */
     private function saveFileData(string $content, string $destination): void
@@ -388,8 +390,8 @@ class Fetch
             $fullDest = $this->bag->makeAbsolute($destination);
             $fullDest = Normalizer::normalize($fullDest);
             $dirname = dirname($fullDest);
-            if (substr($this->bag->makeRelative($dirname), 0, 5) == "data/") {
-                // Create any missing missing directories inside data.
+            if (str_starts_with($this->bag->makeRelative($dirname), "data/")) {
+                // Create any missing directories inside data.
                 if (!file_exists($dirname)) {
                     BagUtils::checkedMkdir($dirname, 0777, true);
                 }
@@ -401,24 +403,18 @@ class Fetch
     /**
      * Create a cUrl multi handler.
      *
-     * @return false|resource
-     *   False on error, otherwise the cUrl resource
+     * @return CurlMultiHandle
+     *   The cUrl resource
      */
-    private function createMultiCurl()
+    private function createMultiCurl(): CurlMultiHandle
     {
         $mh = curl_multi_init();
         if (
             version_compare('7.62.0', $this->curlVersion) > 0 &&
             version_compare('7.43.0', $this->curlVersion) <= 0
         ) {
-            // Try enabling HTTP/1.1 pipelining and HTTP/2 multiplexing if our version is less than 7.62
-            // CURLPIPE_HTTP1 is deprecated in PHP 7.4
-            if (version_compare('7.4', PHP_VERSION) > 0) {
-                $values = CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX;
-            } else {
-                $values = CURLPIPE_MULTIPLEX;
-            }
-            curl_multi_setopt($mh, CURLMOPT_PIPELINING, $values);
+            // Try enabling HTTP/2 multiplexing if our version is less than 7.62
+            curl_multi_setopt($mh, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
         }
         if (version_compare('7.30.0', $this->curlVersion) <= 0) {
             // Set a limit to how many connections can be opened.
@@ -436,12 +432,15 @@ class Fetch
      *   If this is a download() call versus a downloadAll() call.
      * @param int|null $size
      *   Expected download size or null if unknown
-     * @return false|resource
+     * @return CurlHandle|false
      *   False on error, otherwise the cUl resource.
      */
-    private function createCurl(string $url, bool $single = false, ?int $size = null)
+    private function createCurl(string $url, bool $single = false, ?int $size = null): CurlHandle|bool
     {
         $ch = curl_init($url);
+        if ($ch === false) {
+            return false;
+        }
         $options = $this->curlOptions;
         if ($single === true) {
             // If this is set during curl_multi_exec, it swallows error messages.
@@ -484,7 +483,7 @@ class Fetch
     /**
      * Download files using Curl.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Unable to open a file handle to download to.
      */
     private function downloadFiles(): void
@@ -493,49 +492,47 @@ class Fetch
             $mh = $this->createMultiCurl();
             $curl_handles = [];
             $destinations = [];
-            if ($mh !== false) {
-                foreach ($this->downloadQueue as $key => $download) {
-                    $fullPath = $this->bag->makeAbsolute($download['destination']);
-                    // Don't download again.
-                    if (!file_exists($fullPath)) {
-                        $destinations[$key] = $fullPath;
-                        $size = is_int($download['size']) ? $download['size'] : null;
-                        $curl_handles[$key] = $this->createCurl($download['uri'], false, $size);
-                        curl_multi_add_handle($mh, $curl_handles[$key]);
-                    }
+            foreach ($this->downloadQueue as $key => $download) {
+                $fullPath = $this->bag->makeAbsolute($download['destination']);
+                // Don't download again.
+                if (!file_exists($fullPath)) {
+                    $destinations[$key] = $fullPath;
+                    $size = is_int($download['size']) ? $download['size'] : null;
+                    $curl_handles[$key] = $this->createCurl($download['uri'], false, $size);
+                    curl_multi_add_handle($mh, $curl_handles[$key]);
                 }
-                $running = null;
-                do {
-                    $status = curl_multi_exec($mh, $running);
-                    while (false !== curl_multi_info_read($mh)) {
-                        // Need to read the information or we lose any callback aborted messages.
-                    }
-                } while ($running && $status == CURLM_OK);
-                if ($status != CURLM_OK) {
-                    $this->addError("Problems with multifile download.");
-                }
-                $handle_count = count($curl_handles);
-                for ($x = 0; $x < $handle_count; $x += 1) {
-                    $error = curl_error($curl_handles[$x]);
-                    $url = curl_getinfo($curl_handles[$x], CURLINFO_EFFECTIVE_URL);
-                    if (!empty($error)) {
-                        $this->addError("Failed to fetch URL ($url) : $error");
-                    } else {
-                        $content = curl_multi_getcontent($curl_handles[$x]);
-                        $this->saveFileData($content, $destinations[$x]);
-                    }
-                    curl_multi_remove_handle($mh, $curl_handles[$x]);
-                    curl_close($curl_handles[$x]);
-                }
-                curl_multi_close($mh);
             }
+            $running = null;
+            do {
+                $status = curl_multi_exec($mh, $running);
+                while (false !== curl_multi_info_read($mh)) {
+                    // Need to read the information or we lose any callback aborted messages.
+                }
+            } while ($running && $status == CURLM_OK);
+            if ($status != CURLM_OK) {
+                $this->addError("Problems with multifile download.");
+            }
+            $handle_count = count($curl_handles);
+            for ($x = 0; $x < $handle_count; $x += 1) {
+                $error = curl_error($curl_handles[$x]);
+                $url = curl_getinfo($curl_handles[$x], CURLINFO_EFFECTIVE_URL);
+                if (!empty($error)) {
+                    $this->addError("Failed to fetch URL ($url) : $error");
+                } else {
+                    $content = curl_multi_getcontent($curl_handles[$x]);
+                    $this->saveFileData($content, $destinations[$x]);
+                }
+                curl_multi_remove_handle($mh, $curl_handles[$x]);
+                curl_close($curl_handles[$x]);
+            }
+            curl_multi_close($mh);
         }
     }
 
     /**
      * Utility to recreate the fetch file using the currently stored files.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   If we can't write the fetch file.
      */
     private function writeToDisk(): void

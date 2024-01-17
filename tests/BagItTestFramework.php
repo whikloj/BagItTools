@@ -6,6 +6,7 @@ namespace whikloj\BagItTools\Test;
 
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionMethod;
 use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\BagUtils;
@@ -70,7 +71,7 @@ class BagItTestFramework extends TestCase
      * the test throws an exception to ensure it gets deleted.
      * @var string
      */
-    protected $tmpdir;
+    protected string $tmpdir;
 
     /**
      * {@inheritdoc}
@@ -87,7 +88,7 @@ class BagItTestFramework extends TestCase
     public function tearDown(): void
     {
         parent::tearDown();
-        if (isset($this->tmpdir) && file_exists($this->tmpdir)) {
+        if (file_exists($this->tmpdir)) {
             self::deleteDirAndContents($this->tmpdir);
         }
     }
@@ -97,7 +98,7 @@ class BagItTestFramework extends TestCase
      *
      * @return string
      *   The filename.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Unable to generate a new temporary directory.
      */
     protected function getTempName(): string
@@ -161,6 +162,8 @@ class BagItTestFramework extends TestCase
      *   The source directory.
      * @return string
      *   The path to the copy of the bag.
+     * @throws FilesystemException
+     *   Unable to create temporary directory.
      */
     protected function copyTestBag(string $testDir): string
     {
@@ -215,10 +218,10 @@ class BagItTestFramework extends TestCase
      * @param string $method
      *   Method to get.
      *
-     * @return \ReflectionMethod
+     * @return ReflectionMethod
      *   Reflection of the method.
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     protected static function getReflectionMethod(string $class, string $method): ReflectionMethod
     {
@@ -230,7 +233,7 @@ class BagItTestFramework extends TestCase
 
     /**
      * Assert the encoding in the bagit.txt is X and the version is 1.0
-     * @param \whikloj\BagItTools\Bag $bag
+     * @param Bag $bag
      *   The bag.
      * @param string $version_string
      *   The BagIt version.
@@ -242,7 +245,7 @@ class BagItTestFramework extends TestCase
 
     /**
      * Assert the encoding in the bagit.txt is X and the version is 1.0
-     * @param \whikloj\BagItTools\Bag $bag
+     * @param Bag $bag
      *   The bag.
      * @param string $encoding
      *   The file encoding.
@@ -254,7 +257,7 @@ class BagItTestFramework extends TestCase
 
     /**
      * Assert the version and encoding in the actual bagit.txt on disk
-     * @param \whikloj\BagItTools\Bag $bag
+     * @param Bag $bag
      *   The bag.
      * @param string|null $version_string
      *   The version string or null to use the default.

@@ -22,7 +22,7 @@ class ValidateCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('validate')
             ->setDescription('Validate a BagIt bag.')
@@ -50,7 +50,7 @@ class ValidateCommand extends Command
             $io->error("Path $path does not exist, cannot validate.");
         } else {
             try {
-                if (isset($realpath) && $realpath !== false) {
+                if (isset($realpath)) {
                     $path = $realpath;
                 }
                 $bag = Bag::load($path);
