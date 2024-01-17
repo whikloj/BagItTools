@@ -1,9 +1,9 @@
-name: Build
+name: Build main
 
 on:
   push:
     branches:
-      - "**"
+      - "main"
   pull_request:
     branches:
       - "main"

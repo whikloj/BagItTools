@@ -1,0 +1,75 @@
+name: Build version 4 development
+
+on:
+  pull_request:
+    branches:
+      - "v4"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.host-os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions: ["7.4", "8.0", "8.1", "8.2"]
+        host-os: ["ubuntu-latest", "windows-latest"]
+        experimental: [false]
+
+    name: PHP ${{ matrix.php-versions }} - OS ${{ matrix.host-os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          coverage: none
+          extensions: sockets, intl, bz2, zip
+
+      - name: Get composer cache directory (Ubuntu)
+        id: composercache-ubuntu
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        if: ${{ startsWith( matrix.host-os , 'ubuntu') }}
+
+      - name: Cache dependencies (Ubuntu)
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composercache-ubuntu.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+        if: ${{ startsWith( matrix.host-os , 'ubuntu') }}
+
+      - name: Get composer cache directory (Windows)
+        id: composercache-windows
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $env:GITHUB_OUTPUT
+        if: ${{ startsWith( matrix.host-os , 'windows') }}
+
+      - name: Cache dependencies (Windows)
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composercache-windows.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+        if: ${{ startsWith( matrix.host-os , 'windows') }}
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Check codestyle
+        run: composer check
+
+      - name: Run test suite
+        run: composer phpunit
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./clover.xml
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
