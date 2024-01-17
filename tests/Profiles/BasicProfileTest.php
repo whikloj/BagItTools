@@ -4,22 +4,92 @@ namespace whikloj\BagItTools\Test\Profiles;
 
 use whikloj\BagItTools\Exceptions\ProfileException;
 use whikloj\BagItTools\Profiles\BagItProfile;
+use whikloj\BagItTools\Profiles\ProfileFactory;
 use whikloj\BagItTools\Test\BagItTestFramework;
+use whikloj\BagItTools\Test\BagItWebserverFramework;
 
 /**
- * @coversDefaultClass  \whikloj\BagItTools\Profiles\BagItProfile
+ * Tests of the BagItProfile and ProfileFactory class.
  */
-class BasicProfileTest extends BagItTestFramework
+class BasicProfileTest extends BagItWebserverFramework
 {
+    private const PROFILE_DIR = self::TEST_RESOURCES . '/profiles';
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$webserver_files = [
+            'profile_foo.json' => [
+                'filename' => self::PROFILE_DIR . '/bagProfileFoo.json',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ],
+            'profile_bar.json' => [
+                'filename' => self::PROFILE_DIR . '/bagProfileBar.json',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ],
+        ];
+        parent::setUpBeforeClass();
+    }
+
     /**
      * Test the first example profile from the specification.
      * @throws ProfileException
-     * @covers ::fromJson
+     * @covers \whikloj\BagItTools\Profiles\BagItProfile::fromJson
      */
     public function testSpecProfileFoo(): void
     {
         $json = file_get_contents(self::TEST_RESOURCES . '/profiles/bagProfileFoo.json');
         $profile = BagItProfile::fromJson($json);
+        $this->assertTrue($profile->isValid());
+        $this->assertExampleProfileFoo($profile);
+    }
+
+    /**
+     * Test the second example profile from the specification.
+     * @throws ProfileException
+     * @covers \whikloj\BagItTools\Profiles\BagItProfile::fromJson
+     */
+    public function testSpecProfileBar(): void
+    {
+        $json = file_get_contents(self::TEST_RESOURCES . '/profiles/bagProfileBar.json');
+        $profile = BagItProfile::fromJson($json);
+        $this->assertTrue($profile->isValid());
+        $this->assertExampleProfileBar($profile);
+    }
+
+    /**
+     * Test the first example profile retrieved from webserver.
+     * @throws ProfileException
+     * @covers \whikloj\BagItTools\Profiles\ProfileFactory::generateProfileFromUri
+     */
+    public function testFactoryFoo(): void
+    {
+        $profile = ProfileFactory::generateProfileFromUri(self::$remote_urls[0]);
+        $this->assertTrue($profile->isValid());
+        $this->assertExampleProfileFoo($profile);
+    }
+
+    /**
+     * Test the second example profile retrieved from webserver.
+     * @throws ProfileException
+     * @covers \whikloj\BagItTools\Profiles\ProfileFactory::generateProfileFromUri
+     */
+    public function testFactoryBar(): void
+    {
+        $profile = ProfileFactory::generateProfileFromUri(self::$remote_urls[1]);
+        $this->assertTrue($profile->isValid());
+        $this->assertExampleProfileBar($profile);
+    }
+
+    /**
+     * Validate the BagItProfile specification example bagProfileFoo
+     * @param BagItProfile $profile The profile to check.
+     */
+    private function assertExampleProfileFoo(BagItProfile $profile): void
+    {
         $this->assertEquals(
             'http://www.library.yale.edu/mssa/bagitprofiles/disk_images.json',
             $profile->getProfileIdentifier()
@@ -78,14 +148,11 @@ class BasicProfileTest extends BagItTestFramework
     }
 
     /**
-     * Test the second example profile from the specification.
-     * @throws ProfileException
-     * @covers ::fromJson
+     * Validate the BagItProfile specification example bagProfileBar
+     * @param BagItProfile $profile The profile to check.
      */
-    public function testSpecProfileBar(): void
+    private function assertExampleProfileBar(BagItProfile $profile): void
     {
-        $json = file_get_contents(self::TEST_RESOURCES . '/profiles/bagProfileBar.json');
-        $profile = BagItProfile::fromJson($json);
         $this->assertEquals(
             'http://canadiana.org/standards/bagit/tdr_ingest.json',
             $profile->getProfileIdentifier()

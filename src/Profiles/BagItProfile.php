@@ -758,7 +758,7 @@ class BagItProfile
      * @return bool True if the profile is valid.
      * @throws ProfileException If the profile is not valid.
      */
-    public function validate(): bool
+    public function isValid(): bool
     {
         $errors = [];
         if ($this->getProfileIdentifier() === "") {
