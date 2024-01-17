@@ -331,7 +331,7 @@ class ManifestTest extends BagItTestFramework
     {
         $bag = Bag::create($this->tmpdir);
         $this->expectException(BagItException::class);
-        $this->expectErrorMessage("Path data/../../pictures/another_picture.txt resolves outside the bag.");
+        $this->expectExceptionMessage("Path data/../../pictures/another_picture.txt resolves outside the bag.");
         $bag->addFile(self::TEST_IMAGE['filename'], "data/../../pictures/another_picture.txt");
     }
 }
