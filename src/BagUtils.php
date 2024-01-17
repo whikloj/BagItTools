@@ -66,7 +66,7 @@ class BagUtils
      */
     public static function baseInData(string $path): string
     {
-        if (substr($path, 0, 5) !== 'data/') {
+        if (!str_starts_with($path, 'data/')) {
             $path = "data/" . ltrim($path, "/");
         }
         return $path;
@@ -120,7 +120,7 @@ class BagUtils
     {
         $path = self::standardizePathSeparators($path);
         // Check if path start with a separator (UNIX)
-        $startWithSeparator = substr($path, 0, 1) === '/';
+        $startWithSeparator = str_starts_with($path, '/');
         // Check if start with drive letter
         preg_match('/^[a-z]:/i', $path, $matches);
         $startWithLetterDir = $matches[0] ?? false;
