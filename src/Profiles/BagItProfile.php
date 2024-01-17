@@ -1,34 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace whikloj\BagItTools\Profiles;
 
 use Exception;
 use whikloj\BagItTools\Exceptions\ProfileException;
 
+/**
+ * Class for holding a BagItProfile.
+ *
+ * @package whikloj\BagItTools\Profiles
+ * @author Jared Whiklo
+ * @since 5.0.0
+ */
 class BagItProfile
 {
-    /**
-     * @var array
-     * The list of possible but not required top level tags in a BagItProfile JSON document.
-     */
-    private const PROFILE_TAGS = [
-        'Bag-Info',
-        'Manifests-Required',
-        'Manifests-Allowed',
-        'Allow-Fetch.txt',
-        'Fetch.txt-Required',
-        'Data-Empty',
-        'Serialization',
-        'Accept-Serialization',
-        'Accept-BagIt-Version',
-        'Tag-Manifests-Required',
-        'Tag-Manifests-Allowed',
-        'Tag-Files-Required',
-        'Tag-Files-Allowed',
-        'Payload-Files-Required',
-        'Payload-Files-Allowed',
-    ];
-
     /**
      * @var string
      * The identifier (and resolvable URI) of the BagItProfile.
@@ -632,9 +619,11 @@ class BagItProfile
      */
     private function convertGlobToRegex(string $glob): string
     {
-        $regex = str_replace('/', '\/', $glob);
-        $regex = str_replace('.', '\.', $regex);
-        return preg_replace('~[^\]*', '.*', $regex);
+        $regex = str_replace('.', '\.', $glob);
+        $regex = preg_replace('~(?<=\[)(!)~', '^', $regex);
+        $regex = str_replace('*', '[^/]+', $regex);
+        $regex = str_replace('?', '[^/]', $regex);
+        return "~^$regex$~";
     }
 
     /**
@@ -702,7 +691,7 @@ class BagItProfile
                 ->setExternalDescription($profileOptions['BagIt-Profile-Info']['External-Description'])
                 ->setVersion($profileOptions['BagIt-Profile-Info']['Version']);
         } catch (Exception $e) {
-            throw new ProfileException("Missing required BagIt-Profile-Info tag", $e);
+            throw new ProfileException("Missing required BagIt-Profile-Info tag", $e->getCode(), $e);
         }
         if (array_key_exists('BagIt-Profile-Version', $profileOptions['BagIt-Profile-Info'])) {
             $profile->setProfileSpecVersion($profileOptions['BagIt-Profile-Info']['BagIt-Profile-Version']);
@@ -783,7 +772,7 @@ class BagItProfile
         }
         if (
             in_array($this->getSerialization(), ['required', 'optional']) &&
-            ($this->getAcceptSerialization() === null || count($this->getAcceptSerialization()) === 0)
+            count($this->getAcceptSerialization()) === 0
         ) {
             $errors[] = "Accept-Serialization MIME type(s) must be specified if Serialization
              is required or optional";

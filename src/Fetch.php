@@ -60,23 +60,6 @@ class Fetch
     private array $downloadQueue = [];
 
     /**
-     * Curl version number string.
-     *
-     * @var string
-     */
-    private mixed $curlVersion;
-
-    /**
-     * Standard curl options to use.
-     *
-     * @var array
-     */
-    private array $curlOptions = [
-        CURLOPT_CONNECTTIMEOUT => 10,
-        CURLOPT_RETURNTRANSFER => true,
-    ];
-
-    /**
      * Fetch constructor.
      *
      * @param Bag $bag

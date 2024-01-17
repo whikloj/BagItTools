@@ -66,23 +66,23 @@ class FetchTest extends BagItTestFramework
     /**
      * A mock webserver for some remote download tests.
      *
-     * @var \donatj\MockWebServer\MockWebServer
+     * @var MockWebServer
      */
-    private static $webserver;
+    private static MockWebServer $webserver;
 
     /**
      * Array of file contents for use with comparing against requests against the same index in self::$remote_urls
      *
-     * @var array
+     * @var string|array|false
      */
-    private static $response_content = [];
+    private static string|array|false $response_content = [];
 
     /**
      * Array of mock urls to get responses from. Match response bodies against matching key in self::$response_content
      *
-     * @var array
+     * @var string|array
      */
-    private static $remote_urls = [];
+    private static string|array $remote_urls = [];
 
     /**
      * {@inheritdoc}
