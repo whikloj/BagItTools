@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace whikloj\BagItTools;
 
+use whikloj\BagItTools\Exceptions\FilesystemException;
+
 /**
  * Tag Manifest extension of AbstractManifest class.
  *
@@ -16,13 +18,13 @@ class TagManifest extends AbstractManifest
     /**
      * PayloadManifest constructor.
      *
-     * @param \whikloj\BagItTools\Bag $bag
+     * @param Bag $bag
      *   The bag this manifest is part of.
      * @param string $algorithm
      *   The BagIt name of the hash algorithm.
      * @param boolean $load
      *   Whether we are loading an existing file
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Unable to read manifest file.
      */
     public function __construct(Bag $bag, string $algorithm, bool $load = false)
@@ -81,6 +83,6 @@ class TagManifest extends AbstractManifest
      */
     private function isTagManifest(string $filepath): bool
     {
-        return (substr(basename($filepath), 0, 11) == "tagmanifest");
+        return str_starts_with(basename($filepath), "tagmanifest");
     }
 }
