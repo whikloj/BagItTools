@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace whikloj\BagItTools;
 
-use CurlHandle;
-use CurlMultiHandle;
 use Normalizer;
 use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
@@ -19,6 +17,8 @@ use whikloj\BagItTools\Exceptions\FilesystemException;
  */
 class Fetch
 {
+    use CurlInstance;
+
     /**
      * The fetch filename.
      */
@@ -90,9 +90,7 @@ class Fetch
     {
         $this->bag = $bag;
         $this->files = [];
-        $this->curlVersion = curl_version()['version'];
         $this->filename = $this->bag->makeAbsolute(self::FILENAME);
-        $this->setupCurl();
         if ($load) {
             $this->loadFiles();
         }
@@ -401,86 +399,6 @@ class Fetch
     }
 
     /**
-     * Create a cUrl multi handler.
-     *
-     * @return CurlMultiHandle
-     *   The cUrl resource
-     */
-    private function createMultiCurl(): CurlMultiHandle
-    {
-        $mh = curl_multi_init();
-        if (
-            version_compare('7.62.0', $this->curlVersion) > 0 &&
-            version_compare('7.43.0', $this->curlVersion) <= 0
-        ) {
-            // Try enabling HTTP/2 multiplexing if our version is less than 7.62
-            curl_multi_setopt($mh, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
-        }
-        if (version_compare('7.30.0', $this->curlVersion) <= 0) {
-            // Set a limit to how many connections can be opened.
-            curl_multi_setopt($mh, CURLMOPT_MAX_TOTAL_CONNECTIONS, 10);
-        }
-        return $mh;
-    }
-
-    /**
-     * Initiate a cUrl handler
-     *
-     * @param string $url
-     *   The URL to download.
-     * @param bool $single
-     *   If this is a download() call versus a downloadAll() call.
-     * @param int|null $size
-     *   Expected download size or null if unknown
-     * @return CurlHandle|false
-     *   False on error, otherwise the cUl resource.
-     */
-    private function createCurl(string $url, bool $single = false, ?int $size = null): CurlHandle|bool
-    {
-        $ch = curl_init($url);
-        if ($ch === false) {
-            return false;
-        }
-        $options = $this->curlOptions;
-        if ($single === true) {
-            // If this is set during curl_multi_exec, it swallows error messages.
-            $options[CURLOPT_FAILONERROR] = true;
-        }
-        if (is_int($size)) {
-            $options[CURLOPT_NOPROGRESS] = 0;
-            $options[CURLOPT_PROGRESSFUNCTION] = function ($a, $b, $c, $d, $e) use ($size) {
-                // PROGRESSFUNCTION variables are
-                // $a -> curl_handle
-                // $b -> expected download size (bytes)
-                // $c -> current download size (bytes)
-                // $d -> expected upload size (bytes)
-                // $e -> current upload size (bytes)
-                return self::curlXferInfo($size, $c);
-            };
-        } else {
-            $options[CURLOPT_NOPROGRESS] = 1;
-        }
-        curl_setopt_array($ch, $options);
-        return $ch;
-    }
-
-    /**
-     * Compares current download size versus expected for cUrl progress.
-     * @param int $expectDl
-     *   The expected download size (bytes).
-     * @param int $currDl
-     *   The current download size (bytes).
-     * @return int
-     *   1 if current download size is greater than 105% of the expected size.
-     */
-    private static function curlXferInfo(int $expectDl, int $currDl): int
-    {
-        // Allow a 5% variance in size.
-        $variance = $expectDl * 1.05;
-        return ($currDl > $variance ? 1 : 0);
-    }
-
-    /**
      * Download files using Curl.
      *
      * @throws FilesystemException
@@ -630,25 +548,6 @@ class Fetch
         $values = array_column($this->files, $key);
         $values = array_map('strtolower', $values);
         return (in_array(strtolower($arg), $values));
-    }
-
-    /**
-     * Set general CURLOPTS based on the Curl version.
-     */
-    private function setupCurl(): void
-    {
-        if (!defined('CURLMOPT_MAX_TOTAL_CONNECTIONS')) {
-            define('CURLMOPT_MAX_TOTAL_CONNECTIONS', 13);
-        }
-        if (!defined('CURL_PIPEWAIT')) {
-            define('CURL_PIPEWAIT', 237);
-        }
-        if (
-            version_compare('7.0', PHP_VERSION) <= 0 &&
-            version_compare('7.43.0', $this->curlVersion) <= 0
-        ) {
-            $this->curlOptions[CURL_PIPEWAIT] = true;
-        }
     }
 
     /**
