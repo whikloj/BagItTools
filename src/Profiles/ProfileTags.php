@@ -1,7 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace whikloj\BagItTools\Profiles;
 
+/**
+ * Class for holding the BagItProfile bag-info requirements.
+ *
+ * @package whikloj\BagItTools\Profiles
+ * @author Jared Whiklo
+ * @since 5.0.0
+ */
 class ProfileTags
 {
     /**

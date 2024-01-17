@@ -6,12 +6,15 @@ use whikloj\BagItTools\Exceptions\ProfileException;
 use whikloj\BagItTools\Profiles\BagItProfile;
 use whikloj\BagItTools\Test\BagItTestFramework;
 
+/**
+ * @coversDefaultClass  \whikloj\BagItTools\Profiles\BagItProfile
+ */
 class BasicProfileTest extends BagItTestFramework
 {
     /**
      * Test the first example profile from the specification.
-     * @return void
      * @throws ProfileException
+     * @covers ::fromJson
      */
     public function testSpecProfileFoo(): void
     {
@@ -76,8 +79,8 @@ class BasicProfileTest extends BagItTestFramework
 
     /**
      * Test the second example profile from the specification.
-     * @return void
      * @throws ProfileException
+     * @covers ::fromJson
      */
     public function testSpecProfileBar(): void
     {

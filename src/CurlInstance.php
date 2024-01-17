@@ -97,8 +97,10 @@ trait CurlInstance
         if (!defined('CURL_PIPEWAIT')) {
             define('CURL_PIPEWAIT', 237);
         }
-        $curlOptions = [];
-        $curlOptions[CURLOPT_RETURNTRANSFER] = true;
+        $curlOptions = [
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_RETURNTRANSFER => true,
+        ];
         if (
             version_compare('7.0', PHP_VERSION) <= 0 &&
             version_compare('7.43.0', $curlVersion) <= 0

@@ -1,10 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace whikloj\BagItTools\Profiles;
 
 use whikloj\BagItTools\CurlInstance;
 use whikloj\BagItTools\Exceptions\ProfileException;
 
+/**
+ * Factory class for generating BagItProfile objects from a URL.
+ *
+ * @package whikloj\BagItTools\Profiles
+ * @author Jared Whiklo
+ * @since 5.0.0
+ */
 class ProfileFactory
 {
     use CurlInstance;
@@ -14,7 +23,7 @@ class ProfileFactory
      * @return BagItProfile The profile object.
      * @throws ProfileException If the URL is invalid or unable to download/parse.
      */
-    public function generateProfileFromUri(string $url): BagItProfile
+    public static function generateProfileFromUri(string $url): BagItProfile
     {
         $parsed_url = parse_url($url);
         if ($parsed_url === false) {
