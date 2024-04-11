@@ -120,6 +120,18 @@ class Bag
     private const BAGINFO_AUTOWRAP_GUESS_LENGTH = 70;
 
     /**
+     * A map of some supported extensions to their serialization MIME types.
+     */
+    private const SERIALIZATION_MAPPING = [
+        'bz' => 'application/x-bzip',
+        'bz2' => 'application/x-bzip2',
+        'gz' => 'application/gzip',
+        'tgz' => 'application/gzip',
+        'tar' => 'application/x-tar',
+        'zip' => 'application/zip',
+    ];
+
+    /**
      * All the extensions in one array.
      *
      * @var array
@@ -237,19 +249,27 @@ class Bag
     private bool $loaded;
 
     /**
+     * The serialization extension of the bag or null if not serialized.
+     * @var string|null
+     */
+    private ?string $serialization_extension = null;
+
+    /**
      * Bag constructor.
      *
      * @param string  $rootPath
      *   The path of the root of the new or existing bag.
      * @param boolean $new
      *   Are we making a new bag?
+     * @param string|null $extension
+     *   The compressed extension of the bag (if compressed) or null if not.
      *
      * @throws FilesystemException
      *   Problems accessing a file.
      * @throws BagItException
      *   Bag directory exists for new bag or various issues for loading an existing bag.
      */
-    private function __construct(string $rootPath, bool $new = true)
+    private function __construct(string $rootPath, bool $new = true, ?string $extension = null)
     {
         $this->packageExtensions = array_merge(self::TAR_EXTENSIONS, self::ZIP_EXTENSIONS);
         // Define valid hash algorithms our PHP supports.
@@ -268,6 +288,7 @@ class Bag
         if ($new) {
             $this->createNewBag();
         } else {
+            $this->serialization_extension = $extension;
             $this->loadBag();
         }
     }
@@ -300,10 +321,15 @@ class Bag
     public static function load(string $rootPath): Bag
     {
         $rootPath = BagUtils::getAbsolute($rootPath, true);
-        if (is_file($rootPath) && self::isCompressed($rootPath)) {
-            $rootPath = self::uncompressBag($rootPath);
+        $serialized_extension = null;
+        if (is_file($rootPath)) {
+            $extension = self::getExtension($rootPath);
+            if (self::isCompressed($extension)) {
+                $serialized_extension = $extension;
+                $rootPath = self::uncompressBag($rootPath, $serialized_extension);
+            }
         }
-        return new Bag($rootPath, false);
+        return new Bag($rootPath, false, $serialized_extension);
     }
 
     /**
@@ -322,7 +348,7 @@ class Bag
         }
         // Reload the bag from disk.
         $this->loadBag();
-        if (isset($this->fetchFile)) {
+        if ($this->hasFetchFile()) {
             $this->fetchFile->downloadAll();
             $this->mergeErrors($this->fetchFile->getErrors());
         }
@@ -374,7 +400,7 @@ class Bag
     {
         // Update files to ensure they are correct.
         $this->update();
-        if (isset($this->fetchFile)) {
+        if ($this->hasFetchFile()) {
             // Clean up fetch files downloaded to generate checksums.
             $this->fetchFile->cleanup();
         }
@@ -938,7 +964,7 @@ class Bag
      */
     public function addFetchFile(string $url, string $destination, int $size = null): void
     {
-        if (!isset($this->fetchFile)) {
+        if (!$this->hasFetchFile()) {
             $this->fetchFile = new Fetch($this, false);
         }
         $this->fetchFile->addFile($url, $destination, $size);
@@ -953,7 +979,7 @@ class Bag
      */
     public function listFetchFiles(): array
     {
-        return (!isset($this->fetchFile) ? [] : $this->fetchFile->getData());
+        return (!$this->hasFetchFile() ? [] : $this->fetchFile->getData());
     }
 
     /**
@@ -964,7 +990,7 @@ class Bag
      */
     public function clearFetch(): void
     {
-        if (isset($this->fetchFile)) {
+        if ($this->hasFetchFile()) {
             $this->fetchFile->clearData();
             unset($this->fetchFile);
             $this->changed = true;
@@ -981,10 +1007,18 @@ class Bag
      */
     public function removeFetchFile(string $url): void
     {
-        if (isset($this->fetchFile)) {
+        if ($this->hasFetchFile()) {
             $this->fetchFile->removeFile($url);
             $this->changed = true;
         }
+    }
+
+    /**
+     * @return bool Does the bag have a fetch file?
+     */
+    public function hasFetchFile(): bool
+    {
+        return isset($this->fetchFile);
     }
 
     /**
@@ -1233,6 +1267,22 @@ class Bag
         BagUtils::checkedUnlink($external);
         BagUtils::deleteEmptyDirTree(dirname($external), $this->getBagRoot());
         $this->changed = true;
+    }
+
+    /**
+     * @return bool True if the bag was loaded from a serialized format.
+     */
+    public function hasSerialization(): bool
+    {
+        return $this->serialization_extension !== null;
+    }
+
+    /**
+     * @return string|null The serialization format if the bag was loaded from a serialized format or null.
+     */
+    public function getSerializationMimeType(): ?string
+    {
+        return self::SERIALIZATION_MAPPING[$this->serialization_extension] ?? null;
     }
 
     /*
@@ -2076,8 +2126,10 @@ class Bag
     /**
      * Uncompress a BagIt archive file.
      *
-     * @param  string $filepath
+     * @param string $filepath
      *   The full path to the archive file.
+     * @param string $extension
+     *   The extension to the archive file.
      * @return string
      *   The full path to extracted bag.
      * @throws FilesystemException
@@ -2085,14 +2137,14 @@ class Bag
      * @throws BagItException
      *   Unable to determine correct archive format or file does not exist.
      */
-    private static function uncompressBag(string $filepath): string
+    private static function uncompressBag(string $filepath, string $extension): string
     {
         if (!file_exists($filepath)) {
             throw new BagItException("File $filepath does not exist.");
         }
-        if (self::hasExtension($filepath, self::ZIP_EXTENSIONS)) {
+        if (in_array($extension, self::ZIP_EXTENSIONS)) {
             $directory = self::unzipBag($filepath);
-        } elseif (self::hasExtension($filepath, self::TAR_EXTENSIONS)) {
+        } elseif (in_array($extension, self::TAR_EXTENSIONS)) {
             $directory = self::untarBag($filepath);
         } else {
             throw new BagItException("Unable to determine archive format.");
@@ -2141,7 +2193,7 @@ class Bag
         $tar = new Archive_Tar($filename, $compression);
         $res = $tar->extract($directory);
         if ($res === false) {
-            throw new FilesystemException("Unable to untar $filename");
+            throw new FilesystemException("Unable to untar $filename : " . $tar->error_object->getMessage());
         }
         return $directory;
     }
@@ -2157,7 +2209,7 @@ class Bag
     private static function extensionTarCompression(string $filename): ?string
     {
         $filename = strtolower(basename($filename));
-        return (str_ends_with($filename, '.bz2') ? 'bz2' : (str_ends_with($filename, '.gz') ? 'gz' : null));
+        return (str_ends_with($filename, '.bz2') ? 'bz2' : (str_ends_with($filename, 'gz') ? 'gz' : null));
     }
 
     /**
@@ -2179,20 +2231,14 @@ class Bag
     /**
      * Test a filepath to see if we think it is compressed.
      *
-     * @param  string $filepath
-     *   The full path
+     * @param  string $extension
+     *   The file extension
      * @return bool
      *   True if compressed file (we support).
      */
-    private static function isCompressed(string $filepath): bool
+    private static function isCompressed(string $extension): bool
     {
-        return self::hasExtension(
-            $filepath,
-            array_merge(
-                self::ZIP_EXTENSIONS,
-                self::TAR_EXTENSIONS
-            )
-        );
+        return in_array($extension, array_merge(self::ZIP_EXTENSIONS, self::TAR_EXTENSIONS));
     }
 
     /**
@@ -2207,14 +2253,33 @@ class Bag
      */
     private static function hasExtension(string $filepath, array $extensions): bool
     {
+        return in_array(self::getExtension($filepath), $extensions);
+    }
+
+    /**
+     * Retrieve all the extensions of the given filepath.
+     *
+     * @param  string $filepath
+     *   The full file path.
+     * @return string|null
+     *   The extension or null if not found.
+     */
+    private static function getExtension(string $filepath): ?string
+    {
         $filename = strtolower(basename($filepath));
-        foreach ($extensions as $extension) {
-            $extension = ".$extension";
-            if (str_ends_with($filename, $extension)) {
-                return true;
-            }
+        $pathinfo = pathinfo($filename);
+        $extensions = [$pathinfo['extension']] ?? null;
+        while (strpos($pathinfo['filename'], ".") > -1) {
+            $pathinfo = pathinfo($pathinfo['filename']);
+            $extensions[] = $pathinfo['extension'] ?? null;
         }
-        return false;
+        $extensions = array_filter($extensions);
+        if (count($extensions) > 0) {
+            $extension = implode(".", array_reverse($extensions));
+        } else {
+            $extension = null;
+        }
+        return $extension;
     }
 
     /**

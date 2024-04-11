@@ -754,6 +754,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $archivefile = $this->getTempName();
         $archivefile .= ".tar";
+        $this->assertTrue($bag->isValid());
         $this->assertFileDoesNotExist($archivefile);
         $bag->package($archivefile);
         $this->assertFileExists($archivefile);
