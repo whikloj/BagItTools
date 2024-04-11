@@ -425,6 +425,16 @@ class BagUtils
     }
 
     /**
+     * Utility function to trim and lowercase a string.
+     * @param string $string The string to standardize.
+     * @return string The standardized string.
+     */
+    public static function trimLower(string $string): string
+    {
+        return strtolower(trim($string));
+    }
+
+    /**
      * Walk up a path as far as the rootDir and delete empty directories.
      * @param string $path The path to check.
      * @param string $rootDir The root to not remove .

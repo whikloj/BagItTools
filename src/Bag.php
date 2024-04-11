@@ -579,7 +579,7 @@ class Bag
      */
     public function hasBagInfoTag(string $tag): bool
     {
-        $tag = self::trimLower($tag);
+        $tag = BagUtils::trimLower($tag);
         return $this->bagInfoTagExists($tag);
     }
 
@@ -593,7 +593,7 @@ class Bag
      */
     public function getBagInfoByTag(string $tag): array
     {
-        $tag = self::trimLower($tag);
+        $tag = BagUtils::trimLower($tag);
         return $this->bagInfoTagExists($tag) ? $this->bagInfoTagIndex[$tag] : [];
     }
 
@@ -605,7 +605,7 @@ class Bag
      */
     public function removeBagInfoTag(string $tag): void
     {
-        $tag = self::trimLower($tag);
+        $tag = BagUtils::trimLower($tag);
         if (!$this->bagInfoTagExists($tag)) {
             return;
         }
@@ -632,7 +632,7 @@ class Bag
         if ($index < 0) {
             return;
         }
-        $tag = self::trimLower($tag);
+        $tag = BagUtils::trimLower($tag);
         if (!$this->bagInfoTagExists($tag)) {
             return;
         }
@@ -643,7 +643,7 @@ class Bag
         $newInfo = [];
         $tagCount = 0;
         foreach ($this->bagInfoData as $row) {
-            $rowTag = self::trimLower($row['tag']);
+            $rowTag = BagUtils::trimLower($row['tag']);
             if ($rowTag !== $tag || $tagCount !== $index) {
                 $newInfo[] = $row;
             }
@@ -671,7 +671,7 @@ class Bag
         if (empty($tag) || empty($value)) {
             return;
         }
-        $tag = self::trimLower($tag);
+        $tag = BagUtils::trimLower($tag);
         if (!$this->hasBagInfoTag($tag)) {
             return;
         }
@@ -697,7 +697,7 @@ class Bag
     public function addBagInfoTag(string $tag, string $value): void
     {
         $this->setExtended(true);
-        $internal_tag = self::trimLower($tag);
+        $internal_tag = BagUtils::trimLower($tag);
         if (in_array($internal_tag, self::BAG_INFO_GENERATED_ELEMENTS)) {
             throw new BagItException("Field $tag is auto-generated and cannot be manually set.");
         }
@@ -716,7 +716,7 @@ class Bag
     {
         $this->setExtended(true);
         $normalized_keys = array_keys($tags);
-        $normalized_keys = array_map(self::class . '::trimLower', $normalized_keys);
+        $normalized_keys = array_map('whikloj\BagItTools\BagUtils::trimLower', $normalized_keys);
         $overlap = array_intersect($normalized_keys, self::BAG_INFO_GENERATED_ELEMENTS);
         if (count($overlap) !== 0) {
             throw new BagItException(
@@ -735,7 +735,7 @@ class Bag
     private function addBagInfoTagsInternal(array $tags): void
     {
         foreach ($tags as $key => $value) {
-            $internal_key = self::trimLower($key);
+            $internal_key = BagUtils::trimLower($key);
             if (!$this->bagInfoTagExists($internal_key)) {
                 $this->bagInfoTagIndex[$internal_key] = [];
             }
@@ -764,7 +764,7 @@ class Bag
      */
     public function setFileEncoding(string $encoding): void
     {
-        $encoding = self::trimLower($encoding);
+        $encoding = BagUtils::trimLower($encoding);
         $charset = BagUtils::getValidCharset($encoding);
         if (is_null($charset)) {
             throw new BagItException("Character set $encoding is not supported.");
@@ -1480,19 +1480,6 @@ class Bag
     }
 
     /**
-     * Return a trimmed and lowercase version of text.
-     *
-     * @param  string $text
-     *   The original text.
-     * @return string
-     *   The lowercase trimmed text.
-     */
-    private static function trimLower(string $text): string
-    {
-        return trim(strtolower($text));
-    }
-
-    /**
      * Just trim spaces NOT newlines and carriage returns.
      * @param string $text
      *   The original text
@@ -1511,7 +1498,7 @@ class Bag
     {
         $tags = [];
         foreach ($this->bagInfoData as $row) {
-            $tagName = self::trimLower($row['tag']);
+            $tagName = BagUtils::trimLower($row['tag']);
             if (!array_key_exists($tagName, $tags)) {
                 $tags[$tagName] = [];
             }
@@ -1569,7 +1556,7 @@ class Bag
     {
         $newInfo = [];
         foreach ($this->bagInfoData as $row) {
-            if (in_array(self::trimLower($row['tag']), self::BAG_INFO_GENERATED_ELEMENTS)) {
+            if (in_array(BagUtils::trimLower($row['tag']), self::BAG_INFO_GENERATED_ELEMENTS)) {
                 continue;
             }
             $newInfo[] = $row;
@@ -2398,7 +2385,7 @@ class Bag
      */
     public static function getHashName(string $algorithm): string
     {
-        $algorithm = Bag::trimLower($algorithm);
+        $algorithm = BagUtils::trimLower($algorithm);
         $algorithm = preg_replace("/[^a-z0-9]/", "", $algorithm);
         return in_array($algorithm, array_keys(Bag::HASH_ALGORITHMS)) ? $algorithm : "";
     }

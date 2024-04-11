@@ -2,10 +2,10 @@
 
 namespace whikloj\BagItTools\Test\Profiles;
 
+use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\Exceptions\ProfileException;
 use whikloj\BagItTools\Profiles\BagItProfile;
 use whikloj\BagItTools\Profiles\ProfileFactory;
-use whikloj\BagItTools\Test\BagItTestFramework;
 use whikloj\BagItTools\Test\BagItWebserverFramework;
 
 /**
@@ -295,6 +295,17 @@ class BasicProfileTest extends BagItWebserverFramework
         $this->assertArrayEquals([], $profile->getPayloadFilesAllowed());
     }
 
+    public function testValidateBag1(): void
+    {
+        $profile = ProfileFactory::generateProfileFromUri(self::$remote_urls[0]);
+        $this->assertTrue($profile->isValid());
+        $this->tmpdir = $this->prepareExtendedTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $this->assertTrue($bag->isValid());
+        $this->expectException(ProfileException::class);
+        $profile->validateBag($bag);
+    }
+
     /**
      * Assert the bag-info tags are as expected.
      * @param array $expected The expected tags.
@@ -303,8 +314,8 @@ class BasicProfileTest extends BagItWebserverFramework
     private function assertProfileBagInfoTags(array $expected, BagItProfile $profile): void
     {
         foreach ($expected as $tag => $value) {
-            $this->assertArrayHasKey($tag, $profile->getBagInfoTags());
-            $profileTag = $profile->getBagInfoTags()[$tag];
+            $this->assertArrayHasKey(strtolower($tag), $profile->getBagInfoTags());
+            $profileTag = $profile->getBagInfoTags()[strtolower($tag)];
             $this->assertEquals($value['required'], $profileTag->isRequired());
             $this->assertEquals($value['repeatable'], $profileTag->isRepeatable());
             $this->assertArrayEquals($value['values'], $profileTag->getValues());

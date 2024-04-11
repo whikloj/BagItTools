@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace whikloj\BagItTools\Profiles;
 
 use Exception;
+use whikloj\BagItTools\Bag;
+use whikloj\BagItTools\BagUtils;
 use whikloj\BagItTools\Exceptions\ProfileException;
 
 /**
@@ -70,6 +72,11 @@ class BagItProfile
      * "values", "repeatable" and "description". Does not include the required "BagIt-Profile-Identifier" tag.
      */
     protected array $profileBagInfoTags = [];
+
+    /**
+     * @var array A list of "required" BagInfo tags.
+     */
+    protected array $requiredBagInfoTags = [];
 
     /**
      * @var array
@@ -347,7 +354,11 @@ class BagItProfile
                 $this->profileWarnings[] = "The tag BagIt-Profile-Identifier is always required, but SHOULD NOT be 
                 listed under Bag-Info in the Profile.";
             } else {
-                $this->profileBagInfoTags[$tagName] = ProfileTags::fromJson($tagName, $tagOpts);
+                $profileTag = ProfileTags::fromJson($tagName, $tagOpts);
+                $this->profileBagInfoTags[BagUtils::trimLower($tagName)] = $profileTag;
+                if ($profileTag->isRequired()) {
+                    $this->requiredBagInfoTags[] = BagUtils::trimLower($tagName);
+                }
             }
         }
         return $this;
@@ -582,21 +593,33 @@ class BagItProfile
     }
 
     /**
-     * Assert that the array of required paths are covered by the array of allowed paths.
-     * @param array $required The list of required paths.
-     * @param array $allowed The list of allowed paths.
-     * @return bool True if all required paths are covered by allowed paths.
+     * Assert that the array of paths are covered by the array of allowed paths and glob style patterns.
+     * @param array $paths The list of paths.
+     * @param array $allowed The list of allowed paths, and glob style patterns.
+     * @return bool True if all paths are covered by allowed paths/patterns.
      */
-    private function isRequiredPathsCoveredByAllowed(array $required, array $allowed): bool
+    private function isRequiredPathsCoveredByAllowed(array $paths, array $allowed): bool
     {
-        if (count($required) === 0 || count($allowed) === 0) {
+        if (count($paths) === 0 || count($allowed) === 0) {
             return true;
         }
-        $perfect_match = array_intersect($required, $allowed);
-        if (count($perfect_match) === count($required)) {
+        $perfect_match = array_intersect($paths, $allowed);
+        if (count($perfect_match) === count($paths)) {
             return true;
         }
-        $remaining = array_diff($required, $perfect_match);
+        return $this->getPathsNotCoveredByAllowed($paths, $allowed) === [];
+    }
+
+    /**
+     * Get the list of paths that are not covered by the allowed paths and glob style patterns.
+     * @param array $paths The list of paths.
+     * @param array $allowed The list of allowed paths and glob style patterns.
+     * @return array The list of paths not covered by allowed paths/patterns.
+     */
+    private function getPathsNotCoveredByAllowed(array $paths, array $allowed): array
+    {
+        $perfect_match = array_intersect($paths, $allowed);
+        $remaining = array_diff($paths, $perfect_match);
         foreach ($allowed as $allowedFile) {
             $regex = $this->convertGlobToRegex($allowedFile);
             $matching = array_filter($remaining, function ($tagFile) use ($regex) {
@@ -606,10 +629,10 @@ class BagItProfile
                 $remaining = array_diff($remaining, $matching);
             }
             if (count($remaining) === 0) {
-                return true;
+                return [];
             }
         }
-        return false;
+        return $remaining;
     }
 
     /**
@@ -670,7 +693,7 @@ class BagItProfile
      */
     private static function matchStrings(string $expected, ?string $provided): bool
     {
-        return ($provided !== null && strtolower(trim($expected)) === strtolower(trim($provided)));
+        return ($provided !== null && BagUtils::trimLower($expected) === BagUtils::trimLower($provided));
     }
 
     /**
@@ -816,6 +839,169 @@ class BagItProfile
             )
         ) {
             $errors[] = "Payload-Files-Allowed must include all entries from Payload-Files-Required";
+        }
+        if (count($errors) > 0) {
+            throw new ProfileException(implode("\n", $errors));
+        }
+        return true;
+    }
+
+    /**
+     * Validate a bag against this profile.
+     * @param Bag $bag The bag to validate.
+     * @return bool True if the bag is valid.
+     * @throws ProfileException If the bag is not valid.
+     */
+    public function validateBag(Bag $bag): bool
+    {
+        $errors = [];
+        $warnings = [];
+        if (count($this->requiredBagInfoTags) > 0 && !$bag->isExtended()) {
+            $errors[] = "Profile requires Bag-Info tags but the Bag is not extended";
+        }
+        foreach ($this->getBagInfoTags() as $requiredTag => $infoTag) {
+            if ($infoTag->isRequired() && !$bag->hasBagInfoTag($requiredTag)) {
+                $errors[] = "Profile requires tag ($requiredTag) which is missing from the bag";
+            }
+            if (
+                !$infoTag->isRepeatable() &&
+                $bag->hasBagInfoTag($requiredTag) &&
+                count($bag->getBagInfoByTag($requiredTag)) > 1
+            ) {
+                $errors[] = "Profile does not allow tag ($requiredTag) to repeat, there are " .
+                count($bag->getBagInfoByTag($requiredTag)) . " values in the bag";
+            }
+            if ($infoTag->getValues() !== [] && $bag->hasBagInfoTag($requiredTag)) {
+                $diff = array_diff($bag->getBagInfoByTag($requiredTag), $infoTag->getValues());
+                if ($diff !== []) {
+                    $errors[] = "Profile requires tag ($requiredTag) to have value(s) (" .
+                        implode(", ", $infoTag->getValues()) . ") but the bag has value(s) (" .
+                        implode(", ", $diff) . ")";
+                }
+            }
+        }
+        if (!$this->isAllowFetchTxt() && $bag->hasFetchFile()) {
+            $errors[] = "Profile does not allow fetch.txt but the bag has one";
+        }
+        if ($this->isRequireFetchTxt() && !$bag->hasFetchFile()) {
+            $errors[] = "Profile requires fetch.txt but the bag does not have one";
+        }
+        if ($this->isDataEmpty()) {
+            $manifests = $bag->getPayloadManifests()[0];
+            $hashes = $manifests->getHashes();
+            if (count($hashes) > 1) {
+                $errors[] = "Profile requires /data directory to be empty or contain a single 0 byte file but it" .
+                    "contains " . count($hashes) . " files";
+            } elseif (count($hashes) == 1) {
+                $file = reset($hashes);
+                if (stat($file)['size'] > 0) {
+                    $errors[] = "Profile requires /data directory to be empty or contain a single 0 byte file but it" .
+                        "contains a single file of size " . stat($file)['size'];
+                }
+            }
+        }
+        if ($this->getSerialization() === 'required') {
+            if ($bag->getSerializationMimeType() === null) {
+                $errors[] = "Profile requires serialization MIME type but the bag has none";
+            } elseif (!in_array($bag->getSerializationMimeType(), $this->getAcceptSerialization())) {
+                $errors[] = "Profile requires serialization MIME type (" .
+                    implode(", ", $this->getAcceptSerialization()) .
+                    ") but the bag has MIME type (" . $bag->getSerializationMimeType() . ")";
+            }
+        } elseif ($this->getSerialization() === 'forbidden' && $bag->getSerializationMimeType() !== null) {
+            $errors[] = "Profile forbids serialization MIME type but the bag has MIME type (" .
+                $bag->getSerializationMimeType() . ")";
+        } elseif (
+            $this->getSerialization() === 'optional' &&
+            $bag->getSerializationMimeType() !== null &&
+            !in_array($bag->getSerializationMimeType(), $this->getAcceptSerialization())
+        ) {
+            $errors[] = "Profile allows for serialization MIME type (" .
+                implode(", ", $this->getAcceptSerialization()) .
+                ") but the bag has MIME type (" . $bag->getSerializationMimeType() . ")";
+        }
+        if (
+            $this->getAcceptBagItVersion() !== [] &&
+            !in_array($bag->getVersionString(), $this->getAcceptBagItVersion())
+        ) {
+            $errors[] = "Profile requires BagIt version of (" . implode(", ", $this->getAcceptBagItVersion()) .
+                ") but the bag has version (" . $bag->getVersionString() . ")";
+        }
+        if ($this->getManifestsRequired() !== []) {
+            $manifests = array_keys($bag->getPayloadManifests());
+            $diff = array_diff($manifests, $this->getManifestsRequired()) +
+                array_diff($this->getManifestsRequired(), $manifests);
+            if ($diff !== []) {
+                $errors[] = "Profile requires payload manifest(s) which are missing from the bag (" .
+                    implode(", ", $diff) . ")";
+            }
+        }
+        if ($this->getManifestsAllowed() !== []) {
+            $manifests = array_keys($bag->getPayloadManifests());
+            $diff = array_diff($manifests, $this->getManifestsAllowed());
+            if ($diff !== []) {
+                $errors[] = "Profile allows payload manifest(s) (" . implode(", ", $this->getManifestsAllowed()) .
+                    "), but the bag has manifest(s) (" . implode(", ", $diff) . ") which are not allowed";
+            }
+        }
+        if ($this->getTagManifestsRequired() !== []) {
+            $manifests = array_keys($bag->getTagManifests());
+            $diff = array_diff($manifests, $this->getTagManifestsRequired()) +
+                array_diff($this->getTagManifestsRequired(), $manifests);
+            if ($diff !== []) {
+                $errors[] = "Profile requires tag manifest(s) which are missing from the bag (" .
+                    implode(", ", $diff) . ")";
+            }
+        }
+        if ($this->getTagManifestsAllowed() !== []) {
+            $manifests = array_keys($bag->getTagManifests());
+            $diff = array_diff($manifests, $this->getTagManifestsAllowed());
+            if ($diff !== []) {
+                $errors[] = "Profile allows tag manifest(s) (" . implode(", ", $this->getTagManifestsAllowed()) .
+                    "), but the bag has manifest(s) (" . implode(", ", $diff) . ") which are not allowed";
+            }
+        }
+        if ($this->getTagFilesRequired() !== []) {
+            // Grab the first tag manifest, they should all be the same
+            $manifests = $bag->getTagManifests()[0];
+            $tag_files = array_keys($manifests->getHashes());
+            $diff = array_diff($this->getTagFilesRequired(), $tag_files) +
+                array_diff($tag_files, $this->getTagFilesRequired());
+            if ($diff !== []) {
+                $errors[] = "Profile requires tag files(s) which are missing from the bag (" .
+                    implode(", ", $diff) . ")";
+            }
+        }
+        if ($this->getTagFilesAllowed() !== []) {
+            // Grab the first tag manifest, they should all be the same
+            $manifests = $bag->getTagManifests()[0];
+            $tag_files = array_keys($manifests->getHashes());
+            $diff = $this->getPathsNotCoveredByAllowed($tag_files, $this->getTagFilesAllowed());
+            if ($diff !== []) {
+                $errors[] = "Profile allows tag files(s) (" . implode(", ", $this->getTagFilesAllowed()) .
+                    "), but the bag has manifest(s) (" . implode(", ", $diff) . ") which are not allowed";
+            }
+        }
+        if ($this->getPayloadFilesRequired() !== []) {
+            // Grab the first tag manifest, they should all be the same
+            $manifests = $bag->getPayloadManifests()[0];
+            $payload_files = array_keys($manifests->getHashes());
+            $diff = array_diff($this->getPayloadFilesRequired(), $payload_files) +
+                array_diff($payload_files, $this->getPayloadFilesRequired());
+            if ($diff !== []) {
+                $errors[] = "Profile requires payload file(s) which are missing from the bag (" .
+                    implode(", ", $diff) . ")";
+            }
+        }
+        if ($this->getPayloadFilesAllowed() !== []) {
+            // Grab the first tag manifest, they should all be the same
+            $manifests = $bag->getPayloadManifests()[0];
+            $tag_files = array_keys($manifests->getHashes());
+            $diff = $this->getPathsNotCoveredByAllowed($tag_files, $this->getPayloadFilesAllowed());
+            if ($diff !== []) {
+                $errors[] = "Profile allows payload files(s) (" . implode(", ", $this->getPayloadFilesAllowed()) .
+                    "), but the bag has file(s) (" . implode(", ", $diff) . ") which are not allowed";
+            }
         }
         if (count($errors) > 0) {
             throw new ProfileException(implode("\n", $errors));
