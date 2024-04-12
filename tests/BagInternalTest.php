@@ -300,4 +300,41 @@ class BagInternalTest extends BagItTestFramework
         $methodCall->invokeArgs($payload, ["succeed-for-%0D-filename.txt", 1]);
         $this->assertCount(2, $loadIssues->getValue($payload)['error']);
     }
+
+    /**
+     * @group Internal
+     * @covers \whikloj\BagItTools\Bag::hasExtension
+     */
+    public function testHasExtension(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $class = new ReflectionClass('whikloj\BagItTools\Bag');
+        $methodCall = $class->getMethod('hasExtension');
+        $methodCall->setAccessible(true);
+
+        $this->assertTrue($methodCall->invokeArgs($bag, ['file.txt', ['.txt', '.jpg']]));
+        $this->assertTrue($methodCall->invokeArgs($bag, ['file.old.txt', ['.txt', '.jpg']]));
+        $this->assertTrue($methodCall->invokeArgs($bag, ['file.jpg', ['.txt', '.jpg']]));
+        $this->assertTrue($methodCall->invokeArgs($bag, ['file.jpg.txt', ['.txt', '.jpg']]));
+
+        $this->assertFalse($methodCall->invokeArgs($bag, ['file.jpg.old', ['.txt', '.jpg']]));
+        $this->assertFalse($methodCall->invokeArgs($bag, ['file.old', ['.txt', '.jpg']]));
+    }
+
+    /**
+     * @group Internal
+     * @covers \whikloj\BagItTools\Bag::getExtension
+     */
+    public function testGetExtension(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $class = new ReflectionClass('whikloj\BagItTools\Bag');
+        $methodCall = $class->getMethod('getExtension');
+        $methodCall->setAccessible(true);
+
+        $this->assertEquals('.txt', $methodCall->invokeArgs($bag, ['file.txt']));
+        $this->assertEquals('.old.txt', $methodCall->invokeArgs($bag, ['file.old.txt']));
+        $this->assertEquals('.old.txt.jpg', $methodCall->invokeArgs($bag, ['file.old.txt.jpg']));
+        $this->assertEquals('.old.txt.jpg', $methodCall->invokeArgs($bag, ['file_something.old.txt.jpg']));
+    }
 }

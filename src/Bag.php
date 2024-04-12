@@ -123,12 +123,12 @@ class Bag
      * A map of some supported extensions to their serialization MIME types.
      */
     private const SERIALIZATION_MAPPING = [
-        'bz' => 'application/x-bzip',
-        'bz2' => 'application/x-bzip2',
-        'gz' => 'application/gzip',
-        'tgz' => 'application/gzip',
-        'tar' => 'application/x-tar',
-        'zip' => 'application/zip',
+        '.bz' => 'application/x-bzip',
+        '.bz2' => 'application/x-bzip2',
+        '.gz' => 'application/gzip',
+        '.tgz' => 'application/gzip',
+        '.tar' => 'application/x-tar',
+        '.zip' => 'application/zip',
     ];
 
     /**
@@ -249,10 +249,10 @@ class Bag
     private bool $loaded;
 
     /**
-     * The serialization extension of the bag or null if not serialized.
+     * The serialization mime-type of the bag or null if not serialized.
      * @var string|null
      */
-    private ?string $serialization_extension = null;
+    private ?string $serialization = null;
 
     /**
      * Bag constructor.
@@ -262,7 +262,7 @@ class Bag
      * @param boolean $new
      *   Are we making a new bag?
      * @param string|null $extension
-     *   The compressed extension of the bag (if compressed) or null if not.
+     *   The extension of the bag (if it was serialized) or null if not.
      *
      * @throws FilesystemException
      *   Problems accessing a file.
@@ -288,7 +288,7 @@ class Bag
         if ($new) {
             $this->createNewBag();
         } else {
-            $this->serialization_extension = $extension;
+            $this->serialization = is_null($extension) ? null : $this->determineSerializationMimetype($extension);
             $this->loadBag();
         }
     }
@@ -321,15 +321,14 @@ class Bag
     public static function load(string $rootPath): Bag
     {
         $rootPath = BagUtils::getAbsolute($rootPath, true);
-        $serialized_extension = null;
+        $extension = null;
         if (is_file($rootPath)) {
             $extension = self::getExtension($rootPath);
             if (self::hasExtension($extension, array_merge(self::ZIP_EXTENSIONS, self::TAR_EXTENSIONS))) {
-                $serialized_extension = $extension;
-                $rootPath = self::uncompressBag($rootPath, $serialized_extension);
+                $rootPath = self::uncompressBag($rootPath, $extension);
             }
         }
-        return new Bag($rootPath, false, $serialized_extension);
+        return new Bag($rootPath, false, $extension);
     }
 
     /**
@@ -1282,7 +1281,7 @@ class Bag
      */
     public function getSerializationMimeType(): ?string
     {
-        return self::SERIALIZATION_MAPPING[$this->serialization_extension] ?? null;
+        return $this->serialization;
     }
 
     /*
@@ -2524,5 +2523,21 @@ class Bag
     private function mergeWarnings(array $newWarnings): void
     {
         $this->bagWarnings = array_merge($this->bagWarnings, $newWarnings);
+    }
+
+    /**
+     * Determine the serialization mimetype from the extension.
+     * @param string $extension The extension.
+     * @return string The serialization mimetype.
+     * @throws BagItException If the serialization mimetype cannot be determined.
+     */
+    private function determineSerializationMimetype(string $extension): string
+    {
+        foreach (self::SERIALIZATION_MAPPING as $extension => $mimetype) {
+            if (str_ends_with($extension, $extension)) {
+                return $mimetype;
+            }
+        }
+        throw new BagItException("Unable to determine serialization mimetype for extension ($extension).");
     }
 }
