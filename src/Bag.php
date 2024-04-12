@@ -96,17 +96,17 @@ class Bag
      * Extensions which map to a tar file.
      */
     private const TAR_EXTENSIONS = [
-        'tar',
-        'tgz',
-        'tar.gz',
-        'tar.bz2',
+        '.tar',
+        '.tgz',
+        '.tar.gz',
+        '.tar.bz2',
     ];
 
     /**
      * Extensions which map to a zip file.
      */
     private const ZIP_EXTENSIONS = [
-        'zip',
+        '.zip',
     ];
 
     /**
@@ -324,7 +324,7 @@ class Bag
         $serialized_extension = null;
         if (is_file($rootPath)) {
             $extension = self::getExtension($rootPath);
-            if (self::isCompressed($extension)) {
+            if (self::hasExtension($extension, array_merge(self::ZIP_EXTENSIONS, self::TAR_EXTENSIONS))) {
                 $serialized_extension = $extension;
                 $rootPath = self::uncompressBag($rootPath, $serialized_extension);
             }
@@ -416,7 +416,7 @@ class Bag
      */
     public function package(string $filepath): void
     {
-        if (!self::hasExtension($filepath, $this->packageExtensions)) {
+        if (!self::hasExtension(self::getExtension($filepath), $this->packageExtensions)) {
             throw new BagItException(
                 "Unknown archive type ($filepath), the file extension must be one of (" .
                 implode(", ", $this->packageExtensions) . ")"
@@ -2047,9 +2047,10 @@ class Bag
      */
     private function makePackage(string $filename): void
     {
-        if (self::hasExtension($filename, self::ZIP_EXTENSIONS)) {
+        $extension = self::getExtension($filename);
+        if (self::hasExtension($extension, self::ZIP_EXTENSIONS)) {
             $this->makeZip($filename);
-        } elseif (self::hasExtension($filename, self::TAR_EXTENSIONS)) {
+        } elseif (self::hasExtension($extension, self::TAR_EXTENSIONS)) {
             $this->makeTar($filename);
         } else {
             throw new BagItException("Unable to determine archive format.");
@@ -2129,9 +2130,9 @@ class Bag
         if (!file_exists($filepath)) {
             throw new BagItException("File $filepath does not exist.");
         }
-        if (in_array($extension, self::ZIP_EXTENSIONS)) {
+        if (self::hasExtension($extension, self::ZIP_EXTENSIONS)) {
             $directory = self::unzipBag($filepath);
-        } elseif (in_array($extension, self::TAR_EXTENSIONS)) {
+        } elseif (self::hasExtension($extension, self::TAR_EXTENSIONS)) {
             $directory = self::untarBag($filepath);
         } else {
             throw new BagItException("Unable to determine archive format.");
@@ -2216,31 +2217,27 @@ class Bag
     }
 
     /**
-     * Test a filepath to see if we think it is compressed.
+     * Determine whether the given file extensions ends with an accepted extensions
      *
-     * @param  string $extension
-     *   The file extension
-     * @return bool
-     *   True if compressed file (we support).
-     */
-    private static function isCompressed(string $extension): bool
-    {
-        return in_array($extension, array_merge(self::ZIP_EXTENSIONS, self::TAR_EXTENSIONS));
-    }
-
-    /**
-     * Retrieve whether the given filepath has one of the extensions
-     *
-     * @param  string $filepath
-     *   The full file path.
+     * @param  string|null $file_extension
+     *   The file extensions.
      * @param  array $extensions
      *   The list of extensions to check.
      * @return bool
      *   The list of extensions or an empty array.
      */
-    private static function hasExtension(string $filepath, array $extensions): bool
+    private static function hasExtension(?string $file_extension, array $extensions): bool
     {
-        return in_array(self::getExtension($filepath), $extensions);
+        if (is_null($file_extension)) {
+            return false;
+        }
+        foreach ($extensions as $extension) {
+            // Need to loop and check each to avoid failing on foo.tmp.tar.gz or bar.old.zip
+            if (str_ends_with($file_extension, $extension)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -2255,17 +2252,15 @@ class Bag
     {
         $filename = strtolower(basename($filepath));
         $pathinfo = pathinfo($filename);
-        var_dump($pathinfo);
         $extensions = [];
         $extensions[] = $pathinfo['extension'] ?? null;
         while (strpos($pathinfo['filename'], ".") > -1) {
             $pathinfo = pathinfo($pathinfo['filename']);
             $extensions[] = $pathinfo['extension'] ?? null;
         }
-        var_dump($extensions);
         $extensions = array_filter($extensions);
         if (count($extensions) > 0) {
-            return implode(".", array_reverse($extensions));
+            return "." . ltrim(implode(".", array_reverse($extensions)), ".\ \n\r\t\v\0");
         }
         return null;
     }

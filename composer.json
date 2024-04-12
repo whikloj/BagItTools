@@ -54,7 +54,8 @@
     ],
     "test": [
       "@check",
-      "@phpunit"
+      "@phpunit",
+      "@phpstan"
     ]
   },
   "config": {

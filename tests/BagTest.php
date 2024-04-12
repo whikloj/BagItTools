@@ -627,7 +627,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::load
      * @covers ::hasExtension
-     * @covers ::isCompressed
+     * @covers ::getExtension
      */
     public function testNonExistantCompressed(): void
     {
@@ -644,7 +644,7 @@ class BagTest extends BagItTestFramework
      * Test opening a tar gzip
      * @group Bag
      * @covers ::load
-     * @covers ::isCompressed
+     * @covers ::getExtension
      * @covers ::uncompressBag
      * @covers ::hasExtension
      * @covers ::untarBag
@@ -668,7 +668,7 @@ class BagTest extends BagItTestFramework
      * Test opening a tar bzip2.
      * @group Bag
      * @covers ::load
-     * @covers ::isCompressed
+     * @covers ::getExtension
      * @covers ::uncompressBag
      * @covers ::hasExtension
      * @covers ::untarBag
@@ -691,7 +691,7 @@ class BagTest extends BagItTestFramework
     /**
      * Test opening a zip file.
      * @group Bag
-     * @covers ::isCompressed
+     * @covers ::getExtension
      * @covers ::uncompressBag
      * @covers ::hasExtension
      * @covers ::unzipBag
@@ -708,6 +708,30 @@ class BagTest extends BagItTestFramework
         $this->assertNotEquals(
             self::TEST_RESOURCES . '/testzip.zip',
             $bag->getBagRoot()
+        );
+    }
+
+    /**
+     * Test a valid archive with an invalid extension included
+     *
+     * @group Bag
+     * @covers ::getExtension
+     * @covers ::hasExtension
+     */
+    public function testInvalidExtension(): void
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $archivefile = $this->getTempName();
+        $archivefile .= ".tmp.zip";
+        $this->assertFileDoesNotExist($archivefile);
+        $bag->package($archivefile);
+        $this->assertFileExists($archivefile);
+        $newbag = Bag::load($archivefile);
+        $this->assertTrue($newbag->isValid());
+        $this->assertEquals(
+            $bag->getPayloadManifests()['sha256']->getHashes(),
+            $newbag->getPayloadManifests()['sha256']->getHashes()
         );
     }
 
@@ -729,10 +753,8 @@ class BagTest extends BagItTestFramework
         $this->assertFileDoesNotExist($archivefile);
         $bag->package($archivefile);
         $this->assertFileExists($archivefile);
-
         $newbag = Bag::load($archivefile);
         $this->assertTrue($newbag->isValid());
-
         $this->assertEquals(
             $bag->getPayloadManifests()['sha256']->getHashes(),
             $newbag->getPayloadManifests()['sha256']->getHashes()
@@ -838,8 +860,8 @@ class BagTest extends BagItTestFramework
         $this->assertFileDoesNotExist($archivefile);
 
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("Unknown archive type ($archivefile), the file extension must be one of (tar, " .
-            "tgz, tar.gz, tar.bz2, zip)");
+        $this->expectExceptionMessage("Unknown archive type ($archivefile), the file extension must be one of (.tar, " .
+            ".tgz, .tar.gz, .tar.bz2, .zip)");
 
         $bag->package($archivefile);
     }
