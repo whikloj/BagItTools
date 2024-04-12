@@ -347,12 +347,9 @@ class BagItProfile
             if (count(array_diff_key($tagOpts, $expectedKeys)) > 0) {
                 throw new ProfileException("Invalid tag options for $tagName");
             }
-            if (array_key_exists($tagName, $this->profileBagInfoTags)) {
-                throw new ProfileException("Duplicate tag $tagName");
-            }
             if (self::matchStrings('BagIt-Profile-Identifier', $tagName)) {
-                $this->profileWarnings[] = "The tag BagIt-Profile-Identifier is always required, but SHOULD NOT be 
-                listed under Bag-Info in the Profile.";
+                $this->profileWarnings[] = "The tag BagIt-Profile-Identifier is always required, but SHOULD NOT be " .
+                "listed under Bag-Info in the Profile.";
             } else {
                 $profileTag = ProfileTags::fromJson($tagName, $tagOpts);
                 $this->profileBagInfoTags[BagUtils::trimLower($tagName)] = $profileTag;
@@ -442,7 +439,7 @@ class BagItProfile
     private function setRequireFetchTxt(?bool $requireFetchTxt): BagItProfile
     {
         if ($requireFetchTxt === true && $this->allowFetchTxt === false) {
-            throw new ProfileException("Require-Fetch.txt cannot be true if Allow-Fetch.txt is false");
+            throw new ProfileException("Allow-Fetch.txt cannot be false if Require-Fetch.txt is true");
         }
         $this->requireFetchTxt = $requireFetchTxt ?? false;
         return $this;
@@ -887,16 +884,17 @@ class BagItProfile
             $errors[] = "Profile requires fetch.txt but the bag does not have one";
         }
         if ($this->isDataEmpty()) {
-            $manifests = $bag->getPayloadManifests()[0];
+            $manifests = current($bag->getPayloadManifests());
             $hashes = $manifests->getHashes();
             if (count($hashes) > 1) {
                 $errors[] = "Profile requires /data directory to be empty or contain a single 0 byte file but it" .
-                    "contains " . count($hashes) . " files";
+                    " contains " . count($hashes) . " files";
             } elseif (count($hashes) == 1) {
-                $file = reset($hashes);
-                if (stat($file)['size'] > 0) {
+                $file = array_key_first($hashes);
+                $absolute = $bag->makeAbsolute($file);
+                if (stat($absolute)['size'] > 0) {
                     $errors[] = "Profile requires /data directory to be empty or contain a single 0 byte file but it" .
-                        "contains a single file of size " . stat($file)['size'];
+                        " contains a single file of size " . stat($absolute)['size'];
                 }
             }
         }
@@ -1007,5 +1005,14 @@ class BagItProfile
             throw new ProfileException(implode("\n", $errors));
         }
         return true;
+    }
+
+    /**
+     * Get the list of warnings generated during the validation of the profile.
+     * @return array The list of warnings.
+     */
+    public function getWarnings(): array
+    {
+        return $this->profileWarnings;
     }
 }

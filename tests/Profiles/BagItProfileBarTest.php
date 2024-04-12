@@ -1,6 +1,6 @@
 <?php
 
-namespace Profiles;
+namespace whikloj\BagItTools\Test\Profiles;
 
 use whikloj\BagItTools\Profiles\BagItProfile;
 use whikloj\BagItTools\Test\BagItTestFramework;

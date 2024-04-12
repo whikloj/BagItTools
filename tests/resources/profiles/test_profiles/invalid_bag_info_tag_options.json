@@ -1,0 +1,24 @@
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://somewhere.org/my/profile.json",
+    "BagIt-Profile-Version": "0.1",
+    "Source-Organization":"Monsters, Inc.",
+    "Contact-Name":"Mike Wazowski",
+    "External-Description":"Profile for testing bad bag info tag options",
+    "Version":"0.3"
+  },
+  "Bag-Info":{
+    "Source-Organization":{
+      "required":true,
+      "values":[
+        "Simon Fraser University",
+        "York University"
+      ],
+      "help": "This is the organization that originally created the bag."
+    }
+  },
+  "Serialization": "forbidden",
+  "Accept-BagIt-Version":[
+    "1.0"
+  ]
+}
