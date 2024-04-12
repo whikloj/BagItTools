@@ -418,7 +418,7 @@ class Bag
     {
         if (!self::hasExtension($filepath, $this->packageExtensions)) {
             throw new BagItException(
-                "Unknown archive type, the file extension must be one of (" .
+                "Unknown archive type ($filepath), the file extension must be one of (" .
                 implode(", ", $this->packageExtensions) . ")"
             );
         }
@@ -2255,18 +2255,17 @@ class Bag
     {
         $filename = strtolower(basename($filepath));
         $pathinfo = pathinfo($filename);
-        $extensions = [$pathinfo['extension']] ?? null;
+        $extensions = [];
+        $extensions[] = $pathinfo['extension'] ?? null;
         while (strpos($pathinfo['filename'], ".") > -1) {
             $pathinfo = pathinfo($pathinfo['filename']);
             $extensions[] = $pathinfo['extension'] ?? null;
         }
         $extensions = array_filter($extensions);
         if (count($extensions) > 0) {
-            $extension = implode(".", array_reverse($extensions));
-        } else {
-            $extension = null;
+            return implode(".", array_reverse($extensions));
         }
-        return $extension;
+        return null;
     }
 
     /**

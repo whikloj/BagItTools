@@ -838,8 +838,8 @@ class BagTest extends BagItTestFramework
         $this->assertFileDoesNotExist($archivefile);
 
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("Unknown archive type, the file extension must be one of (tar, tgz, tar.gz, " .
-            "tar.bz2, zip)");
+        $this->expectExceptionMessage("Unknown archive type ($archivefile), the file extension must be one of (tar, " .
+            "tgz, tar.gz, tar.bz2, zip)");
 
         $bag->package($archivefile);
     }
