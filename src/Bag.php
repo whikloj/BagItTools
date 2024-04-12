@@ -2255,12 +2255,14 @@ class Bag
     {
         $filename = strtolower(basename($filepath));
         $pathinfo = pathinfo($filename);
+        var_dump($pathinfo);
         $extensions = [];
         $extensions[] = $pathinfo['extension'] ?? null;
         while (strpos($pathinfo['filename'], ".") > -1) {
             $pathinfo = pathinfo($pathinfo['filename']);
             $extensions[] = $pathinfo['extension'] ?? null;
         }
+        var_dump($extensions);
         $extensions = array_filter($extensions);
         if (count($extensions) > 0) {
             return implode(".", array_reverse($extensions));
