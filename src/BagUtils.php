@@ -139,7 +139,12 @@ class BagUtils
         }
 
         // Get and filter empty sub paths
-        $subPaths = array_filter(explode('/', $path), 'mb_strlen');
+        $subPaths = array_filter(
+            explode('/', $path),
+            function ($i) {
+                return mb_strlen($i) > 0;
+            }
+        );
 
         $absolutes = [];
         foreach ($subPaths as $subPath) {
