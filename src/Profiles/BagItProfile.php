@@ -412,13 +412,9 @@ class BagItProfile
     /**
      * @param bool $allowFetchTxt Whether to allow the existence of a fetch.txt file. Default is true.
      * @return BagItProfile The profile object.
-     * @throws ProfileException If requireFetchTxt is true and allowFetchTxt is false.
      */
     private function setAllowFetchTxt(?bool $allowFetchTxt): BagItProfile
     {
-        if ($this->requireFetchTxt === true && $allowFetchTxt === false) {
-            throw new ProfileException("Allow-Fetch.txt cannot be false if Require-Fetch.txt is true");
-        }
         $this->allowFetchTxt = $allowFetchTxt ?? true;
         return $this;
     }

@@ -103,19 +103,6 @@ class BagProfileTest extends BagItTestFramework
 
     /**
      * @group Profiles
-     * @covers ::setRequireFetchTxt
-     */
-    public function testAllowFetchInvalid2(): void
-    {
-        $this->expectException(ProfileException::class);
-        $this->expectExceptionMessage("Allow-Fetch.txt cannot be false if Require-Fetch.txt is true");
-        BagItProfile::fromJson(file_get_contents(
-            self::$profiles . "/test_profiles/allow_fetch_invalid_2.json"
-        ));
-    }
-
-    /**
-     * @group Profiles
      * @covers ::setDataEmpty
      * @covers ::validateBag
      */
