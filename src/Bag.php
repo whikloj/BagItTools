@@ -1269,14 +1269,6 @@ class Bag
     }
 
     /**
-     * @return bool True if the bag was loaded from a serialized format.
-     */
-    public function hasSerialization(): bool
-    {
-        return $this->serialization_extension !== null;
-    }
-
-    /**
      * @return string|null The serialization format if the bag was loaded from a serialized format or null.
      */
     public function getSerializationMimeType(): ?string

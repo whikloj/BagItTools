@@ -172,6 +172,7 @@ JSON;
     /**
      * @group Profiles
      * @covers ::setAllowFetchTxt
+     * @covers ::setRequireFetchTxt
      */
     public function testAllowFetchInvalid(): void
     {
@@ -201,6 +202,7 @@ JSON;
     /**
      * @group Profiles
      * @covers ::setRequireFetchTxt
+     * @covers ::setAllowFetchTxt
      * @covers ::isRequireFetchTxt
      */
     public function testRequireFetchValid(): void
@@ -361,5 +363,34 @@ JSON;
         $profile = BagItProfile::fromJson($profileJson);
         $this->assertTrue($profile->isValid());
         $this->assertArrayEquals(["md5"], $profile->getTagManifestsAllowed());
+    }
+
+    public function testTagFilesMissingFromAllowed(): void
+    {
+        $profileJson = <<< JSON
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://somewhere.org/my/profile.json",
+    "BagIt-Profile-Version": "0.1",
+    "Source-Organization":"Monsters, Inc.",
+    "Contact-Name":"Mike Wazowski",
+    "External-Description":"Profile for testing tag files required and allowed",
+    "Version":"0.3"
+  },
+  "Tag-Files-Required": [
+    "Special-tag-file.txt"
+  ],
+  "Tag-Files-Allowed": [
+    "Special-tag-file.txt",
+    "Another-special-tag-file.txt"
+  ],
+  "Serialization": "forbidden",
+  "Accept-BagIt-Version":[
+    "1.0"
+  ]
+}
+JSON;
+        $profile = BagItProfile::fromJson($profileJson);
+        $this->assertTrue($profile->isValid());
     }
 }
