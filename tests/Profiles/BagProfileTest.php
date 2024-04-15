@@ -39,9 +39,35 @@ class BagProfileTest extends BagItTestFramework
      */
     public function testInvalidBagInfoTags(): void
     {
+        $profileJson = <<< JSON
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://somewhere.org/my/profile.json",
+    "BagIt-Profile-Version": "0.1",
+    "Source-Organization":"Monsters, Inc.",
+    "Contact-Name":"Mike Wazowski",
+    "External-Description":"Profile for testing bad bag info tag options",
+    "Version":"0.3"
+  },
+  "Bag-Info":{
+    "Source-Organization":{
+      "required":true,
+      "values":[
+        "Simon Fraser University",
+        "York University"
+      ],
+      "help": "This is the organization that originally created the bag."
+    }
+  },
+  "Serialization": "forbidden",
+  "Accept-BagIt-Version":[
+    "1.0"
+  ]
+}
+JSON;
         $this->expectException(ProfileException::class);
         $this->expectExceptionMessage("Invalid tag options for Source-Organization");
-        BagItProfile::fromJson(file_get_contents(self::$profiles . "/test_profiles/invalid_bag_info_tag_options.json"));
+        BagItProfile::fromJson($profileJson);
     }
 
     /**
@@ -51,9 +77,28 @@ class BagProfileTest extends BagItTestFramework
      */
     public function testBagItProfileIdentifierInTags(): void
     {
-        $profile = BagItProfile::fromJson(file_get_contents(
-            self::$profiles . "/test_profiles/profile_identifier_bag_info_tag.json"
-        ));
+        $profileJson = <<< JSON
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://somewhere.org/my/profile.json",
+    "BagIt-Profile-Version": "0.1",
+    "Source-Organization":"Monsters, Inc.",
+    "Contact-Name":"Mike Wazowski",
+    "External-Description":"Profile for testing bad bag info tag options",
+    "Version":"0.3"
+  },
+  "Bag-Info":{
+    "BagIt-Profile-Identifier":{
+      "required":true
+    }
+  },
+  "Serialization": "forbidden",
+  "Accept-BagIt-Version":[
+    "1.0"
+  ]
+}
+JSON;
+        $profile = BagItProfile::fromJson($profileJson);
         $this->assertArrayEquals(
             [
             "The tag BagIt-Profile-Identifier is always required, but SHOULD NOT be listed under Bag-Info in " .
@@ -69,9 +114,27 @@ class BagProfileTest extends BagItTestFramework
      */
     public function testSetManifestAllowed(): void
     {
-        $profile = BagItProfile::fromJson(file_get_contents(
-            self::$profiles . "/test_profiles/set_manifest_allowed_valid.json"
-        ));
+        $profileJson = <<< JSON
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://somewhere.org/my/profile.json",
+    "BagIt-Profile-Version": "0.1",
+    "Source-Organization":"Monsters, Inc.",
+    "Contact-Name":"Mike Wazowski",
+    "External-Description":"Profile for testing bad bag info tag options",
+    "Version":"0.3"
+  },
+  "Manifests-Allowed": [
+    "md5",
+    "sha256"
+  ],
+  "Serialization": "forbidden",
+  "Accept-BagIt-Version":[
+    "1.0"
+  ]
+}
+JSON;
+        $profile = BagItProfile::fromJson($profileJson);
         $this->assertTrue($profile->isValid());
     }
 
@@ -81,11 +144,29 @@ class BagProfileTest extends BagItTestFramework
      */
     public function testSetManifestAllowedInvalid(): void
     {
+        $profileJson = <<< JSON
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://somewhere.org/my/profile.json",
+    "BagIt-Profile-Version": "0.1",
+    "Source-Organization":"Monsters, Inc.",
+    "Contact-Name":"Mike Wazowski",
+    "External-Description":"Profile for testing bad bag info tag options",
+    "Version":"0.3"
+  },
+  "Manifests-Required": [
+    "md5",
+    "sha512"
+  ],
+  "Manifests-Allowed": [
+    "md5",
+    "sha256"
+  ]
+}
+JSON;
         $this->expectException(ProfileException::class);
         $this->expectExceptionMessage("Manifests-Allowed must include all entries from Manifests-Required");
-        BagItProfile::fromJson(file_get_contents(
-            self::$profiles . "/test_profiles/set_manifest_allowed_invalid.json"
-        ));
+        BagItProfile::fromJson($profileJson);
     }
 
     /**
@@ -94,11 +175,57 @@ class BagProfileTest extends BagItTestFramework
      */
     public function testAllowFetchInvalid(): void
     {
+        $profileJson = <<< JSON
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://somewhere.org/my/profile.json",
+    "BagIt-Profile-Version": "0.1",
+    "Source-Organization":"Monsters, Inc.",
+    "Contact-Name":"Mike Wazowski",
+    "External-Description":"Profile for testing bad bag info tag options",
+    "Version":"0.3"
+  },
+  "Require-Fetch.txt": true,
+  "Allow-Fetch.txt": false,
+  "Serialization": "forbidden",
+  "Accept-BagIt-Version":[
+    "1.0"
+  ]
+}
+JSON;
         $this->expectException(ProfileException::class);
         $this->expectExceptionMessage("Allow-Fetch.txt cannot be false if Require-Fetch.txt is true");
-        BagItProfile::fromJson(file_get_contents(
-            self::$profiles . "/test_profiles/allow_fetch_invalid.json"
-        ));
+        BagItProfile::fromJson($profileJson);
+    }
+
+    /**
+     * @group Profiles
+     * @covers ::setRequireFetchTxt
+     * @covers ::isRequireFetchTxt
+     */
+    public function testRequireFetchValid(): void
+    {
+        $profileJson = <<< JSON
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://somewhere.org/my/profile.json",
+    "BagIt-Profile-Version": "0.1",
+    "Source-Organization":"Monsters, Inc.",
+    "Contact-Name":"Mike Wazowski",
+    "External-Description":"Profile for testing bad bag info tag options",
+    "Version":"0.3"
+  },
+  "Require-Fetch.txt": true,
+  "Allow-Fetch.txt": true,
+  "Serialization": "forbidden",
+  "Accept-BagIt-Version":[
+    "1.0"
+  ]
+}
+JSON;
+        $profile = BagItProfile::fromJson($profileJson);
+        $this->assertTrue($profile->isValid());
+        $this->assertTrue($profile->isRequireFetchTxt());
     }
 
     /**
@@ -108,9 +235,28 @@ class BagProfileTest extends BagItTestFramework
      */
     public function testDataEmpty(): void
     {
-        $profile = BagItProfile::fromJson(file_get_contents(
-            self::$profiles . "/test_profiles/data_empty.json"
-        ));
+        $profileJson = <<< JSON
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://somewhere.org/my/profile.json",
+    "BagIt-Profile-Version": "0.1",
+    "Source-Organization":"Monsters, Inc.",
+    "Contact-Name":"Mike Wazowski",
+    "External-Description":"Profile for testing bad bag info tag options",
+    "Version":"0.3"
+  },
+"Manifests-Allowed": [
+"md5",
+"sha512"
+],
+"Data-Empty": true,
+"Serialization": "forbidden",
+"Accept-BagIt-Version":[
+"1.0"
+]
+}
+JSON;
+        $profile = BagItProfile::fromJson($profileJson);
         $this->assertTrue($profile->isValid());
         $bag = Bag::create($this->tmpdir);
         $bag->update();
@@ -149,9 +295,28 @@ class BagProfileTest extends BagItTestFramework
      */
     public function testDataEmpty2(): void
     {
-        $profile = BagItProfile::fromJson(file_get_contents(
-            self::$profiles . "/test_profiles/data_empty.json"
-        ));
+        $profileJson = <<< JSON
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://somewhere.org/my/profile.json",
+    "BagIt-Profile-Version": "0.1",
+    "Source-Organization":"Monsters, Inc.",
+    "Contact-Name":"Mike Wazowski",
+    "External-Description":"Profile for testing bad bag info tag options",
+    "Version":"0.3"
+  },
+"Manifests-Allowed": [
+"md5",
+"sha512"
+],
+"Data-Empty": true,
+"Serialization": "forbidden",
+"Accept-BagIt-Version":[
+"1.0"
+]
+}
+JSON;
+        $profile = BagItProfile::fromJson($profileJson);
         $this->assertTrue($profile->isValid());
         $bag = Bag::create($this->tmpdir);
         $bag->update();
@@ -165,5 +330,36 @@ class BagProfileTest extends BagItTestFramework
         $this->expectExceptionMessage("Profile requires /data directory to be empty or contain a single 0 byte " .
             "file but it contains a single file of size 398246");
         $profile->validateBag($bag);
+    }
+
+    /**
+     * @group Profiles
+     * @covers ::setTagManifestsAllowed
+     * @covers ::getTagManifestsAllowed
+     */
+    public function testTagManifestAllowed(): void
+    {
+        $profileJson = <<< JSON
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://somewhere.org/my/profile.json",
+    "BagIt-Profile-Version": "0.1",
+    "Source-Organization":"Monsters, Inc.",
+    "Contact-Name":"Mike Wazowski",
+    "External-Description":"Profile for testing bad bag info tag options",
+    "Version":"0.3"
+  },
+  "Tag-Manifests-Allowed": [
+    "md5"
+  ],
+  "Serialization": "forbidden",
+  "Accept-BagIt-Version":[
+    "1.0"
+  ]
+}
+JSON;
+        $profile = BagItProfile::fromJson($profileJson);
+        $this->assertTrue($profile->isValid());
+        $this->assertArrayEquals(["md5"], $profile->getTagManifestsAllowed());
     }
 }
