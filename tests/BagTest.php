@@ -1021,9 +1021,9 @@ class BagTest extends BagItTestFramework
     {
         $bag = Bag::create($this->tmpdir);
         $this->assertFalse($bag->isExtended());
-        $bag->addBagInfoTag("Contact-Name", "Jared Whiklo");
+        $bag->addBagInfoTag("Contact-Name", "Bob Smith");
         $this->assertTrue($bag->isExtended());
-        $this->assertArrayEquals(["Jared Whiklo"], $bag->getBagInfoByTag("Contact-Name"));
+        $this->assertArrayEquals(["Bob Smith"], $bag->getBagInfoByTag("Contact-Name"));
     }
 
     /**

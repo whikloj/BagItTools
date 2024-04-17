@@ -993,6 +993,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test trying to add a tag file with a non-existant file.
      * @group Extended
      * @covers ::addTagFile
+     * @covers ::checkTagFileConstraints
      */
     public function testAddTagFileFileDoesNotExist(): void
     {
@@ -1006,6 +1007,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test trying to add a tag file over the bag-info.txt file.
      * @group Extended
      * @covers ::addTagFile
+     * @covers ::checkTagFileConstraints
      */
     public function testAddTagFileCannotOverwriteBagInfo(): void
     {
@@ -1021,6 +1023,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test trying to add a tag file over the bagit.txt file.
      * @group Extended
      * @covers ::addTagFile
+     * @covers ::checkTagFileConstraints
      */
     public function testAddTagCannotOverwriteBagIt(): void
     {
@@ -1036,6 +1039,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test trying to add a tag file over a payload manifest file.
      * @group Extended
      * @covers ::addTagFile
+     * @covers ::checkTagFileConstraints
      */
     public function testAddTagCannotOverwritePayloadManifest(): void
     {
@@ -1052,6 +1056,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test trying to add a tag file over a tag manifest file.
      * @group Extended
      * @covers ::addTagFile
+     * @covers ::checkTagFileConstraints
      */
     public function testAddTagCannotOverwriteTagManifest(): void
     {
@@ -1069,6 +1074,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test trying to add a tag file to the data directory.
      * @group Extended
      * @covers ::addTagFile
+     * @covers ::checkTagFileConstraints
      */
     public function testAddTagCannotBeInDataDirectory(): void
     {
@@ -1083,6 +1089,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test trying to add a tag file to the data directory.
      * @group Extended
      * @covers ::addTagFile
+     * @covers ::checkTagFileConstraints
      */
     public function testAddTagCannotBeInDataDirectory2(): void
     {
@@ -1113,6 +1120,7 @@ class ExtendedBagTest extends BagItTestFramework
      * Test adding a tag file to the bag.
      * @group Extended
      * @covers ::addTagFile
+     * @covers ::checkTagFileConstraints
      */
     public function testAddTagFileSuccess(): void
     {
