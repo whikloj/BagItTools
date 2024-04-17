@@ -51,7 +51,7 @@ class ManifestTest extends BagItTestFramework
             'tag' => $bag->getBagRoot() . '/tagmanifest-sha256.txt',
         ];
         $bag->setExtended(true);
-        $bag->addBagInfoTag('Contact-name', 'Jared Whiklo');
+        $bag->addBagInfoTag('Contact-name', 'Bob Smith');
         $bag->setAlgorithm('sha256');
         $bag->createFile("This is some sample text", 'some/directory/file.txt');
 
