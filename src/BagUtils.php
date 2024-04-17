@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace whikloj\BagItTools;
 
 use TypeError;
+use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
@@ -325,6 +326,18 @@ class BagUtils
     }
 
     /**
+     * Remove a directory and check if it succeeded.
+     * @param string $path The path to remove.
+     * @throws FilesystemException If the call to rmdir() fails.
+     */
+    public static function checkedRmDir(string $path): void
+    {
+        if (!@rmdir($path)) {
+            throw new FilesystemException("Unable to remove directory $path");
+        }
+    }
+
+    /**
      * Decode a file path according to the special rules of the spec.
      *
      * RFC 8943 - sections 2.1.3 & 2.2.3
@@ -409,5 +422,33 @@ class BagUtils
     public static function standardizePathSeparators(string $path): string
     {
         return str_replace('\\', '/', $path);
+    }
+
+    /**
+     * Walk up a path as far as the rootDir and delete empty directories.
+     * @param string $path The path to check.
+     * @param string $rootDir The root to not remove .
+     *
+     * @throws BagItException If the path is not within the bag root.
+     * @throws FilesystemException If we can't remove a directory
+     */
+    public static function deleteEmptyDirTree(string $path, string $rootDir): void
+    {
+        if (rtrim(strtolower($path), '/') === rtrim(strtolower($rootDir), '/')) {
+            return;
+        }
+        if (!str_starts_with($path, $rootDir)) {
+            throw new BagItException("Path is not within the root directory.");
+        }
+        if (file_exists($path) && is_dir($path)) {
+            $parent = dirname($path);
+            $files = array_diff(scandir($path), [".", ".."]);
+            if (count($files) === 0) {
+                self::checkedRmDir($path);
+            }
+            if ($parent !== $rootDir) {
+                self::deleteEmptyDirTree($parent, $rootDir);
+            }
+        }
     }
 }

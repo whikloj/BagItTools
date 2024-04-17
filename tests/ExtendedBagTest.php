@@ -1013,7 +1013,7 @@ class ExtendedBagTest extends BagItTestFramework
         $bag = Bag::create($this->tmpdir);
         $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("You cannot overwrite reserved file (bag-info.txt) file with your own tag file.");
+        $this->expectExceptionMessage("You cannot alter reserved file (bag-info.txt) file with your own tag file.");
         $bag->addTagFile($special_file, 'bag-info.txt');
     }
 
@@ -1028,7 +1028,7 @@ class ExtendedBagTest extends BagItTestFramework
         $bag = Bag::create($this->tmpdir);
         $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("You cannot overwrite reserved file (bagit.txt) file with your own tag file.");
+        $this->expectExceptionMessage("You cannot alter reserved file (bagit.txt) file with your own tag file.");
         $bag->addTagFile($special_file, 'bagit.txt');
     }
 
@@ -1044,7 +1044,7 @@ class ExtendedBagTest extends BagItTestFramework
         $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
         $bag->addAlgorithm('sha256');
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("You cannot overwrite a manifest or tag manifest file with your own tag file.");
+        $this->expectExceptionMessage("You cannot alter a manifest or tag manifest file with your own tag file.");
         $bag->addTagFile($special_file, 'manifest-sha256.txt');
     }
 
@@ -1061,7 +1061,7 @@ class ExtendedBagTest extends BagItTestFramework
         $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
         $bag->addAlgorithm('sha256');
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("You cannot overwrite a manifest or tag manifest file with your own tag file.");
+        $this->expectExceptionMessage("You cannot alter a manifest or tag manifest file with your own tag file.");
         $bag->addTagFile($special_file, 'tagmanifest-sha256.txt');
     }
 
@@ -1075,8 +1075,7 @@ class ExtendedBagTest extends BagItTestFramework
         $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
         $bag = Bag::create($this->tmpdir);
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("Tag files must be in the bag root or a tag file directory, " .
-            "use ->addFile() to add data files.");
+        $this->expectExceptionMessage("Tag files must be in the bag root or a tag file directory");
         $bag->addTagFile($special_file, 'data/special.txt');
     }
 
@@ -1090,8 +1089,7 @@ class ExtendedBagTest extends BagItTestFramework
         $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
         $bag = Bag::create($this->tmpdir);
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("Tag files must be in the bag root or a tag file directory, " .
-            "use ->addFile() to add data files.");
+        $this->expectExceptionMessage("Tag files must be in the bag root or a tag file directory");
         $bag->addTagFile($special_file, './data/special.txt');
     }
 
@@ -1111,5 +1109,170 @@ class ExtendedBagTest extends BagItTestFramework
             "Tag file (special.txt) already exists in the bag, use ->replaceTagFile() to replace."
         );
         $bag->addTagFile($special_file, 'special.txt');
+    }
+
+    /**
+     * Test adding a tag file to the bag.
+     * @group Extended
+     * @covers ::addTagFile
+     */
+    public function testAddTagFileSuccess(): void
+    {
+        $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
+        $bag = Bag::create($this->tmpdir);
+        $bag->addTagFile($special_file, 'special.txt');
+        $this->assertFileExists($bag->getBagRoot() . '/special.txt');
+    }
+
+    /**
+     * Test adding tag files in a subdirectory
+     * @group Extended
+     * @covers ::addTagFile
+     */
+    public function testAddTagFileInSubDir(): void
+    {
+        $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
+        $bag = Bag::create($this->tmpdir);
+        $bag->addTagFile($special_file, 'special/special.txt');
+        $this->assertFileExists($bag->getBagRoot() . '/special/special.txt');
+        $this->assertFileExists($bag->getBagRoot() . '/special');
+        $bag->addTagFile($special_file, 'special/special2.txt');
+        $this->assertFileExists($bag->getBagRoot() . '/special/special2.txt');
+    }
+
+    /**
+     * Test trying to add a tag file with a non-existant file.
+     * @group Extended
+     * @covers ::removeTagFile
+     */
+    public function testRemoveTagFileFileDoesNotExist(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Tag file (nowhere.txt) does not exist in the bag.");
+        $bag->removeTagFile('nowhere.txt');
+    }
+
+    /**
+     * Test trying to remove the bag-info.txt file using removeTagFile.
+     * @group Extended
+     * @covers ::removeTagFile
+     */
+    public function testRemoveTagFileCannotOverwriteBagInfo(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
+        $bag->update(); // Update to create the bag-info.txt on disk.
+        $this->assertTrue(file_exists($bag->getBagRoot() . '/bag-info.txt'));
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("You cannot alter reserved file (bag-info.txt) file with your own tag file.");
+        $bag->removeTagFile('bag-info.txt');
+        $this->assertTrue(file_exists($bag->getBagRoot() . '/bag-info.txt'));
+    }
+
+    /**
+     * Test trying to remove the bagit.txt file using removeTagFile.
+     * @group Extended
+     * @covers ::addTagFile
+     */
+    public function testRemoveTagCannotOverwriteBagIt(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->assertTrue(file_exists($bag->getBagRoot() . '/bagit.txt'));
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("You cannot alter reserved file (bagit.txt) file with your own tag file.");
+        $bag->removeTagFile('bagit.txt');
+        $this->assertTrue(file_exists($bag->getBagRoot() . '/bagit.txt'));
+    }
+
+    /**
+     * Test trying to remove a payload manifest file using removeTagFile.
+     * @group Extended
+     * @covers ::removeTagFile
+     */
+    public function testRemoveTagCannotOverwritePayloadManifest(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
+        $bag->setAlgorithm('sha256');
+        $bag->update();
+        $this->assertTrue(file_exists($bag->getBagRoot() . '/manifest-sha256.txt'));
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("You cannot alter a manifest or tag manifest file with your own tag file.");
+        $bag->removeTagFile('manifest-sha256.txt');
+        $this->assertTrue(file_exists($bag->getBagRoot() . '/manifest-sha256.txt'));
+    }
+
+    /**
+     * Test trying to remove a tag manifest file using removeTagFile.
+     * @group Extended
+     * @covers ::removeTagFile
+     */
+    public function testRemoveTagCannotOverwriteTagManifest(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
+        $bag->setAlgorithm('sha256');
+        $bag->update();
+        $this->assertTrue(file_exists($bag->getBagRoot() . '/tagmanifest-sha256.txt'));
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("You cannot alter a manifest or tag manifest file with your own tag file.");
+        $bag->removeTagFile('tagmanifest-sha256.txt');
+        $this->assertTrue(file_exists($bag->getBagRoot() . '/tagmanifest-sha256.txt'));
+    }
+
+    /**
+     * Test trying to remove a file from the data directory using removeTagFile.
+     * @group Extended
+     * @covers ::removeTagFile
+     */
+    public function testRemoveTagCannotBeInDataDirectory(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->addFile(self::TEST_RESOURCES . '/text/empty.txt', 'data/empty.txt');
+        $this->assertTrue(file_exists($bag->getDataDirectory() . '/empty.txt'));
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Tag files must be in the bag root or a tag file directory");
+        $bag->removeTagFile('data/special.txt');
+        $this->assertTrue(file_exists($bag->getDataDirectory() . '/empty.txt'));
+    }
+
+    /**
+     * Test trying to remove a file from the data directory using removeTagFile.
+     * @group Extended
+     * @covers ::removeTagFile
+     */
+    public function testRemoveTagCannotBeInDataDirectory2(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $bag->addFile(self::TEST_RESOURCES . '/text/empty.txt', 'data/empty.txt');
+        $this->assertTrue(file_exists($bag->getDataDirectory() . '/empty.txt'));
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Tag files must be in the bag root or a tag file directory");
+        $bag->removeTagFile('./data/special.txt');
+        $this->assertTrue(file_exists($bag->getDataDirectory() . '/empty.txt'));
+    }
+
+    /**
+     * Test adding and removing multiple tag files in a tag file subdirectory.
+     * @group Extended
+     * @covers ::addTagFile
+     * @covers ::removeTagFile
+     */
+    public function testAddAndRemoveTagFileInSubDir(): void
+    {
+        $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
+        $bag = Bag::create($this->tmpdir);
+        $bag->addTagFile($special_file, 'special/special.txt');
+        $bag->addTagFile($special_file, 'special/special2.txt');
+        $this->assertFileExists($bag->getBagRoot() . '/special/special.txt');
+        $this->assertFileExists($bag->getBagRoot() . '/special/special2.txt');
+        $bag->removeTagFile('special/special2.txt');
+        $this->assertFileExists($bag->getBagRoot() . '/special/special.txt');
+        $this->assertFileDoesNotExist($bag->getBagRoot() . '/special/special2.txt');
+        $bag->removeTagFile('special/special.txt');
+        $this->assertFileDoesNotExist($bag->getBagRoot() . '/special/special.txt');
+        $this->assertFileDoesNotExist($bag->getBagRoot() . '/special/special2.txt');
+        $this->assertFileDoesNotExist($bag->getBagRoot() . '/special');
     }
 }

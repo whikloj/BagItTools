@@ -1148,16 +1148,14 @@ class Bag
      *
      * @param string $path
      *   The file just deleted.
+     * @throws FilesystemException If we can't delete the directory.
+     * @throws BagItException If the directory is outside the data directory.
      */
     public function checkForEmptyDir(string $path): void
     {
         $parentPath = dirname($path);
         if (str_starts_with($this->makeRelative($parentPath), "data/")) {
-            $files = scandir($parentPath);
-            $payload = array_diff($files, [".", ".."]);
-            if (count($payload) == 0) {
-                rmdir($parentPath);
-            }
+            BagUtils::deleteEmptyDirTree($parentPath, $this->getDataDirectory());
         }
     }
 
@@ -1195,45 +1193,77 @@ class Bag
      * @param string $dest Relative path for the destination.
      *
      * @throws BagItException Various errors related to the source and destination locations and access.
-     * @throws FilesystemException Issues writing to the filesystem.
+     * @throws FilesystemException Issues reading from or writing to the filesystem.
      */
     public function addTagFile(string $source, string $dest): void
     {
         if (!file_exists($source) || !is_file($source) || !is_readable($source)) {
             throw new BagItException("$source does not exist, is not a file or is not readable.");
         }
+        $this->checkTagFileConstraints($dest);
         $external = $this->makeAbsolute($dest);
+        if (file_exists($external)) {
+            throw new BagItException("Tag file ($dest) already exists in the bag, use ->replaceTagFile() to replace.");
+        }
+        $this->setExtended(true);
+        $parentDirs = dirname($external);
+        if ($parentDirs !== $this->getBagRoot() && !file_exists($parentDirs)) {
+            // Create any missing tag file directories.
+            BagUtils::checkedMkdir($parentDirs, 0777, true);
+        }
+        BagUtils::checkedCopy($source, $external);
+        $this->changed = true;
+    }
+
+    /**
+     * Remove a tag file and any empty directories it leaves behind.
+     * @param string $dest The relative path to the tag file.
+     * @return void
+     * @throws BagItException If the file does not exist, is not inside the bag root or is a reserved file.
+     * @throws FilesystemException If there are issues deleting the file or directories.
+     */
+    public function removeTagFile(string $dest): void
+    {
+        $this->checkTagFileConstraints($dest);
+        $external = $this->makeAbsolute($dest);
+        if (!file_exists($external)) {
+            throw new BagItException("Tag file ($dest) does not exist in the bag.");
+        }
+        BagUtils::checkedUnlink($external);
+        BagUtils::deleteEmptyDirTree(dirname($external), $this->getBagRoot());
+        $this->changed = true;
+    }
+
+    /*
+     *  XXX: Private functions
+     */
+
+    /**
+     * Common checks for interactions with custom tag files.
+     * @param string $tagFilePath The relative path to the tag file.
+     * @return void
+     * @throws BagItException If the tag file is not in the bag root, is in the data directory, or is a reserved file.
+     */
+    private function checkTagFileConstraints(string $tagFilePath): void
+    {
+        $external = $this->makeAbsolute($tagFilePath);
         $relativePath = $this->makeRelative($external);
         if ($relativePath === "") {
             throw new BagItException("Tag files must be inside the bag root.");
         }
         if (str_starts_with(strtolower($relativePath), "data/")) {
             throw new BagItException("Tag files must be in the bag root or a tag file directory, " .
-            "use ->addFile() to add data files.");
+                "use ->addFile() to add data files.");
         }
-        if (in_array(strtolower($dest), ['bagit.txt', 'bag-info.txt', 'fetch.txt'])) {
-            throw new BagItException("You cannot overwrite reserved file ($dest) file with your own tag file.");
+        if (in_array(strtolower($relativePath), ['bagit.txt', 'bag-info.txt', 'fetch.txt'])) {
+            throw new BagItException("You cannot alter reserved file ($tagFilePath) file with your own tag file.");
         } elseif (
-            str_starts_with(strtolower($dest), 'tagmanifest-') ||
-            str_starts_with(strtolower($dest), 'manifest-')
+            str_starts_with(strtolower($relativePath), 'tagmanifest-') ||
+            str_starts_with(strtolower($relativePath), 'manifest-')
         ) {
-            throw new BagItException("You cannot overwrite a manifest or tag manifest file with your own tag file.");
+            throw new BagItException("You cannot alter a manifest or tag manifest file with your own tag file.");
         }
-        if (file_exists($external)) {
-            throw new BagItException("Tag file ($dest) already exists in the bag, use ->replaceTagFile() to replace.");
-        }
-        $this->setExtended(true);
-        if (str_contains($relativePath, '/')) {
-            // Create any missing tag file directories.
-            $dir = dirname($external);
-            BagUtils::checkedMkdir($dir, 0777, true);
-        }
-        BagUtils::checkedCopy($source, $external);
     }
-
-    /*
-     *  XXX: Private functions
-     */
 
     /**
      * Load a bag from disk.

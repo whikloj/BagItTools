@@ -6,6 +6,7 @@ namespace whikloj\BagItTools\Test;
 
 use Exception;
 use whikloj\BagItTools\BagUtils;
+use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
@@ -210,6 +211,29 @@ class BagUtilsTest extends BagItTestFramework
     }
 
     /**
+     * @covers ::checkedRmDir
+     */
+    public function testCheckedRmDirFailure(): void
+    {
+        $this->expectException(FilesystemException::class);
+        $this->expectExceptionMessage("Unable to remove directory $this->tmpdir");
+
+        // try to delete a non-existent file.
+        BagUtils::checkedRmDir($this->tmpdir);
+    }
+
+    /**
+     * @covers ::checkedRmDir
+     */
+    public function testCheckedRmDirSuccess(): void
+    {
+        mkdir($this->tmpdir);
+        $this->assertDirectoryExists($this->tmpdir);
+        BagUtils::checkedRmDir($this->tmpdir);
+        $this->assertDirectoryDoesNotExist($this->tmpdir);
+    }
+
+    /**
      * @covers ::checkUnencodedFilepath
      */
     public function testCheckUnencodedFilepath(): void
@@ -238,5 +262,74 @@ class BagUtilsTest extends BagItTestFramework
         foreach ($data as $item) {
             $this->assertEquals($item[0], BagUtils::standardizePathSeparators($item[1]));
         }
+    }
+
+    /**
+     * @covers ::deleteEmptyDirTree
+     */
+    public function testDeleteEmptyTreeOutsideRoot(): void
+    {
+        mkdir($this->tmpdir);
+        $parent = dirname($this->tmpdir);
+        $this->assertDirectoryExists($this->tmpdir);
+
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Path is not within the root directory.");
+
+        BagUtils::deleteEmptyDirTree($parent, $this->tmpdir);
+    }
+
+    /**
+     * @covers ::deleteEmptyDirTree
+     */
+    public function testDeleteMultipleLevels(): void
+    {
+        mkdir($this->tmpdir);
+        $bottomRung = $this->tmpdir . "/level1/level2/level3";
+        mkdir($bottomRung, 0777, true);
+        $this->assertDirectoryExists($bottomRung);
+        $this->assertDirectoryExists($this->tmpdir . "/level1/level2");
+        $this->assertDirectoryExists($this->tmpdir . "/level1");
+        BagUtils::deleteEmptyDirTree($bottomRung, $this->tmpdir);
+        $this->assertDirectoryDoesNotExist($bottomRung);
+        $this->assertDirectoryDoesNotExist($this->tmpdir . "/level1/level2");
+        $this->assertDirectoryDoesNotExist($this->tmpdir . "/level1");
+    }
+
+    /**
+     * @covers ::deleteEmptyDirTree
+     */
+    public function testDeleteMultipleLevelsStopInMiddle(): void
+    {
+        mkdir($this->tmpdir);
+        $bottomRung = $this->tmpdir . "/level1/level2/level3";
+        $someFile = $this->tmpdir . "/level1/level2/someFile.txt";
+        mkdir($bottomRung, 0777, true);
+        // Create a file in the middle level.
+        touch($someFile);
+
+        $this->assertDirectoryExists($bottomRung);
+        $this->assertDirectoryExists($this->tmpdir . "/level1/level2");
+        $this->assertDirectoryExists($this->tmpdir . "/level1");
+        BagUtils::deleteEmptyDirTree($bottomRung, $this->tmpdir);
+
+        $this->assertDirectoryDoesNotExist($bottomRung);
+        // Middle level should still exist.
+        $this->assertDirectoryExists($this->tmpdir . "/level1/level2");
+        $this->assertDirectoryExists($this->tmpdir . "/level1");
+        // Remove the file.
+        unlink($someFile);
+
+        BagUtils::deleteEmptyDirTree($bottomRung, $this->tmpdir);
+        // Because we specified a non-existent directory, we didn't traverse anything.
+        $this->assertDirectoryDoesNotExist($bottomRung);
+        $this->assertDirectoryExists($this->tmpdir . "/level1/level2");
+        $this->assertDirectoryExists($this->tmpdir . "/level1");
+
+        BagUtils::deleteEmptyDirTree($this->tmpdir . "/level1/level2", $this->tmpdir);
+        // Now all the directories should be removed.
+        $this->assertDirectoryDoesNotExist($bottomRung);
+        $this->assertDirectoryDoesNotExist($this->tmpdir . "/level1/level2");
+        $this->assertDirectoryDoesNotExist($this->tmpdir . "/level1");
     }
 }
