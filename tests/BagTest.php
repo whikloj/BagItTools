@@ -1013,17 +1013,17 @@ class BagTest extends BagItTestFramework
     }
 
     /**
-     * Test that for a non-extended bag, trying to add bag-info tags throws an error.
+     * Test that for a non-extended bag, trying to add bag-info tags no longer throws an error.
      * @group Bag
      * @covers ::addBagInfoTag
      */
     public function testAddBagInfoWhenNotExtended(): void
     {
-        $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("This bag is not extended, you need '\$bag->setExtended(true);'");
-
         $bag = Bag::create($this->tmpdir);
+        $this->assertFalse($bag->isExtended());
         $bag->addBagInfoTag("Contact-Name", "Jared Whiklo");
+        $this->assertTrue($bag->isExtended());
+        $this->assertArrayEquals(["Jared Whiklo"], $bag->getBagInfoByTag("Contact-Name"));
     }
 
     /**

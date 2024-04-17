@@ -670,9 +670,7 @@ class Bag
      */
     public function addBagInfoTag(string $tag, string $value): void
     {
-        if (!$this->isExtended) {
-            throw new BagItException("This bag is not extended, you need '\$bag->setExtended(true);'");
-        }
+        $this->setExtended(true);
         $internal_tag = self::trimLower($tag);
         if (in_array($internal_tag, self::BAG_INFO_GENERATED_ELEMENTS)) {
             throw new BagItException("Field $tag is auto-generated and cannot be manually set.");
@@ -690,11 +688,9 @@ class Bag
      */
     public function addBagInfoTags(array $tags): void
     {
-        if (!$this->isExtended) {
-            throw new BagItException("This bag is not extended, you need '\$bag->setExtended(true);'");
-        }
+        $this->setExtended(true);
         $normalized_keys = array_keys($tags);
-        $normalized_keys = array_map('self::trimLower', $normalized_keys);
+        $normalized_keys = array_map(self::class . '::trimLower', $normalized_keys);
         $overlap = array_intersect($normalized_keys, self::BAG_INFO_GENERATED_ELEMENTS);
         if (count($overlap) !== 0) {
             throw new BagItException(
@@ -892,7 +888,7 @@ class Bag
      */
     public function setAlgorithms(array $algorithms): void
     {
-        $internal_names = array_map('self::getHashName', $algorithms);
+        $internal_names = array_map(self::class . '::getHashName', $algorithms);
         $valid_algorithms = array_filter($internal_names, [$this, 'hashIsSupported']);
         if (count($valid_algorithms) !== count($algorithms)) {
             throw new BagItException("One or more of the algorithms provided are supported.");
@@ -1191,6 +1187,48 @@ class Bag
         }
         $this->currentVersion = self::DEFAULT_BAGIT_VERSION;
         $this->update();
+    }
+
+    /**
+     * Add a special tag file to the bag.
+     * @param string $source Full path to the tag file.
+     * @param string $dest Relative path for the destination.
+     *
+     * @throws BagItException Various errors related to the source and destination locations and access.
+     * @throws FilesystemException Issues writing to the filesystem.
+     */
+    public function addTagFile(string $source, string $dest): void
+    {
+        if (!file_exists($source) || !is_file($source) || !is_readable($source)) {
+            throw new BagItException("$source does not exist, is not a file or is not readable.");
+        }
+        $external = $this->makeAbsolute($dest);
+        $relativePath = $this->makeRelative($external);
+        if ($relativePath === "") {
+            throw new BagItException("Tag files must be inside the bag root.");
+        }
+        if (str_starts_with(strtolower($relativePath), "data/")) {
+            throw new BagItException("Tag files must be in the bag root or a tag file directory, " .
+            "use ->addFile() to add data files.");
+        }
+        if (in_array(strtolower($dest), ['bagit.txt', 'bag-info.txt', 'fetch.txt'])) {
+            throw new BagItException("You cannot overwrite reserved file ($dest) file with your own tag file.");
+        } elseif (
+            str_starts_with(strtolower($dest), 'tagmanifest-') ||
+            str_starts_with(strtolower($dest), 'manifest-')
+        ) {
+            throw new BagItException("You cannot overwrite a manifest or tag manifest file with your own tag file.");
+        }
+        if (file_exists($external)) {
+            throw new BagItException("Tag file ($dest) already exists in the bag, use ->replaceTagFile() to replace.");
+        }
+        $this->setExtended(true);
+        if (str_contains($relativePath, '/')) {
+            // Create any missing tag file directories.
+            $dir = dirname($external);
+            BagUtils::checkedMkdir($dir, 0777, true);
+        }
+        BagUtils::checkedCopy($source, $external);
     }
 
     /*

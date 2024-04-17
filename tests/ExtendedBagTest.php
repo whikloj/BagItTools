@@ -418,7 +418,6 @@ class ExtendedBagTest extends BagItTestFramework
     public function testSetBagInfoElement(): void
     {
         $bag = Bag::create($this->tmpdir);
-        $bag->setExtended(true);
         $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
         $this->assertCount(1, $bag->getBagInfoData());
         $this->assertTrue($bag->hasBagInfoTag('contact-name'));
@@ -452,7 +451,6 @@ class ExtendedBagTest extends BagItTestFramework
     public function testSetGeneratedField(): void
     {
         $bag = Bag::create($this->tmpdir);
-        $bag->setExtended(true);
         $bag->addBagInfoTag('Source-organization', 'Planet Earth');
         // Doesn't match due to underscore instead of hyphen.
         $bag->addBagInfoTag('PAYLOAD_OXUM', '123456.12');
@@ -474,7 +472,6 @@ class ExtendedBagTest extends BagItTestFramework
     public function testAddBagInfoTags(): void
     {
         $bag = Bag::create($this->tmpdir);
-        $bag->setExtended(true);
         $this->assertArrayEquals([], $bag->getBagInfoData());
         $baginfo = $bag->getBagRoot() . '/bag-info.txt';
 
@@ -504,7 +501,6 @@ class ExtendedBagTest extends BagItTestFramework
     public function testAddBagInfoTagsMultiple(): void
     {
         $bag = Bag::create($this->tmpdir);
-        $bag->setExtended(true);
         $this->assertArrayEquals([], $bag->getBagInfoData());
         $baginfo = $bag->getBagRoot() . '/bag-info.txt';
 
@@ -536,7 +532,6 @@ class ExtendedBagTest extends BagItTestFramework
     public function testAddBagInfoTagsGenerated(): void
     {
         $bag = Bag::create($this->tmpdir);
-        $bag->setExtended(true);
         $this->assertArrayEquals([], $bag->getBagInfoData());
 
         $inputTags = [
@@ -551,13 +546,14 @@ class ExtendedBagTest extends BagItTestFramework
     }
 
     /**
-     * Test that addBagInfoTags() throws an exception if the bag is not extended.
+     * Test that addBagInfoTags() no longer throws an exception if the bag is not extended.
      * @group Extended
      * @covers ::addBagInfoTags
      */
     public function testAddBagInfoTagsNotExtended(): void
     {
         $bag = Bag::create($this->tmpdir);
+        $this->assertFalse($bag->isExtended());
         $inputTags = [
             'Source-organization' => 'The Pyramid',
             'CONTACT-NAME' => [
@@ -565,9 +561,12 @@ class ExtendedBagTest extends BagItTestFramework
                 'Monty Hall',
             ],
         ];
-        $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("This bag is not extended, you need '\$bag->setExtended(true);'");
         $bag->addBagInfoTags($inputTags);
+        $this->assertTrue($bag->isExtended());
+        $this->assertTrue($bag->hasBagInfoTag('source-organization'));
+        $this->assertTrue($bag->hasBagInfoTag('contact-name'));
+        $this->assertArrayEquals(['The Pyramid'], $bag->getBagInfoByTag('source-organization'));
+        $this->assertArrayEquals(['Monty Hall', 'Bob Barker'], $bag->getBagInfoByTag('contact-name'));
     }
 
     /**
@@ -622,7 +621,6 @@ class ExtendedBagTest extends BagItTestFramework
         $this->tmpdir = $this->prepareBasicTestBag();
         $bag = Bag::load($this->tmpdir);
         $payloads = $bag->getPayloadManifests();
-        $this->assertTrue(is_array($payloads));
         $this->assertCount(1, $payloads);
         $tags = $bag->getTagManifests();
         $this->assertCount(0, $tags);
@@ -640,7 +638,6 @@ class ExtendedBagTest extends BagItTestFramework
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
         $payloads = $bag->getPayloadManifests();
-        $this->assertTrue(is_array($payloads));
         $this->assertCount(1, $payloads);
         $tags = $bag->getTagManifests();
         $this->assertTrue(is_array($tags));
@@ -711,7 +708,6 @@ class ExtendedBagTest extends BagItTestFramework
     public function testLongBagInfoLinesWrap(): void
     {
         $bag = Bag::create($this->tmpdir);
-        $bag->setExtended(true);
         $title = 'A really long long long long long long long long long long long title'
             . ' with a colon : between and more information are on the way';
         $bag->addBagInfoTag('Title', $title);
@@ -991,5 +987,129 @@ class ExtendedBagTest extends BagItTestFramework
         );
         $bag = Bag::load($this->tmpdir);
         $this->assertTrue($bag->isValid());
+    }
+
+    /**
+     * Test trying to add a tag file with a non-existant file.
+     * @group Extended
+     * @covers ::addTagFile
+     */
+    public function testAddTagFileFileDoesNotExist(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("/path/to/nowhere.txt does not exist, is not a file or is not readable.");
+        $bag->addTagFile('/path/to/nowhere.txt', 'nowhere.txt');
+    }
+
+    /**
+     * Test trying to add a tag file over the bag-info.txt file.
+     * @group Extended
+     * @covers ::addTagFile
+     */
+    public function testAddTagFileCannotOverwriteBagInfo(): void
+    {
+        $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
+        $bag = Bag::create($this->tmpdir);
+        $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("You cannot overwrite reserved file (bag-info.txt) file with your own tag file.");
+        $bag->addTagFile($special_file, 'bag-info.txt');
+    }
+
+    /**
+     * Test trying to add a tag file over the bagit.txt file.
+     * @group Extended
+     * @covers ::addTagFile
+     */
+    public function testAddTagCannotOverwriteBagIt(): void
+    {
+        $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
+        $bag = Bag::create($this->tmpdir);
+        $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("You cannot overwrite reserved file (bagit.txt) file with your own tag file.");
+        $bag->addTagFile($special_file, 'bagit.txt');
+    }
+
+    /**
+     * Test trying to add a tag file over a payload manifest file.
+     * @group Extended
+     * @covers ::addTagFile
+     */
+    public function testAddTagCannotOverwritePayloadManifest(): void
+    {
+        $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
+        $bag = Bag::create($this->tmpdir);
+        $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
+        $bag->addAlgorithm('sha256');
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("You cannot overwrite a manifest or tag manifest file with your own tag file.");
+        $bag->addTagFile($special_file, 'manifest-sha256.txt');
+    }
+
+    /**
+     * Test trying to add a tag file over a tag manifest file.
+     * @group Extended
+     * @covers ::addTagFile
+     */
+    public function testAddTagCannotOverwriteTagManifest(): void
+    {
+        $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
+        $bag = Bag::create($this->tmpdir);
+        $bag->setExtended(true);
+        $bag->addBagInfoTag('Contact-NAME', 'Monty Hall');
+        $bag->addAlgorithm('sha256');
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("You cannot overwrite a manifest or tag manifest file with your own tag file.");
+        $bag->addTagFile($special_file, 'tagmanifest-sha256.txt');
+    }
+
+    /**
+     * Test trying to add a tag file to the data directory.
+     * @group Extended
+     * @covers ::addTagFile
+     */
+    public function testAddTagCannotBeInDataDirectory(): void
+    {
+        $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
+        $bag = Bag::create($this->tmpdir);
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Tag files must be in the bag root or a tag file directory, " .
+            "use ->addFile() to add data files.");
+        $bag->addTagFile($special_file, 'data/special.txt');
+    }
+
+    /**
+     * Test trying to add a tag file to the data directory.
+     * @group Extended
+     * @covers ::addTagFile
+     */
+    public function testAddTagCannotBeInDataDirectory2(): void
+    {
+        $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
+        $bag = Bag::create($this->tmpdir);
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage("Tag files must be in the bag root or a tag file directory, " .
+            "use ->addFile() to add data files.");
+        $bag->addTagFile($special_file, './data/special.txt');
+    }
+
+    /**
+     * Test adding a tag file to the bag.
+     * @group Extended
+     * @covers ::addTagFile
+     */
+    public function testAddTagNotOverwrite(): void
+    {
+        $special_file = self::TEST_RESOURCES . '/tagFiles/SomeSpecialTags.txt';
+        $bag = Bag::create($this->tmpdir);
+        $bag->addTagFile($special_file, 'special.txt');
+        $this->assertFileExists($bag->getBagRoot() . '/special.txt');
+        $this->expectException(BagItException::class);
+        $this->expectExceptionMessage(
+            "Tag file (special.txt) already exists in the bag, use ->replaceTagFile() to replace."
+        );
+        $bag->addTagFile($special_file, 'special.txt');
     }
 }
