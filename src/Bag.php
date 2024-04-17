@@ -891,7 +891,7 @@ class Bag
         $internal_names = array_map(self::class . '::getHashName', $algorithms);
         $valid_algorithms = array_filter($internal_names, [$this, 'hashIsSupported']);
         if (count($valid_algorithms) !== count($algorithms)) {
-            throw new BagItException("One or more of the algorithms provided are supported.");
+            throw new BagItException("One or more of the algorithms provided are NOT supported.");
         }
         $this->setAlgorithmsInternal($valid_algorithms);
     }
@@ -1203,7 +1203,7 @@ class Bag
         $this->checkTagFileConstraints($dest);
         $external = $this->makeAbsolute($dest);
         if (file_exists($external)) {
-            throw new BagItException("Tag file ($dest) already exists in the bag, use ->replaceTagFile() to replace.");
+            throw new BagItException("Tag file ($dest) already exists in the bag.");
         }
         $this->setExtended(true);
         $parentDirs = dirname($external);

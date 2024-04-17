@@ -1105,9 +1105,7 @@ class ExtendedBagTest extends BagItTestFramework
         $bag->addTagFile($special_file, 'special.txt');
         $this->assertFileExists($bag->getBagRoot() . '/special.txt');
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage(
-            "Tag file (special.txt) already exists in the bag, use ->replaceTagFile() to replace."
-        );
+        $this->expectExceptionMessage("Tag file (special.txt) already exists in the bag.");
         $bag->addTagFile($special_file, 'special.txt');
     }
 

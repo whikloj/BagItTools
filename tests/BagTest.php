@@ -583,7 +583,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::create($this->tmpdir);
         $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("One or more of the algorithms provided are supported.");
+        $this->expectExceptionMessage("One or more of the algorithms provided are NOT supported.");
         $bag->setAlgorithms(['sha1', 'SHA-224', "bad-algorithm"]);
     }
 
