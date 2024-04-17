@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - "v5"
+  push:
+    branches:
+      - "feature/v5/*"
 
 jobs:
   build:
