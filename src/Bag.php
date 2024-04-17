@@ -942,6 +942,7 @@ class Bag
             $this->fetchFile = new Fetch($this, false);
         }
         $this->fetchFile->addFile($url, $destination, $size);
+        $this->setExtended(true);
         $this->changed = true;
     }
 

@@ -66,23 +66,23 @@ class FetchTest extends BagItTestFramework
     /**
      * A mock webserver for some remote download tests.
      *
-     * @var \donatj\MockWebServer\MockWebServer
+     * @var MockWebServer
      */
-    private static $webserver;
+    private static MockWebServer $webserver;
 
     /**
      * Array of file contents for use with comparing against requests against the same index in self::$remote_urls
      *
-     * @var array
+     * @var array<int, mixed>
      */
-    private static $response_content = [];
+    private static array $response_content = [];
 
     /**
      * Array of mock urls to get responses from. Match response bodies against matching key in self::$response_content
      *
-     * @var array
+     * @var array<int, string>
      */
-    private static $remote_urls = [];
+    private static array $remote_urls = [];
 
     /**
      * {@inheritdoc}
@@ -118,9 +118,9 @@ class FetchTest extends BagItTestFramework
      * Utility to make a bag with a specific fetch file and return the fetch.
      * @param string $fetchFile
      *   The name of the file in the FETCH_FILES directory.
-     * @return \whikloj\BagItTools\Fetch
+     * @return Fetch
      *   The Fetch object.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   If we can't read the fetch.txt
      */
     private function setupBag(string $fetchFile): Fetch
@@ -725,6 +725,9 @@ class FetchTest extends BagItTestFramework
         $this->assertArrayEquals($expected_in_memory, array_keys($manifest->getHashes()));
     }
 
+    /**
+     * @covers ::getData
+     */
     public function testReadCRLineEndings(): void
     {
         $fetch = $this->setupBag('fetch-CR.txt');
@@ -735,6 +738,9 @@ class FetchTest extends BagItTestFramework
         $this->assertTrue(in_array('http://example.org/some/file/2', array_column($cr_data, 'uri')));
     }
 
+    /**
+     * @covers ::getData
+     */
     public function testReadLFLineEndings(): void
     {
         $fetch = $this->setupBag('fetch-LF.txt');
@@ -745,6 +751,9 @@ class FetchTest extends BagItTestFramework
         $this->assertTrue(in_array('http://example.org/some/file/2', array_column($cr_data, 'uri')));
     }
 
+    /**
+     * @covers ::getData
+     */
     public function testReadCRLFLineEndings(): void
     {
         $fetch = $this->setupBag('fetch-CRLF.txt');
@@ -753,5 +762,17 @@ class FetchTest extends BagItTestFramework
         $this->assertCount(2, $cr_data);
         $this->assertTrue(in_array('http://example.org/some/file/1', array_column($cr_data, 'uri')));
         $this->assertTrue(in_array('http://example.org/some/file/2', array_column($cr_data, 'uri')));
+    }
+
+    /**
+     * Test that we now automatically set the bag to extended when adding a fetch file.
+     * @covers \whikloj\BagItTools\Bag::addFetchFile
+     */
+    public function testAddFetchAutoSetExtended(): void
+    {
+        $bag = Bag::create($this->tmpdir);
+        $this->assertFalse($bag->isExtended());
+        $bag->addFetchFile(self::$remote_urls[0], 'data/first.txt');
+        $this->assertTrue($bag->isExtended());
     }
 }
