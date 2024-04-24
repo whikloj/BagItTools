@@ -26,6 +26,8 @@ Features:
 * Create an archive (zip, tar, tar.gz, tgz, tar.bz2)
 * In-place upgrade of bag from v0.97 to v1.0
 
+## [Change Log](./CHANGELOG.md)
+
 ## Installation
 
 **Composer**
@@ -59,13 +61,6 @@ The required extensions are:
 
 You can integrate BagItTools into your own code as a library using the [API](#api), or use the CLI commands for 
 some simple functionality.
-
-## BagIt Profile Support (v5.0)
-You can now add BagIt Profile(s) to a newly created bag and/or they will be downloaded and parsed when validating an
-existing bag, assuming the profile is available at the URL specified in the bag-info.txt file.
-
-Profiles are validated against the [BagIt Profile Specification (v1.4.0)](https://bagit-profiles.github.io/bagit-profiles-specification/)
-and profile rules are enforced when validating a bag (`$bag->isValid()`) and any errors are displayed in the `$bag->getErrors()` array.
 
 ### Command line
 
@@ -212,9 +207,3 @@ $bag->package('./archive.tar.bz2');
 ## License
 
 [MIT](./LICENSE)
-
-## Development
-
-To-Do:
-
-* CLI interface to handle simple bag CRUD (CReate/Update/Delete) functions.
