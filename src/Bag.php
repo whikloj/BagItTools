@@ -113,6 +113,17 @@ class Bag
     ];
 
     /**
+     * All the extensions in one array.
+     */
+    private const PACKAGE_EXTENSIONS = [
+        '.tar',
+        '.tgz',
+        '.tar.gz',
+        '.tar.bz2',
+        '.zip',
+    ];
+
+    /**
      * Length we start trying to wrap at.
      */
     private const BAGINFO_AUTOWRAP_START = 77;
@@ -133,13 +144,6 @@ class Bag
         '.tar' => 'application/x-tar',
         '.zip' => 'application/zip',
     ];
-
-    /**
-     * All the extensions in one array.
-     *
-     * @var array<string>
-     */
-    private array $packageExtensions;
 
     /**
      * Array of current bag version with keys 'major' and 'minor'.
@@ -280,7 +284,6 @@ class Bag
      */
     private function __construct(string $rootPath, bool $new = true, ?string $extension = null)
     {
-        $this->packageExtensions = array_merge(self::TAR_EXTENSIONS, self::ZIP_EXTENSIONS);
         // Define valid hash algorithms our PHP supports.
         $this->validHashAlgorithms = array_filter(
             hash_algos(),
@@ -434,10 +437,10 @@ class Bag
      */
     public function package(string $filepath): void
     {
-        if (!self::hasExtension(self::getExtension($filepath), $this->packageExtensions)) {
+        if (!self::hasExtension(self::getExtension($filepath), self::PACKAGE_EXTENSIONS)) {
             throw new BagItException(
                 "Unknown archive type ($filepath), the file extension must be one of (" .
-                implode(", ", $this->packageExtensions) . ")"
+                implode(", ", self::PACKAGE_EXTENSIONS) . ")"
             );
         }
         $this->finalize();
@@ -1494,17 +1497,20 @@ class Bag
             }
             $line = $this->decodeText($line) . PHP_EOL;
             $lineLength = strlen($line);
-            if (str_starts_with($line, "  ") || $line[0] == "\t") {
+            if (str_starts_with($line, "  ") || str_starts_with($line, "\t")) {
                 // Continuation of a line
                 if (count($bagData) > 0) {
                     $previousValue = $bagData[count($bagData) - 1]['value'];
                     // Add a space only if the previous character was not a line break.
-                    $lastChar = substr($previousValue, -1);
+                    $lastCharIsNewline = str_ends_with($previousValue, "\n") ||
+                        str_ends_with($previousValue, "\r");
                     if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
                         // Line is max length or longer, should be autowrapped
                         $previousValue = rtrim($previousValue, "\r\n");
                     }
-                    $previousValue .= ($lastChar != "\r" && $lastChar != "\n" ? " " : "");
+                    // If the line was too long but had no spaces, it would end up with a previous value of nothing.
+                    // That would cause a space to be added to the beginning of the next line.
+                    $previousValue .= ($lastCharIsNewline || $previousValue == "") ? "" : " ";
                     $previousValue .= Bag::trimSpacesOnly($line);
                     $bagData[count($bagData) - 1]['value'] = $previousValue;
                 } else {
@@ -1534,7 +1540,7 @@ class Bag
                     );
                 }
                 $value = $matches[4];
-                if ($lineLength < Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
+                if ($lineLength < Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH && $value !== "") {
                     // Shorter line, re-add the newline removed by the preg_match.
                     $value .= PHP_EOL;
                 }
@@ -1553,6 +1559,11 @@ class Bag
         $this->bagInfoData = $bagData;
 
         $this->updateBagInfoIndex();
+        if ($this->hasBagInfoTag(BagItProfile::BAGIT_PROFILE_IDENTIFIER)) {
+            foreach ($this->getBagInfoByTag(BagItProfile::BAGIT_PROFILE_IDENTIFIER) as $profile) {
+                $this->addBagProfileByURL($profile);
+            }
+        }
         return true;
     }
 
@@ -2610,17 +2621,17 @@ class Bag
 
     /**
      * Determine the serialization mimetype from the extension.
-     * @param string $extension The extension.
+     * @param string $fileExtension The extension.
      * @return string The serialization mimetype.
      * @throws BagItException If the serialization mimetype cannot be determined.
      */
-    private function determineSerializationMimetype(string $extension): string
+    private function determineSerializationMimetype(string $fileExtension): string
     {
         foreach (self::SERIALIZATION_MAPPING as $extension => $mimetype) {
-            if (str_ends_with($extension, $extension)) {
+            if (str_ends_with($fileExtension, $extension)) {
                 return $mimetype;
             }
         }
-        throw new BagItException("Unable to determine serialization mimetype for extension ($extension).");
+        throw new BagItException("Unable to determine serialization mimetype for extension ($fileExtension).");
     }
 }

@@ -19,6 +19,11 @@ use whikloj\BagItTools\Exceptions\ProfileException;
 class BagItProfile
 {
     /**
+     * @var string The tag for the profile identifier and resolvable URI.
+     */
+    public const BAGIT_PROFILE_IDENTIFIER = "BagIt-Profile-Identifier";
+
+    /**
      * @var string
      * The identifier (and resolvable URI) of the BagItProfile.
      */
@@ -950,12 +955,17 @@ class BagItProfile
         }
         if ($this->getTagFilesRequired() !== []) {
             // Grab the first tag manifest, they should all be the same
-            $manifests = $bag->getTagManifests()[0];
-            $tag_files = array_keys($manifests->getHashes());
-            $diff = array_diff($this->getTagFilesRequired(), $tag_files);
-            if ($diff !== []) {
-                $errors[] = "Profile requires tag files(s) which are missing from the bag (" .
-                    implode(", ", $diff) . ")";
+            $manifests = $bag->getTagManifests();
+            if (count($manifests) === 0) {
+                $errors[] = "Profile requires tag files but the bag has no tag manifests";
+            } else {
+                $manifest = reset($manifests);
+                $tag_files = array_keys($manifest->getHashes());
+                $diff = array_diff($this->getTagFilesRequired(), $tag_files);
+                if ($diff !== []) {
+                    $errors[] = "Profile requires tag files(s) which are missing from the bag (" .
+                        implode(", ", $diff) . ")";
+                }
             }
         }
         if ($this->getTagFilesAllowed() !== []) {
