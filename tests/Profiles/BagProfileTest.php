@@ -37,7 +37,7 @@ class BagProfileTest extends BagItTestFramework
      * @group Profiles
      * @covers ::setBagInfoTags
      */
-    public function testInvalidBagInfoTags(): void
+    public function testOptionalBagInfoTags(): void
     {
         $profileJson = <<< JSON
 {
@@ -65,9 +65,21 @@ class BagProfileTest extends BagItTestFramework
   ]
 }
 JSON;
-        $this->expectException(ProfileException::class);
-        $this->expectExceptionMessage("Invalid tag options for Source-Organization");
-        BagItProfile::fromJson($profileJson);
+        $profile = BagItProfile::fromJson($profileJson);
+        $this->assertTrue($profile->isValid());
+        $this->assertArrayEquals(["source-organization"], array_keys($profile->getBagInfoTags()));
+        $tag = $profile->getBagInfoTags()["source-organization"];
+        $this->assertEquals("Source-Organization", $tag->getTag());
+        $this->assertTrue($tag->isRequired());
+        $this->assertArrayEquals(["Simon Fraser University", "York University"], $tag->getValues());
+        $this->assertEquals("", $tag->getDescription());
+        $this->assertTrue($tag->isRepeatable());
+        $this->assertArrayEquals(
+            [
+                "help" => "This is the organization that originally created the bag."
+            ],
+            $tag->getOtherTagOptions()
+        );
     }
 
     /**
@@ -485,5 +497,85 @@ JSON;
         $this->assertCount(1, $bag->getBagProfiles());
         $bag->removeBagProfile("http://www.library.yale.edu/mssa/bagitprofiles/disk_images.json");
         $this->assertCount(0, $bag->getBagProfiles());
+    }
+
+    /**
+     * @group Profiles
+     * @covers \whikloj\BagItTools\Bag::addBagProfileByJson
+     * @covers \whikloj\BagItTools\Bag::addBagProfileInternal
+     * @covers \whikloj\BagItTools\Bag::removeBagProfile
+     */
+    public function testAddDifferentProfiles(): void
+    {
+        $profile1 = file_get_contents(self::$profiles . "/bagProfileFoo.json");
+        $profile2 = file_get_contents(self::$profiles . "/bagProfileBar.json");
+        $profile3 = file_get_contents(self::$profiles . "/btrProfile.json");
+        $bag = Bag::create($this->tmpdir);
+        $this->assertCount(0, $bag->getBagProfiles());
+        $bag->addBagProfileByJson($profile1);
+        $this->assertCount(1, $bag->getBagProfiles());
+        $bag->addBagProfileByJson($profile2);
+        $this->assertCount(2, $bag->getBagProfiles());
+        $bag->addBagProfileByJson($profile3);
+        $this->assertCount(3, $bag->getBagProfiles());
+        // Add profile a second time has no effect.
+        $bag->addBagProfileByJson($profile2);
+        $this->assertCount(3, $bag->getBagProfiles());
+        $this->assertArrayEquals(
+            [
+                "http://canadiana.org/standards/bagit/tdr_ingest.json",
+                "https://github.com/dpscollaborative/btr_bagit_profile/releases/download/1.0/btr-bagit-profile.json",
+                "http://www.library.yale.edu/mssa/bagitprofiles/disk_images.json",
+            ],
+            array_keys($bag->getBagProfiles())
+        );
+        // Remove profiles.
+        $bag->removeBagProfile("http://canadiana.org/standards/bagit/tdr_ingest.json");
+        $this->assertCount(2, $bag->getBagProfiles());
+        $bag->removeBagProfile(
+            "https://github.com/dpscollaborative/btr_bagit_profile/releases/download/1.0/btr-bagit-profile.json"
+        );
+        $this->assertCount(1, $bag->getBagProfiles());
+        // Remove profile that doesn't exist in bag has no effect
+        $bag->removeBagProfile("http://canadiana.org/standards/bagit/tdr_ingest.json");
+        $this->assertCount(1, $bag->getBagProfiles());
+        $bag->removeBagProfile("http://www.library.yale.edu/mssa/bagitprofiles/disk_images.json");
+        $this->assertCount(0, $bag->getBagProfiles());
+    }
+
+    /**
+     * @group Profiles
+     * @covers \whikloj\BagItTools\Bag::clearAllProfiles
+     */
+    public function testClearAllProfiles(): void
+    {
+        $profile1 = file_get_contents(self::$profiles . "/bagProfileFoo.json");
+        $profile2 = file_get_contents(self::$profiles . "/bagProfileBar.json");
+        $profile3 = file_get_contents(self::$profiles . "/btrProfile.json");
+        $bag = Bag::create($this->tmpdir);
+        $this->assertCount(0, $bag->getBagProfiles());
+        $bag->addBagProfileByJson($profile1);
+        $bag->addBagProfileByJson($profile2);
+        $bag->addBagProfileByJson($profile3);
+        $this->assertCount(3, $bag->getBagProfiles());
+        $bag->clearAllProfiles();
+        $this->assertCount(0, $bag->getBagProfiles());
+    }
+
+    /**
+     * @group Profiles
+     * @covers \whikloj\BagItTools\Bag::getBagProfiles
+     */
+    public function testGetBagProfile(): void
+    {
+        $profile = file_get_contents(self::$profiles . "/bagProfileBar.json");
+        $bag = Bag::create($this->tmpdir);
+        $bag->addBagProfileByJson($profile);
+        $testProfiles = $bag->getBagProfiles();
+        $this->assertCount(1, $testProfiles);
+        $key = key($testProfiles);
+        $val = current($testProfiles);
+        $this->assertEquals("http://canadiana.org/standards/bagit/tdr_ingest.json", $key);
+        $this->assertInstanceOf(BagItProfile::class, $val);
     }
 }

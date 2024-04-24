@@ -14,6 +14,11 @@ namespace whikloj\BagItTools\Profiles;
 class ProfileTags
 {
     /**
+     * Array with keys matching optional keys from specification, all other keys are system specific.
+     */
+    private const SPEC_TAGS = ['required' => 0, 'values' => 0, 'repeatable' => 0, 'description' => 0];
+
+    /**
      * @var string
      */
     private string $tag;
@@ -37,6 +42,11 @@ class ProfileTags
      * @var string
      */
     private string $description = "";
+
+    /**
+     * @var array<string, mixed>
+     */
+    private array $otherOptions = [];
 
     /**
      * ProfileTags constructor.
@@ -95,14 +105,43 @@ class ProfileTags
         return $this->description;
     }
 
+    /**
+     * Return any tags defined in the BagItProfile but not in the specification.
+     * @return array<string, string> Array of tagName => tagValue
+     */
+    public function getOtherTagOptions(): array
+    {
+        return $this->otherOptions;
+    }
+
+    /**
+     * Set the other tag options.
+     * @param array $tagOptions Array of optionName => optionValue
+     */
+    protected function setOtherTagOptions(array $tagOptions): void
+    {
+        $this->otherOptions = $tagOptions;
+    }
+
+    /**
+     * Create a ProfileTags object from a JSON array.
+     * @param string $tag Tag name
+     * @param array<string, string> $tagOpts Tag options
+     * @return ProfileTags The created object.
+     */
     public static function fromJson(string $tag, array $tagOpts): ProfileTags
     {
-        return new ProfileTags(
+        $profileTag = new ProfileTags(
             $tag,
             $tagOpts['required'] ?? false,
             $tagOpts['values'] ?? [],
             $tagOpts['repeatable'] ?? true,
             $tagOpts['description'] ?? ""
         );
+        $otherTags = array_diff_key($tagOpts, self::SPEC_TAGS);
+        if (count($otherTags) > 0) {
+            $profileTag->setOtherTagOptions($otherTags);
+        }
+        return $profileTag;
     }
 }

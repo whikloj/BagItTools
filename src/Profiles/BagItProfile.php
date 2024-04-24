@@ -337,16 +337,11 @@ class BagItProfile
     /**
      * @param array $bagInfoTags Parsed profile Bag-Info sections
      * @return BagItProfile The profile object.
-     * @throws ProfileException If invalid options are specified for a tag.
      */
     private function setBagInfoTags(array $bagInfoTags): BagItProfile
     {
-        $expectedKeys = ['required' => 0, 'values' => 0, 'repeatable' => 0, 'description' => 0];
         $this->profileBagInfoTags = [];
         foreach ($bagInfoTags as $tagName => $tagOpts) {
-            if (count(array_diff_key($tagOpts, $expectedKeys)) > 0) {
-                throw new ProfileException("Invalid tag options for $tagName");
-            }
             if (self::matchStrings('BagIt-Profile-Identifier', $tagName)) {
                 $this->profileWarnings[] = "The tag BagIt-Profile-Identifier is always required, but SHOULD NOT be " .
                 "listed under Bag-Info in the Profile.";
