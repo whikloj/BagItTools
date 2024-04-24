@@ -923,8 +923,7 @@ class BagItProfile
         }
         if ($this->getManifestsRequired() !== []) {
             $manifests = array_keys($bag->getPayloadManifests());
-            $diff = array_diff($manifests, $this->getManifestsRequired()) +
-                array_diff($this->getManifestsRequired(), $manifests);
+            $diff = array_diff($this->getManifestsRequired(), $manifests);
             if ($diff !== []) {
                 $errors[] = "Profile requires payload manifest(s) which are missing from the bag (" .
                     implode(", ", $diff) . ")";
@@ -940,8 +939,7 @@ class BagItProfile
         }
         if ($this->getTagManifestsRequired() !== []) {
             $manifests = array_keys($bag->getTagManifests());
-            $diff = array_diff($manifests, $this->getTagManifestsRequired()) +
-                array_diff($this->getTagManifestsRequired(), $manifests);
+            $diff = array_diff($this->getTagManifestsRequired(), $manifests);
             if ($diff !== []) {
                 $errors[] = "Profile requires tag manifest(s) which are missing from the bag (" .
                     implode(", ", $diff) . ")";
@@ -959,8 +957,7 @@ class BagItProfile
             // Grab the first tag manifest, they should all be the same
             $manifests = $bag->getTagManifests()[0];
             $tag_files = array_keys($manifests->getHashes());
-            $diff = array_diff($this->getTagFilesRequired(), $tag_files) +
-                array_diff($tag_files, $this->getTagFilesRequired());
+            $diff = array_diff($this->getTagFilesRequired(), $tag_files);
             if ($diff !== []) {
                 $errors[] = "Profile requires tag files(s) which are missing from the bag (" .
                     implode(", ", $diff) . ")";
@@ -980,8 +977,7 @@ class BagItProfile
             // Grab the first tag manifest, they should all be the same
             $manifests = $bag->getPayloadManifests()[0];
             $payload_files = array_keys($manifests->getHashes());
-            $diff = array_diff($this->getPayloadFilesRequired(), $payload_files) +
-                array_diff($payload_files, $this->getPayloadFilesRequired());
+            $diff = array_diff($this->getPayloadFilesRequired(), $payload_files);
             if ($diff !== []) {
                 $errors[] = "Profile requires payload file(s) which are missing from the bag (" .
                     implode(", ", $diff) . ")";

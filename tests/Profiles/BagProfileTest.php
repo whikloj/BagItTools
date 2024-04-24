@@ -365,6 +365,11 @@ JSON;
         $this->assertArrayEquals(["md5"], $profile->getTagManifestsAllowed());
     }
 
+    /**
+     * @group Profiles
+     * @covers ::setTagFilesAllowed
+     * @covers ::getTagFilesRequired
+     */
     public function testTagFilesMissingFromAllowed(): void
     {
         $profileJson = <<< JSON
@@ -392,5 +397,93 @@ JSON;
 JSON;
         $profile = BagItProfile::fromJson($profileJson);
         $this->assertTrue($profile->isValid());
+    }
+
+    /**
+     * @group Profiles
+     * @covers \whikloj\BagItTools\Bag::isValid
+     * @covers \whikloj\BagItTools\Bag::addBagProfileByJson
+     * @covers ::validateBag
+     */
+    public function testAddProfileToBag(): void
+    {
+        $profileJson = <<<JSON
+{
+  "BagIt-Profile-Info":{
+    "BagIt-Profile-Identifier":"http://example.profile.org/bagit-test-profile.json",
+    "BagIt-Profile-Version": "1.1.0",
+    "Source-Organization":"Example Organization",
+    "Contact-Name":"John D Smith",
+    "External-Description":"BagIt Profile for testing bag profiles",
+    "Version":"0.3"
+  },
+  "Bag-Info":{
+    "Bagging-Date":{
+      "required":true
+    },
+    "Source-Organization":{
+      "required":true,
+      "values":[
+        "Simon Fraser University",
+        "York University"
+      ]
+    },
+    "Contact-Phone":{
+      "required":true
+    }
+  },
+  "Manifests-Required":[
+    "md5"
+  ],
+  "Accept-Serialization":[
+    "application/zip"
+  ],
+  "Allow-Fetch.txt":false,
+  "Accept-BagIt-Version":[
+    "1.0",
+    "0.97"
+  ]
+}
+JSON;
+        $profile = BagItProfile::fromJson($profileJson);
+        $this->assertTrue($profile->isValid());
+        $bag = Bag::create($this->tmpdir);
+        $bag->addBagProfileByJson($profileJson);
+        $this->assertFalse($bag->isValid());
+        $bag->addBagInfoTag("Source-Organization", "Simon Fraser University");
+        $bag->addBagInfoTag("Contact-Phone", "555-555-5555");
+        $this->assertFalse($bag->isValid());
+        $this->assertCount(1, $bag->getErrors());
+        $error = $bag->getErrors()[0];
+        $this->assertEquals(
+            [
+                "file" => "http://example.profile.org/bagit-test-profile.json",
+                "message" => "Profile requires payload manifest(s) which are missing from the bag (md5)"
+            ],
+            $error
+        );
+        $bag->setAlgorithm("md5");
+        $this->assertTrue($bag->isValid());
+    }
+
+    /**
+     * @group Profiles
+     * @covers \whikloj\BagItTools\Bag::addBagProfileByJson
+     * @covers \whikloj\BagItTools\Bag::addBagProfileInternal
+     * @covers \whikloj\BagItTools\Bag::removeBagProfile
+     */
+    public function testAddSameProfileTwice(): void
+    {
+        $profileJson = file_get_contents(self::$profiles . "/bagProfileFoo.json");
+        $bag = Bag::create($this->tmpdir);
+        $this->assertCount(0, $bag->getBagProfiles());
+        $bag->addBagProfileByJson($profileJson);
+        $this->assertCount(1, $bag->getBagProfiles());
+        $bag->addBagProfileByJson($profileJson);
+        $this->assertCount(1, $bag->getBagProfiles());
+        $bag->removeBagProfile("http://some.incorrect.identifier");
+        $this->assertCount(1, $bag->getBagProfiles());
+        $bag->removeBagProfile("http://www.library.yale.edu/mssa/bagitprofiles/disk_images.json");
+        $this->assertCount(0, $bag->getBagProfiles());
     }
 }

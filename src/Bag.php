@@ -8,6 +8,9 @@ use Archive_Tar;
 use Normalizer;
 use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
+use whikloj\BagItTools\Exceptions\ProfileException;
+use whikloj\BagItTools\Profiles\BagItProfile;
+use whikloj\BagItTools\Profiles\ProfileFactory;
 use ZipArchive;
 
 /**
@@ -134,14 +137,14 @@ class Bag
     /**
      * All the extensions in one array.
      *
-     * @var array
+     * @var array<string>
      */
     private array $packageExtensions;
 
     /**
      * Array of current bag version with keys 'major' and 'minor'.
      *
-     * @var array
+     * @var array<string, int>
      */
     private array $currentVersion = self::DEFAULT_BAGIT_VERSION;
 
@@ -155,21 +158,21 @@ class Bag
     /**
      * Array of payload manifests.
      *
-     * @var array
+     * @var array<string, PayloadManifest>
      */
     private array $payloadManifests;
 
     /**
      * Array of tag manifests.
      *
-     * @var array
+     * @var array<string, TagManifest>
      */
     private array $tagManifests;
 
     /**
      * List of relative file paths for all files.
      *
-     * @var array
+     * @var array<string>
      */
     private array $payloadFiles;
 
@@ -201,21 +204,21 @@ class Bag
      * supported by the BagIt specification. Stored to avoid extraneous calls
      * to hash_algos().
      *
-     * @var array
+     * @var array<string>
      */
     private array $validHashAlgorithms;
 
     /**
      * Errors when validating a bag.
      *
-     * @var array
+     * @var array<int, array<string, string>>
      */
     private array $bagErrors;
 
     /**
      * Warnings when validating a bag.
      *
-     * @var array
+     * @var array<int, array<string, string>>
      */
     private array $bagWarnings;
 
@@ -229,7 +232,7 @@ class Bag
     /**
      * Bag Info data.
      *
-     * @var array
+     * @var array<int, array<string, string>>
      */
     private array $bagInfoData = [];
 
@@ -237,7 +240,7 @@ class Bag
      * Unique array of all Bag info tags/values. Tags are stored once in lower case with an array of all instances
      * of values. This index does not save order.
      *
-     * @var array
+     * @var array<string, array<string>>
      */
     private array $bagInfoTagIndex = [];
 
@@ -253,6 +256,12 @@ class Bag
      * @var string|null
      */
     private ?string $serialization = null;
+
+    /**
+     * Array of BagIt profiles.
+     * @var array<int, BagItProfile>
+     */
+    private array $profiles = [];
 
     /**
      * Bag constructor.
@@ -360,6 +369,16 @@ class Bag
             $manifest->validate();
             $this->mergeErrors($manifest->getErrors());
             $this->mergeWarnings($manifest->getWarnings());
+        }
+        foreach ($this->profiles as $profile) {
+            try {
+                $profile->validateBag($this);
+            } catch (ProfileException $e) {
+                $this->addBagError(
+                    $profile->getProfileIdentifier(),
+                    $e->getMessage()
+                );
+            }
         }
         return (count($this->bagErrors) == 0);
     }
@@ -1276,9 +1295,73 @@ class Bag
         return $this->serialization;
     }
 
+    /**
+     * @return array The profiles that have been added to the bag.
+     */
+    public function getBagProfiles(): array
+    {
+        return $this->profiles;
+    }
+
+    /**
+     * Add a profile to the bag.
+     * @param string $url The URL to the profile.
+     * @throws Exceptions\ProfileException If the profile cannot be loaded or parsed.
+     */
+    public function addBagProfileByURL(string $url): void
+    {
+        $this->addBagProfileInternal(ProfileFactory::generateProfileFromUri($url));
+    }
+
+    /**
+     * Add a profile to the bag.
+     * @param string $json The JSON representation of the profile.
+     * @throws Exceptions\ProfileException If the profile cannot be parsed.
+     */
+    public function addBagProfileByJson(string $json): void
+    {
+        $this->addBagProfileInternal(BagItProfile::fromJson($json));
+    }
+
+    /**
+     * Remove a profile from the bag.
+     * @param string $profileId The identifier of the profile to remove.
+     */
+    public function removeBagProfile(string $profileId): void
+    {
+        if (array_key_exists($profileId, $this->profiles)) {
+            unset($this->profiles[$profileId]);
+            $this->changed = true;
+        }
+    }
+
+    /**
+     * Clear all profiles from the bag.
+     */
+    public function clearAllProfiles(): void
+    {
+        if (count($this->profiles) > 0) {
+            $this->profiles = [];
+            $this->changed = true;
+        }
+    }
+
     /*
      *  XXX: Private functions
      */
+
+    /**
+     * Add a profile to the bag if it doesn't already exist.
+     * @param BagItProfile $profile The profile to add.
+     */
+    private function addBagProfileInternal(BagItProfile $profile): void
+    {
+        if (!array_key_exists($profile->getProfileIdentifier(), $this->profiles)) {
+            $this->setExtended(true);
+            $this->profiles[$profile->getProfileIdentifier()] = $profile;
+            $this->changed = true;
+        }
+    }
 
     /**
      * Common checks for interactions with custom tag files.
@@ -1963,8 +2046,8 @@ class Bag
             );
         } else {
             $this->currentVersion = [
-                'major' => $match[1],
-                'minor' => $match[2],
+                'major' => (int)$match[1],
+                'minor' => (int)$match[2],
             ];
         }
         if (
@@ -2188,7 +2271,12 @@ class Bag
     private static function extensionTarCompression(string $filename): ?string
     {
         $filename = strtolower(basename($filename));
-        return (str_ends_with($filename, '.bz2') ? 'bz2' : (str_ends_with($filename, 'gz') ? 'gz' : null));
+        if (str_ends_with($filename, '.bz2')) {
+            return 'bz2';
+        } elseif (str_ends_with($filename, '.gz') || str_ends_with($filename, '.tgz')) {
+            return 'gz';
+        }
+        return null;
     }
 
     /**
