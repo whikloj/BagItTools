@@ -430,7 +430,7 @@ class Bag
      * @param  string $filepath
      *   The full path to create the archive at.
      * @throws BagItException
-     *   Problems creating the archive.
+     *   Problems creating the archive or if Bag is not valid.
      */
     public function package(string $filepath): void
     {
@@ -441,6 +441,9 @@ class Bag
             );
         }
         $this->finalize();
+        if (!$this->isValid()) {
+            throw new BagItException("Bag is not valid, cannot package.");
+        }
         $this->makePackage($filepath);
     }
 

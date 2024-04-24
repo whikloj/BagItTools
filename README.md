@@ -60,6 +60,13 @@ The required extensions are:
 You can integrate BagItTools into your own code as a library using the [API](#api), or use the CLI commands for 
 some simple functionality.
 
+## BagIt Profile Support (v5.0)
+You can now add BagIt Profile(s) to a newly created bag and/or they will be downloaded and parsed when validating an
+existing bag, assuming the profile is available at the URL specified in the bag-info.txt file.
+
+Profiles are validated against the [BagIt Profile Specification (v1.4.0)](https://bagit-profiles.github.io/bagit-profiles-specification/)
+and profile rules are enforced when validating a bag (`$bag->isValid()`) and any errors are displayed in the `$bag->getErrors()` array.
+
 ### Command line
 
 #### Validating a bag
@@ -169,12 +176,33 @@ if ($bag->hasBagInfoTag('contact-name')) {
     $bag->removeBagInfoTag('contact-name');
 }
 
-// Write bagit support files (manifests, bag-info, etc)
-$bag->update();
+// Write the bag to the specified path and filename using the expected archiving method.
+$bag->package('./archive.tar.bz2');
+```
+
+#### Using a BagIt Profile
+```php
+require_once './vendor/autoload.php';
+
+use \whikloj\BagItTools\Bag;
+
+$dir = "./newbag";
+
+// Create new bag as directory $dir
+$bag = Bag::create($dir);
+// Add a profile by URL
+$bag->addBagProfileByURL("https://some.example.com/bagit-profile.json");
+// or add a profile by JSON
+$bag->addBagProfileByJson(file_get_contents("path/to/bagit-profile.json"));
+
+// Add a file
+$bag->addFile('../README.md', 'data/documentation/myreadme.md');
+
+// Add another algorithm
+$bag->addAlgorithm('sha1');
 
 // Write the bag to the specified path and filename using the expected archiving method.
 $bag->package('./archive.tar.bz2');
-
 ```
 
 ## Maintainer
