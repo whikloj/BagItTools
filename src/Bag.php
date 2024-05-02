@@ -500,6 +500,7 @@ class Bag
      *   The relative path of the file.
      * @throws FilesystemException
      *   Issues deleting the file.
+     * @throws BagItException If the destination is outside the data directory.
      */
     public function removeFile(string $dest): void
     {
@@ -559,7 +560,7 @@ class Bag
         $components = array_filter(explode("/", $path));
         $rootComponents = array_filter(explode("/", $this->bagRoot));
         $components = array_merge($rootComponents, $components);
-        $prefix = (preg_match('/^[a-z]:/i', $rootComponents[0] ?? '', $matches) ? '' : '/');
+        $prefix = (preg_match('/^[a-z]:/i', $rootComponents[0] ?? '') ? '' : '/');
         return $prefix . implode('/', $components);
     }
 
@@ -1475,6 +1476,7 @@ class Bag
      *
      * @throws FilesystemException
      *   Unable to read bag-info.txt
+     * @throws ProfileException Unable to load or parse the BagIt profile.
      */
     private function loadBagInfo(): bool
     {
@@ -1717,10 +1719,10 @@ class Bag
             $fullPath = $this->makeAbsolute($file);
             if (file_exists($fullPath) && is_file($fullPath)) {
                 $info = stat($fullPath);
-                if (!isset($info[7])) {
+                if (!isset($info["size"])) {
                     return null;
                 }
-                $total_size += (int) $info[7];
+                $total_size += (int) $info["size"];
                 $total_files += 1;
             }
         }
@@ -2049,7 +2051,7 @@ class Bag
         }
         if (
             !preg_match(
-                "~^BagIt\-Version: (\d+)\.(\d+)$~",
+                "~^BagIt-Version: (\d+)\.(\d+)$~",
                 $lines[0],
                 $match
             )
@@ -2066,7 +2068,7 @@ class Bag
         }
         if (
             !preg_match(
-                "~^Tag\-File\-Character\-Encoding: (.*)$~",
+                "~^Tag-File-Character-Encoding: (.*)$~",
                 $lines[1],
                 $match
             )
@@ -2510,11 +2512,11 @@ class Bag
      * Case-insensitive version of array_key_exists
      *
      * @param  string     $search The key to look for.
-     * @param  string|int $key    The associative or numeric key to look in.
+     * @param int|string $key    The associative or numeric key to look in.
      * @param  array      $map    The associative array to search.
      * @return boolean True if the key exists regardless of case.
      */
-    private static function arrayKeyExistsNoCase(string $search, $key, array $map): bool
+    private static function arrayKeyExistsNoCase(string $search, int|string $key, array $map): bool
     {
         $keys = array_column($map, $key);
         array_walk(
