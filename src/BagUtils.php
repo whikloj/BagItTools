@@ -139,7 +139,12 @@ class BagUtils
         }
 
         // Get and filter empty sub paths
-        $subPaths = array_filter(explode('/', $path), 'mb_strlen');
+        $subPaths = array_filter(
+            explode('/', $path),
+            function ($i) {
+                return mb_strlen($i) > 0;
+            }
+        );
 
         $absolutes = [];
         foreach ($subPaths as $subPath) {
@@ -422,6 +427,16 @@ class BagUtils
     public static function standardizePathSeparators(string $path): string
     {
         return str_replace('\\', '/', $path);
+    }
+
+    /**
+     * Utility function to trim and lowercase a string.
+     * @param string $string The string to standardize.
+     * @return string The standardized string.
+     */
+    public static function trimLower(string $string): string
+    {
+        return strtolower(trim($string));
     }
 
     /**

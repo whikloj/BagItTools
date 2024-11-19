@@ -26,6 +26,8 @@ Features:
 * Create an archive (zip, tar, tar.gz, tgz, tar.bz2)
 * In-place upgrade of bag from v0.97 to v1.0
 
+## [Change Log](./CHANGELOG.md)
+
 ## Installation
 
 **Composer**
@@ -169,12 +171,33 @@ if ($bag->hasBagInfoTag('contact-name')) {
     $bag->removeBagInfoTag('contact-name');
 }
 
-// Write bagit support files (manifests, bag-info, etc)
-$bag->update();
+// Write the bag to the specified path and filename using the expected archiving method.
+$bag->package('./archive.tar.bz2');
+```
+
+#### Using a BagIt Profile
+```php
+require_once './vendor/autoload.php';
+
+use \whikloj\BagItTools\Bag;
+
+$dir = "./newbag";
+
+// Create new bag as directory $dir
+$bag = Bag::create($dir);
+// Add a profile by URL
+$bag->addBagProfileByURL("https://some.example.com/bagit-profile.json");
+// or add a profile by JSON
+$bag->addBagProfileByJson(file_get_contents("path/to/bagit-profile.json"));
+
+// Add a file
+$bag->addFile('../README.md', 'data/documentation/myreadme.md');
+
+// Add another algorithm
+$bag->addAlgorithm('sha1');
 
 // Write the bag to the specified path and filename using the expected archiving method.
 $bag->package('./archive.tar.bz2');
-
 ```
 
 ## Maintainer
@@ -184,9 +207,3 @@ $bag->package('./archive.tar.bz2');
 ## License
 
 [MIT](./LICENSE)
-
-## Development
-
-To-Do:
-
-* CLI interface to handle simple bag CRUD (CReate/Update/Delete) functions.
