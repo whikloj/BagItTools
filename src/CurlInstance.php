@@ -94,18 +94,18 @@ trait CurlInstance
         if (!defined('CURLMOPT_MAX_TOTAL_CONNECTIONS')) {
             define('CURLMOPT_MAX_TOTAL_CONNECTIONS', 13);
         }
-        if (!defined('CURL_PIPEWAIT')) {
-            define('CURL_PIPEWAIT', 237);
+        if (!defined('CURLOPT_PIPEWAIT')) {
+            define('CURLOPT_PIPEWAIT', 237);
         }
         $curlOptions = [
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_RETURNTRANSFER => true,
         ];
         if (
-            version_compare('7.0', PHP_VERSION) <= 0 &&
-            version_compare('7.43.0', $curlVersion) <= 0
+            version_compare('7.0', PHP_VERSION, '<=') &&
+            version_compare('7.43.0', $curlVersion, '<=')
         ) {
-            $curlOptions[CURL_PIPEWAIT] = true;
+            $curlOptions[CURLOPT_PIPEWAIT] = true;
         }
         return $curlOptions;
     }
