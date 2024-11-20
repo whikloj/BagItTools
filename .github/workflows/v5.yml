@@ -6,7 +6,9 @@ on:
       - "v5"
   push:
     branches:
+      - "v5"
       - "feature/v5/*"
+  workflow_dispatch:
 
 jobs:
   build:
