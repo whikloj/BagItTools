@@ -62,9 +62,15 @@ abstract class BagItWebserverFramework extends BagItTestFramework
             // Add custom headers if defined.
             $response_headers = [
                 'Cache-Control' => 'no-cache',
-                'Content-Length' => isset($file['content']) ? strlen($file['content']) :
-                    stat($file['filename'])['size']
             ] + ($file['headers'] ?? []);
+            if (isset($file['content'])) {
+                $response_headers['Content-Length'] = strlen($file['content']);
+            } else {
+                $stats = stat($file['filename']);
+                if ($stats !== false) {
+                    $response_headers['Content-Length'] = $stats['size'];
+                }
+            }
             // Use custom status code if defined.
             $status_code = $file['status_code'] ?? 200;
             self::$remote_urls[$counter] = self::$webserver->setResponseOfPath(

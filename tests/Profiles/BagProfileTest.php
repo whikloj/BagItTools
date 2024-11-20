@@ -2,6 +2,7 @@
 
 namespace whikloj\BagItTools\Test\Profiles;
 
+use Exception;
 use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\Exceptions\ProfileException;
 use whikloj\BagItTools\Profiles\BagItProfile;
@@ -14,7 +15,7 @@ use whikloj\BagItTools\Test\BagItTestFramework;
  */
 class BagProfileTest extends BagItTestFramework
 {
-    private static $profiles = self::TEST_RESOURCES . '/profiles';
+    private static string $profiles = self::TEST_RESOURCES . '/profiles';
 
     /**
      * Try to validate a bag.
@@ -23,7 +24,11 @@ class BagProfileTest extends BagItTestFramework
      */
     public function testValidateBag1(): void
     {
-        $profile = BagItProfile::fromJson(file_get_contents(self::$profiles . "/bagProfileFoo.json"));
+        $json = file_get_contents(self::$profiles . "/bagProfileFoo.json");
+        if ($json === false) {
+            throw new Exception("Failed to read profile file");
+        }
+        $profile = BagItProfile::fromJson($json);
         $this->assertTrue($profile->isValid());
         $this->tmpdir = $this->prepareExtendedTestBag();
         $bag = Bag::load($this->tmpdir);
@@ -487,6 +492,9 @@ JSON;
     public function testAddSameProfileTwice(): void
     {
         $profileJson = file_get_contents(self::$profiles . "/bagProfileFoo.json");
+        if ($profileJson === false) {
+            throw new Exception("Failed to read profile file");
+        }
         $bag = Bag::create($this->tmpdir);
         $this->assertCount(0, $bag->getBagProfiles());
         $bag->addBagProfileByJson($profileJson);
@@ -510,6 +518,9 @@ JSON;
         $profile1 = file_get_contents(self::$profiles . "/bagProfileFoo.json");
         $profile2 = file_get_contents(self::$profiles . "/bagProfileBar.json");
         $profile3 = file_get_contents(self::$profiles . "/btrProfile.json");
+        if ($profile1 === false || $profile2 === false || $profile3 === false) {
+            throw new Exception("Failed to read profile file");
+        }
         $bag = Bag::create($this->tmpdir);
         $this->assertCount(0, $bag->getBagProfiles());
         $bag->addBagProfileByJson($profile1);
@@ -552,6 +563,9 @@ JSON;
         $profile1 = file_get_contents(self::$profiles . "/bagProfileFoo.json");
         $profile2 = file_get_contents(self::$profiles . "/bagProfileBar.json");
         $profile3 = file_get_contents(self::$profiles . "/btrProfile.json");
+        if ($profile1 === false || $profile2 === false || $profile3 === false) {
+            throw new Exception("Failed to read profile file");
+        }
         $bag = Bag::create($this->tmpdir);
         $this->assertCount(0, $bag->getBagProfiles());
         $bag->addBagProfileByJson($profile1);
@@ -569,6 +583,9 @@ JSON;
     public function testGetBagProfile(): void
     {
         $profile = file_get_contents(self::$profiles . "/bagProfileBar.json");
+        if ($profile === false) {
+            throw new Exception("Failed to read profile file");
+        }
         $bag = Bag::create($this->tmpdir);
         $bag->addBagProfileByJson($profile);
         $testProfiles = $bag->getBagProfiles();

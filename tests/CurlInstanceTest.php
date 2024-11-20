@@ -6,7 +6,7 @@ use whikloj\BagItTools\CurlInstance;
 
 class CurlInstanceTest extends BagItTestFramework
 {
-    public function testCreateCurl()
+    public function testCreateCurl(): void
     {
         $mock = new class
         {
@@ -17,7 +17,7 @@ class CurlInstanceTest extends BagItTestFramework
         $this->assertInstanceOf(\CurlHandle::class, $handle);
     }
 
-    public function testCurlMulti()
+    public function testCurlMulti(): void
     {
         $mock = new class
         {

@@ -33,14 +33,14 @@ abstract class AbstractManifest
     /**
      * Associative array where paths are keys and hashes are values.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected array $hashes = [];
 
     /**
      * Array of the same paths as in $hashes but normalized for case and characters to check for duplication.
      *
-     * @var array
+     * @var array<string>
      */
     protected array $normalizedPaths = [];
 
@@ -54,14 +54,14 @@ abstract class AbstractManifest
     /**
      * Errors while validating this manifest.
      *
-     * @var array
+     * @var array<array<string, string>>
      */
     protected array $manifestErrors = [];
 
     /**
      * Warnings generated while validating this manifest.
      *
-     * @var array
+     * @var array<array<string, string>>
      */
     protected array $manifestWarnings = [];
 
@@ -70,7 +70,7 @@ abstract class AbstractManifest
      * Because of the path key in the hash array if there are multiple entries for a path we need to track it during
      * load but present it at validate().
      *
-     * @var array
+     * @var array<string, array<array<string, string>>>
      *   Array of arrays with keys 'error' and 'warning'
      * @see AbstractManifest::resetLoadIssues
      */
@@ -125,7 +125,7 @@ abstract class AbstractManifest
     /**
      * Return the array of errors.
      *
-     * @return array
+     * @return array<array<string, string>>
      */
     public function getErrors(): array
     {
@@ -135,7 +135,7 @@ abstract class AbstractManifest
     /**
      * Return the array of warnings.
      *
-     * @return array
+     * @return array<array<string, string>>
      */
     public function getWarnings(): array
     {
@@ -186,7 +186,7 @@ abstract class AbstractManifest
     /**
      * Return the payload and hashes as an associative array.
      *
-     * @return array
+     * @return array<string, string>
      *   Array of paths => hashes
      */
     public function getHashes(): array

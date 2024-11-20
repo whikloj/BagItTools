@@ -57,7 +57,7 @@ class BagTest extends BagItTestFramework
         mkdir($this->tmpdir);
         $newDir = $this->tmpdir . "/some-new-dir";
         $this->assertDirectoryDoesNotExist($newDir);
-        $curr = getcwd();
+        $curr = self::getCwd();
         chdir($this->tmpdir);
         $bag = Bag::create("some-new-dir");
         $this->assertTrue($bag->isValid());
@@ -75,7 +75,7 @@ class BagTest extends BagItTestFramework
         mkdir($this->tmpdir);
         $newDir = $this->tmpdir . "/some-new-dir";
         $this->assertDirectoryDoesNotExist($newDir);
-        $curr = getcwd();
+        $curr = self::getCwd();
         chdir($this->tmpdir);
         $bag = Bag::create("./some-new-dir");
         $this->assertTrue($bag->isValid());
@@ -883,7 +883,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $this->assertEquals('0.97', $bag->getVersionString());
         $this->assertTrue($bag->isValid());
-        $fp = fopen($bag->getBagRoot() . '/bag-info.txt', 'r');
+        $fp = self::openFile($bag->getBagRoot() . '/bag-info.txt', 'r');
         while (!feof($fp)) {
             $line = (string) fgets($fp);
             $line = trim($line);
@@ -897,7 +897,7 @@ class BagTest extends BagItTestFramework
         $bag->upgrade();
         $this->assertEquals('1.0', $bag->getVersionString());
         $this->assertTrue($bag->isValid());
-        $fp = fopen($bag->getBagRoot() . '/bag-info.txt', 'r');
+        $fp = self::openFile($bag->getBagRoot() . '/bag-info.txt', 'r');
         while (!feof($fp)) {
             $line = (string) fgets($fp);
             $line = trim($line);
@@ -982,7 +982,7 @@ class BagTest extends BagItTestFramework
     public function testBagItTooManyLines(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . '/bagit.txt', 'a');
+        $fp = self::openFile($this->tmpdir . '/bagit.txt', 'a');
         fwrite($fp, "This is more stuff\n");
         fclose($fp);
         $bag = Bag::load($this->tmpdir);
@@ -997,7 +997,7 @@ class BagTest extends BagItTestFramework
     public function testBagItVersionLineInvalid(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . '/bagit.txt', 'w');
+        $fp = self::openFile($this->tmpdir . '/bagit.txt', 'w');
         fwrite($fp, "BagIt-Version: M.N\nTag-File-Character-Encoding: UTF-8\n");
         fclose($fp);
         $bag = Bag::load($this->tmpdir);
@@ -1012,7 +1012,7 @@ class BagTest extends BagItTestFramework
     public function testBagItEncodingLineError(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . '/bagit.txt', 'w');
+        $fp = self::openFile($this->tmpdir . '/bagit.txt', 'w');
         fwrite($fp, "BagIt-Version: 1.0\nTag-File-Encoding: UTF-8\n");
         fclose($fp);
         $bag = Bag::load($this->tmpdir);
@@ -1027,7 +1027,7 @@ class BagTest extends BagItTestFramework
     public function testFailOnEncodedBagIt(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . '/bagit.txt', 'w');
+        $fp = self::openFile($this->tmpdir . '/bagit.txt', 'w');
         $encoded_string = mb_convert_encoding("BagIt-Version: 1.0\nTag-File-Encoding: UTF-8\n", "byte4le");
         fwrite($fp, $encoded_string);
         fclose($fp);
@@ -1065,7 +1065,7 @@ class BagTest extends BagItTestFramework
         $this->expectException(BagItException::class);
         $this->expectExceptionMessage("New bag directory $fullpath exists");
 
-        $curr = getcwd();
+        $curr = self::getCwd();
         chdir($this->tmpdir);
         try {
             Bag::create("existing_bag");
@@ -1084,7 +1084,7 @@ class BagTest extends BagItTestFramework
     {
         // Make the directory
         mkdir($this->tmpdir);
-        $curr = getcwd();
+        $curr = self::getCwd();
         $full_path = $this->tmpdir . "/existing_bag";
         chdir($this->tmpdir);
         $bag = Bag::create("existing_bag");

@@ -72,7 +72,7 @@ class Bag
      *
      * @see https://tools.ietf.org/html/rfc8493#section-2.4
      *
-     * @var array
+     * @var array<string, string>
      */
     private const HASH_ALGORITHMS = array(
         'md5' => 'md5',
@@ -229,7 +229,7 @@ class Bag
     /**
      * Have we changed the bag and not written it to disk?
      *
-     * @var boolean
+     * @var bool
      */
     private bool $changed = false;
 
@@ -263,7 +263,7 @@ class Bag
 
     /**
      * Array of BagIt profiles.
-     * @var array<int, BagItProfile>
+     * @var array<string, BagItProfile>
      */
     private array $profiles = [];
 
@@ -586,7 +586,7 @@ class Bag
     /**
      * Return raw bag info data.
      *
-     * @return array
+     * @return array<int, array<string, string>>
      *   Bag Info data.
      */
     public function getBagInfoData(): array
@@ -613,7 +613,7 @@ class Bag
      *
      * @param  string $tag
      *   Bag info tag to locate
-     * @return array
+     * @return array<string>
      *   Array of values for the tag.
      */
     public function getBagInfoByTag(string $tag): array
@@ -732,7 +732,7 @@ class Bag
     /**
      * Add multiple bag info tags from an array.
      *
-     * @param array $tags
+     * @param array<string, string|array<string>> $tags
      *   Associative array of tag => value
      * @throws BagItException
      *   When you try to set an auto-generated tag value.
@@ -754,7 +754,7 @@ class Bag
     /**
      * Internal function adding the values to the various tag arrays.
      *
-     * @param array $tags
+     * @param array<string, string|array<string>> $tags
      *   Associative array of tag => value
      */
     private function addBagInfoTagsInternal(array $tags): void
@@ -814,7 +814,7 @@ class Bag
     /**
      * Get the currently active payload (and tag) manifests.
      *
-     * @return array
+     * @return array<string>
      *   Internal hash names for current manifests.
      */
     public function getAlgorithms(): array
@@ -828,7 +828,7 @@ class Bag
      * @param string $hashAlgorithm
      *   The requested hash algorithms.
      *
-     * @return boolean Do we already have this payload manifest.
+     * @return bool Do we already have this payload manifest.
      */
     public function hasAlgorithm(string $hashAlgorithm): bool
     {
@@ -841,7 +841,7 @@ class Bag
      *
      * @param  string $algorithm
      *   The requested hash algorithm
-     * @return boolean
+     * @return bool
      *   Whether it is supported by our PHP.
      */
     public function algorithmIsSupported(string $algorithm): bool
@@ -930,7 +930,7 @@ class Bag
     /**
      * Replaces any existing hash algorithms with the ones requested.
      *
-     * @param array $algorithms
+     * @param array<string> $algorithms
      *   Array of algorithms to use.
      * @throws FilesystemException
      *   Problems removing/reading/creating the new payload/tag manifest files.
@@ -950,7 +950,7 @@ class Bag
     /**
      * Internal utility to remove all algorithms not specified and add any missing.
      *
-     * @param array $algorithms
+     * @param array<string> $algorithms
      *   Array of algorithms using their internal names.
      * @throws FilesystemException
      *   Errors
@@ -987,7 +987,7 @@ class Bag
      * @throws BagItException
      *   On errors adding the file.
      */
-    public function addFetchFile(string $url, string $destination, int $size = null): void
+    public function addFetchFile(string $url, string $destination, ?int $size = null): void
     {
         if (!$this->hasFetchFile()) {
             $this->fetchFile = new Fetch($this, false);
@@ -998,9 +998,9 @@ class Bag
     }
 
     /**
-     * Return the fetch file data, an array of arrays with keys 'url', 'destination' and (optionally) 'size'.
+     * Return the fetch file data, an array of DownloadFile objects.
      *
-     * @return array
+     * @return array<int, DownloadFile>
      */
     public function listFetchFiles(): array
     {
@@ -1049,7 +1049,7 @@ class Bag
     /**
      * Get the current version array or default if not specified.
      *
-     * @return array
+     * @return array<string, int>
      *   Current version.
      */
     public function getVersion(): array
@@ -1094,7 +1094,7 @@ class Bag
     /**
      * Check the bag's extended status.
      *
-     * @return boolean
+     * @return bool
      *   Does the bag use extended features?
      */
     public function isExtended(): bool
@@ -1105,7 +1105,7 @@ class Bag
     /**
      * Turn extended bag features on or off.
      *
-     * @param boolean $extBag
+     * @param bool $extBag
      *   Whether the bag should be extended or not.
      */
     public function setExtended(bool $extBag): void
@@ -1119,7 +1119,7 @@ class Bag
     /**
      * Get errors on the bag.
      *
-     * @return array
+     * @return array<array<string, string>>
      *   The errors.
      */
     public function getErrors(): array
@@ -1130,7 +1130,7 @@ class Bag
     /**
      * Get any warnings related to the bag.
      *
-     * @return array
+     * @return array<array<string, string>>
      *   The warnings.
      */
     public function getWarnings(): array
@@ -1141,7 +1141,7 @@ class Bag
     /**
      * Get the payload manifests as an associative array with hash algorithm as key.
      *
-     * @return array
+     * @return array<string, PayloadManifest>
      *   hash algorithm => Payload manifests
      */
     public function getPayloadManifests(): array
@@ -1152,7 +1152,7 @@ class Bag
     /**
      * Get the tag manifests as an associative array with hash algorithm as key.
      *
-     * @return array|null
+     * @return array<string, TagManifest>|null
      *   hash algorithm => Tag manifests or null if not an extended bag.
      */
     public function getTagManifests(): ?array
@@ -1303,7 +1303,7 @@ class Bag
     }
 
     /**
-     * @return array The profiles that have been added to the bag.
+     * @return array<string, BagItProfile> The profiles that have been added to the bag.
      */
     public function getBagProfiles(): array
     {
@@ -1707,7 +1707,7 @@ class Bag
     /**
      * Calculate the total file size and amount of files of all payload files.
      *
-     * @return array|null
+     * @return array<string, int>|null
      *   The total file size and amount of all files or
      *   null if we couldn't read all the file sizes.
      */
@@ -1737,7 +1737,7 @@ class Bag
      *
      * @param  string $text
      *   The whole tag and value as one.
-     * @return array
+     * @return array<string>
      *   The text as an array.
      */
     private static function wrapBagInfoText(string $text): array
@@ -1773,7 +1773,7 @@ class Bag
      *   The text to wrap.
      * @param  int    $length
      *   The length to wrap at.
-     * @return array
+     * @return array<string>
      *   Rows of text.
      */
     private static function wrapAtLength(string $text, int $length): array
@@ -1786,7 +1786,7 @@ class Bag
     /**
      * Load all tag manifests (if any).
      *
-     * @return boolean
+     * @return bool
      *   Are there any tag manifest files.
      *
      * @throws FilesystemException
@@ -1865,7 +1865,7 @@ class Bag
     /**
      * Remove tag manifests.
      *
-     * @param array $exclusions
+     * @param array<string> $exclusions
      *   Hash algorithm names of manifests to preserve.
      * @throws FilesystemException
      *   Issues deleting files from the filesystem.
@@ -1978,7 +1978,7 @@ class Bag
     /**
      * Remove payload manifests.
      *
-     * @param array $exclusions
+     * @param array<string> $exclusions
      *   Hash algorithm names of manifests to preserve.
      * @throws FilesystemException
      *   Issues deleting a file.
@@ -2271,7 +2271,12 @@ class Bag
         $tar = new Archive_Tar($filename, $compression);
         $res = $tar->extract($directory);
         if ($res === false) {
-            throw new FilesystemException("Unable to untar $filename : " . $tar->error_object->getMessage());
+            $error = $tar->error_object;
+            $mesg = "Unable to untar $filename";
+            if (is_object($error) && get_class($error) === 'PEAR_Error') {
+                $mesg .= " : " . $error->getMessage();
+            }
+            throw new FilesystemException($mesg);
         }
         return $directory;
     }
@@ -2316,7 +2321,7 @@ class Bag
      *
      * @param  string|null $file_extension
      *   The file extensions.
-     * @param  array $extensions
+     * @param  array<string> $extensions
      *   The list of extensions to check.
      * @return bool
      *   The list of extensions or an empty array.
@@ -2372,7 +2377,11 @@ class Bag
      */
     private static function getDirectory(string $filepath): string
     {
-        $files = array_diff(scandir($filepath), [".", ".."]);
+        $dir_files = scandir($filepath);
+        if ($dir_files === false) {
+            throw new BagItException("Unable to read directory $filepath");
+        }
+        $files = array_diff($dir_files, [".", ".."]);
         $dirs = [];
         if (count($files) > 0) {
             foreach ($files as $file) {
@@ -2513,8 +2522,8 @@ class Bag
      *
      * @param  string     $search The key to look for.
      * @param int|string $key    The associative or numeric key to look in.
-     * @param  array      $map    The associative array to search.
-     * @return boolean True if the key exists regardless of case.
+     * @param  array<int, array<string, string>>  $map    The associative array to search.
+     * @return bool True if the key exists regardless of case.
      */
     private static function arrayKeyExistsNoCase(string $search, int|string $key, array $map): bool
     {
@@ -2532,9 +2541,9 @@ class Bag
      * Check that the key is not non-repeatable and already in the bagInfo.
      *
      * @param string $key The key being added.
-     * @param array $bagData The current bag data.
+     * @param array<int, array<string, string>> $bagData The current bag data.
      *
-     * @return boolean
+     * @return bool
      *   True if the key is non-repeatable and already in the
      */
     private static function mustNotRepeatBagInfoExists(string $key, array $bagData): bool
@@ -2547,9 +2556,9 @@ class Bag
      * Check that the key is not non-repeatable and already in the bagInfo.
      *
      * @param string $key The key being added.
-     * @param array $bagData The current bag data.
+     * @param array<int, array<string, string>> $bagData The current bag data.
      *
-     * @return boolean
+     * @return bool
      *   True if the key is non-repeatable and already in the
      */
     private static function shouldNotRepeatBagInfoExists(string $key, array $bagData): bool
@@ -2602,7 +2611,7 @@ class Bag
     /**
      * Utility to merge manifest and fetch errors into the bag errors.
      *
-     * @param array $newErrors
+     * @param array<array<string, string>> $newErrors
      *   The new errors to be added.
      */
     private function mergeErrors(array $newErrors): void
@@ -2613,7 +2622,7 @@ class Bag
     /**
      * Utility to merge manifest and fetch warnings into the bag warnings.
      *
-     * @param array $newWarnings
+     * @param array<array<string, string>> $newWarnings
      *   The new warnings to be added.
      */
     private function mergeWarnings(array $newWarnings): void

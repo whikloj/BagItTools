@@ -51,6 +51,9 @@ class ExtendedBagTest extends BagItTestFramework
         $this->assertFalse($bag->isExtended());
         $payloads = array_keys($bag->getPayloadManifests());
         $hash = reset($payloads);
+        if ($hash === false) {
+            $this->fail("No payload manifest found.");
+        }
         $manifests = $bag->getTagManifests();
         $this->assertCount(0, $manifests);
 
@@ -823,9 +826,13 @@ class ExtendedBagTest extends BagItTestFramework
         ];
         foreach ($files as $file) {
             $path = $this->tmpdir . '/' . $file;
+            $contents = file_get_contents($path);
+            if ($contents === false) {
+                $this->fail("Failed to read file: $path");
+            }
             file_put_contents(
                 $path,
-                str_replace("\n", $newEnding, file_get_contents($path))
+                str_replace("\n", $newEnding, $contents)
             );
         }
     }

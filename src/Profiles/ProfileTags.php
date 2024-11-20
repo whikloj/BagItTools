@@ -29,7 +29,7 @@ class ProfileTags
     private bool $required = false;
 
     /**
-     * @var array
+     * @var array<string>
      */
     private array $values = [];
 
@@ -52,7 +52,7 @@ class ProfileTags
      * ProfileTags constructor.
      * @param string $tag
      * @param bool $required
-     * @param array $values
+     * @param array<string> $values
      * @param bool $repeatable
      * @param string $description
      */
@@ -82,7 +82,7 @@ class ProfileTags
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public function getValues(): array
     {
@@ -107,7 +107,7 @@ class ProfileTags
 
     /**
      * Return any tags defined in the BagItProfile but not in the specification.
-     * @return array<string, string> Array of tagName => tagValue
+     * @return array<string, mixed> Array of tagName => tagValue
      */
     public function getOtherTagOptions(): array
     {
@@ -116,7 +116,7 @@ class ProfileTags
 
     /**
      * Set the other tag options.
-     * @param array $tagOptions Array of optionName => optionValue
+     * @param array<string, mixed> $tagOptions Array of optionName => optionValue
      */
     protected function setOtherTagOptions(array $tagOptions): void
     {
@@ -126,7 +126,7 @@ class ProfileTags
     /**
      * Create a ProfileTags object from a JSON array.
      * @param string $tag Tag name
-     * @param array<string, string> $tagOpts Tag options
+     * @param array<string, string|bool|array<string>|mixed> $tagOpts Tag options
      * @return ProfileTags The created object.
      */
     public static function fromJson(string $tag, array $tagOpts): ProfileTags
