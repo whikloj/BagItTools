@@ -41,7 +41,8 @@ class ProfileFactory
         $curl = self::createCurl($url, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, ['Accept: application/json']);
         $response = curl_exec($curl);
-        if ($response === false) {
+        if (is_bool($response)) {
+            // We set CURLOPT_RETURNTRANSFER to true so boolean is a request error.
             throw new ProfileException("Error downloading profile");
         }
         $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);

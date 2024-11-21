@@ -39,23 +39,23 @@ class Fetch
     private string $filename;
 
     /**
-     * Information from the fetch.txt, array of arrays with keys 'uri', 'size', and 'destination'
+     * Information from the fetch.txt, array of DownloadFile objects.
      *
-     * @var array
+     * @var array<int, DownloadFile>
      */
     private array $files;
 
     /**
      * Errors
      *
-     * @var array
+     * @var array<int, array<string, string>>
      */
     private array $fetchErrors = [];
 
     /**
-     * Urls and Files that validated and should be downloaded.
+     * DownloadFile objects that validated and should be downloaded.
      *
-     * @var array
+     * @var array<int, DownloadFile>
      */
     private array $downloadQueue = [];
 
@@ -80,9 +80,9 @@ class Fetch
     }
 
     /**
-     * Return the array of file data.
+     * Return the array of file data objects.
      *
-     * @return array
+     * @return array<int, DownloadFile>
      */
     public function getData(): array
     {
@@ -117,23 +117,16 @@ class Fetch
     /**
      * Validate fetch data.
      *
-     * @param array $fetchData
-     *   Array with mandatory keys 'uri' and 'destination' and optional key 'size'.
+     * @param DownloadFile $fetchData
+     *   Download data.
      *
      * @throws BagItException
      *   For all validation errors.
      */
-    private function validateData(array $fetchData): void
+    private function validateData(DownloadFile $fetchData): void
     {
-        $uri = $fetchData['uri'];
-        $dest = BagUtils::baseInData($fetchData['destination']);
-        if (!$this->validateUrl($uri)) {
-            // skip invalid URLs or non-http URLs
-            throw new BagItException("URL $uri does not seem to have a scheme or host");
-        }
-        if (!$this->internalValidateUrl($uri)) {
-            throw new BagItException("This library only supports http/https URLs");
-        }
+        $fetchData->validateDownload();
+        $dest = BagUtils::baseInData($fetchData->getDestination());
         if (!$this->bag->pathInBagData($dest)) {
             throw new BagItException("Path $dest resolves outside the bag.");
         }
@@ -153,13 +146,7 @@ class Fetch
      */
     public function addFile(string $url, string $destination, ?int $size = null): void
     {
-        $fetchData = [
-            'uri' => $url,
-            'destination' => $destination,
-        ];
-        if (is_int($size)) {
-            $fetchData['size'] = $size;
-        }
+        $fetchData = new DownloadFile($url, $destination, $size);
         // Download the file now to help with manifest handling, deleted when you package() or finalize().
         $this->download($fetchData);
     }
@@ -167,20 +154,20 @@ class Fetch
     /**
      * Download a single file as it is added to the fetch file so we can generate checksums.
      *
-     * @param array $fetchData
+     * @param DownloadFile $fetchData
      *   Array of data with keys 'uri', 'destination' and optionally 'size'.
      *
      * @throws BagItException
      *   Problems downloading the file.
      */
-    public function download(array $fetchData): void
+    public function download(DownloadFile $fetchData): void
     {
         $this->validateData($fetchData);
-        $uri = $fetchData['uri'];
+        $uri = $fetchData->getUrl();
         if ($this->urlExistsInFile($uri)) {
             throw new BagItException("This URL ($uri) is already in fetch.txt");
         }
-        $dest = BagUtils::baseInData($fetchData['destination']);
+        $dest = BagUtils::baseInData($fetchData->getDestination());
         if ($this->destinationExistsInFile($dest)) {
             throw new BagItException("This destination ($dest) is already in the fetch.txt");
         }
@@ -189,7 +176,7 @@ class Fetch
         if (file_exists($fullDest)) {
             throw new BagItException("File already exists at the destination path $dest");
         }
-        $size = $fetchData['size'] ?? null;
+        $size = $fetchData->getSize();
         $ch = $this->createCurl($uri, true, $size);
         $output = curl_exec($ch);
         $error = curl_error($ch);
@@ -197,12 +184,8 @@ class Fetch
         if (!empty($error) || $output === false) {
             throw new BagItException("Error with download of $uri : $error");
         }
-        $this->saveFileData($output, $dest);
-        $this->files[] = [
-            'uri' => $fetchData['uri'],
-            'size' => (!empty($fetchData['size']) ? $fetchData['size'] : '-'),
-            'destination' => $dest,
-        ];
+        $this->saveFileData((string) $output, $dest);
+        $this->files[] = $fetchData;
     }
 
     /**
@@ -218,10 +201,10 @@ class Fetch
         if ($this->urlExistsInFile($url)) {
             $newFiles = [];
             foreach ($this->files as $file) {
-                if (strtolower($url) !== strtolower($file['uri'])) {
+                if (strtolower($url) !== strtolower($file->getUrl())) {
                     $newFiles[] = $file;
                 } else {
-                    $fullFile = $this->bag->makeAbsolute($file['destination']);
+                    $fullFile = $this->bag->makeAbsolute($file->getDestination());
                     if (file_exists($fullFile)) {
                         BagUtils::checkedUnlink($fullFile);
                     }
@@ -252,7 +235,7 @@ class Fetch
     public function cleanup(): void
     {
         foreach ($this->files as $file) {
-            $fullPath = $this->bag->makeAbsolute($file['destination']);
+            $fullPath = $this->bag->makeAbsolute($file->getDestination());
             if (file_exists($fullPath)) {
                 // Remove the file because we are being packaged or finalized.
                 BagUtils::checkedUnlink($fullPath);
@@ -279,7 +262,7 @@ class Fetch
     /**
      * Return the errors.
      *
-     * @return array
+     * @return array<int, array<string, string>>
      *   Array of errors.
      */
     public function getErrors(): array
@@ -331,10 +314,8 @@ class Fetch
                 if (preg_match("~^(\S+)\s+(\d+|\-)\s+(.*)$~", $line, $matches)) {
                     // We just store what you give us, we'll validate when you load the contents to validate the bag.
                     $uri = $matches[1];
-                    $filesize = $matches[2];
-                    if ($filesize != "-") {
-                        $filesize = (int)$filesize;
-                    }
+                    $filesize = trim($matches[2]);
+                    $filesize = ($filesize === "-") ? null : (int)$filesize;
                     $destination = BagUtils::baseInData($matches[3]);
                     if (BagUtils::checkUnencodedFilepath($destination)) {
                         $this->addError(
@@ -343,11 +324,11 @@ class Fetch
                         );
                     }
                     $destination = BagUtils::decodeFilepath($destination);
-                    $this->files[] = [
-                        'uri' => $uri,
-                        'size' => $filesize,
-                        'destination' => $destination,
-                    ];
+                    $this->files[] = new DownloadFile(
+                        $uri,
+                        $destination,
+                        $filesize
+                    );
                 } else {
                     $this->addError("Line $lineCount: This line is not valid.");
                 }
@@ -394,12 +375,11 @@ class Fetch
             $curl_handles = [];
             $destinations = [];
             foreach ($this->downloadQueue as $key => $download) {
-                $fullPath = $this->bag->makeAbsolute($download['destination']);
+                $fullPath = $this->bag->makeAbsolute($download->getDestination());
                 // Don't download again.
                 if (!file_exists($fullPath)) {
                     $destinations[$key] = $fullPath;
-                    $size = is_int($download['size']) ? $download['size'] : null;
-                    $curl_handles[$key] = $this->createCurl($download['uri'], false, $size);
+                    $curl_handles[$key] = $this->createCurl($download->getUrl(), false, $download->getSize());
                     curl_multi_add_handle($mh, $curl_handles[$key]);
                 }
             }
@@ -447,47 +427,13 @@ class Fetch
                 throw new FilesystemException("Unable to write $this->filename");
             }
             foreach ($this->files as $fileData) {
-                $destination = BagUtils::encodeFilepath($fileData['destination']);
-                $line = "{$fileData['uri']} {$fileData['size']} $destination" . PHP_EOL;
+                $destination = BagUtils::encodeFilepath($fileData->getDestination());
+                $line = "{$fileData->getUrl()} {$fileData->getSizeString()} $destination" . PHP_EOL;
                 $line = $this->bag->encodeText($line);
                 BagUtils::checkedFwrite($fp, $line);
             }
             fclose($fp);
         }
-    }
-
-    /**
-     * Validate URLs can be processed by this library.
-     *
-     * @param string $url
-     *   The URL.
-     * @return bool
-     *   True if we can process it.
-     */
-    private function validateUrl(string $url): bool
-    {
-        $parts = parse_url($url);
-        if (!isset($parts['scheme']) || !isset($parts['host'])) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * BagItTools specific (non-spec) requirements for URLs.
-     *
-     * @param string $url
-     *   The URL.
-     * @return bool
-     *   True if we can process it.
-     */
-    private function internalValidateUrl(string $url): bool
-    {
-        $parts = parse_url($url);
-        if ($parts['scheme'] !== 'http' && $parts['scheme'] !== 'https') {
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -517,7 +463,7 @@ class Fetch
     }
 
     /**
-     * Check multi-dimensional array for a specific value in a specific field.
+     * Check array of DownloadFiles for a specific value in a specific field.
      *
      * @param string $arg
      *   The value to look for.

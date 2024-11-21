@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace whikloj\BagItTools\Test;
 
+use Exception;
 use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\Exceptions\BagItException;
 
@@ -65,21 +66,21 @@ class ManifestTest extends BagItTestFramework
             $this->assertFileExists($file);
         }
 
-        $fp = fopen($test_files['payload'], 'rb');
+        $fp = self::openFile($test_files['payload'], 'rb');
         $line = self::getLine($fp, $bag->getFileEncoding());
         $expected_filepath = 'data/some/directory/file.txt';
         $constraint1 = self::stringEndsWith($expected_filepath);
         $this->assertTrue($constraint1->evaluate($line, '', true));
         fclose($fp);
 
-        $fp = fopen($test_files['tag'], 'rb');
+        $fp = self::openFile($test_files['tag'], 'rb');
         $constraints = self::logicalOr(
             self::stringEndsWith('bagit.txt'),
             self::stringEndsWith('bag-info.txt'),
             self::stringEndsWith('manifest-sha256.txt')
         );
         while (feof($fp)) {
-            $line = $this->getLine($fp, $bag->getFileEncoding());
+            $line = self::getLine($fp, $bag->getFileEncoding());
             $this->assertTrue($constraints->evaluate($line, '', true));
         }
         fclose($fp);
@@ -190,7 +191,11 @@ class ManifestTest extends BagItTestFramework
         $bag->addFile(self::TEST_TEXT['filename'], "already-encoded-%25-double-it.txt");
         $bag->update();
         // Read the lines from the manifest file.
-        $paths = explode("\n", file_get_contents($bag->getBagRoot() . "/manifest-sha512.txt"));
+        $contents = file_get_contents($bag->getBagRoot() . "/manifest-sha512.txt");
+        if ($contents === false) {
+            $this->fail("Failed to read manifest file.");
+        }
+        $paths = explode("\n", $contents);
         $paths = array_filter($paths);
         array_walk($paths, function (&$o) {
             $o = trim(explode(" ", $o)[1]);
@@ -261,10 +266,15 @@ class ManifestTest extends BagItTestFramework
      *   The file encoding
      * @return string
      *   The line from the file decoded to UTF-8.
+     * @throws Exception
+     *   Unable to read line from file.
      */
     private static function getLine($fp, string $file_encoding): string
     {
         $line = fgets($fp);
+        if ($line === false) {
+            throw new Exception("Failed to read line from file.");
+        }
         $line = mb_convert_encoding($line, 'UTF-8', $file_encoding);
         return trim($line);
     }

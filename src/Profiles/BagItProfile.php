@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace whikloj\BagItTools\Profiles;
 
 use Exception;
+use PharIo\Manifest\Manifest;
+use whikloj\BagItTools\AbstractManifest;
 use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\BagUtils;
+use whikloj\BagItTools\Exceptions\FilesystemException;
 use whikloj\BagItTools\Exceptions\ProfileException;
+use whikloj\BagItTools\PayloadManifest;
 
 /**
  * Class for holding a BagItProfile.
@@ -72,25 +76,25 @@ class BagItProfile
     protected ?string $contactEmail = null;
 
     /**
-     * @var array
+     * @var array<string, ProfileTags>
      * The list of profile specific tags for this profile. Each tag is a key to an array with keys of "required",
      * "values", "repeatable" and "description". Does not include the required "BagIt-Profile-Identifier" tag.
      */
     protected array $profileBagInfoTags = [];
 
     /**
-     * @var array A list of "required" BagInfo tags.
+     * @var array<string> A list of "required" BagInfo tags.
      */
     protected array $requiredBagInfoTags = [];
 
     /**
-     * @var array
+     * @var array<string>
      * The list of required manifest algorithms. e.g. ["sha1", "md5"].
      */
     protected array $manifestsRequired = [];
 
     /**
-     * @var array
+     * @var array<string>
      * The list of allowed manifest algorithms. e.g. ["sha1", "md5"]. If manifestsRequired is not empty then this list
      * must include all the required algorithms.
      */
@@ -122,40 +126,40 @@ class BagItProfile
     protected string $serialization = "optional";
 
     /**
-     * @var array
+     * @var array<string>
      * A list of MIME types acceptable as serialized formats. If serialization is required then this list must contain
      * one or more values. If serialization is forbidden, this is ignored.
      */
     protected array $acceptSerialization = [];
 
     /**
-     * @var array
+     * @var array<string>
      * A list of BagIt version numbers that will be accepted, e.g. "1.0". At least one version is required.
      */
     protected array $acceptBagItVersion = [];
 
     /**
-     * @var array
+     * @var array<string>
      * Each tag manifest type in LIST is required. e.g. ["sha1", "md5"].
      */
     protected array $tagManifestsRequired = [];
 
     /**
-     * @var array
+     * @var array<string>
      * The list of allowed tag manifest algorithms. e.g. ["sha1", "md5"]. If tagManifestsRequired is not empty then
      * this list must include all the required algorithms.
      */
     protected array $tagManifestsAllowed = [];
 
     /**
-     * @var array
+     * @var array<string>
      * A list of a tag files that MUST be included in a conformant Bag. Entries are full path names relative to the
      * Bag base directory.
      */
     protected array $tagFilesRequired = [];
 
     /**
-     * @var array
+     * @var array<string>
      * A list of tag files that MAY be included in a conformant Bag. Entries are either full path names relative to the
      * bag base directory or path name patterns in which asterisks can represent zero or more characters (c.f. glob(7)).
      * At least all the tag files listed in Tag-Files-Required MUST be in included in Tag-Files-Allowed.
@@ -163,14 +167,14 @@ class BagItProfile
     protected array $tagFilesAllowed = [];
 
     /**
-     * @var array
+     * @var array<string>
      * A list of a payload files and/or directories that MUST be included in a conformant Bag. Entries are full path
      * names relative to the Bag base directory, e.g. data/LICENSE.txt or data/src/.
      */
     protected array $payloadFilesRequired = [];
 
     /**
-     * @var array
+     * @var array<string>
      * A list of payload files or directories that MAY be included in a conformant Bag. Each entry MUST be either a
      * full path name relative to the bag base directory, or a path name pattern in which asterisks can represent zero
      * or more characters (c.f. glob(7)). Paths requiring permitted directories MUST end with /* (not /).
@@ -182,7 +186,7 @@ class BagItProfile
     protected array $payloadFilesAllowed = [];
 
     /**
-     * @var array
+     * @var array<string>
      * A list of warnings that were generated during the validation of the profile.
      */
     protected array $profileWarnings = [];
@@ -332,7 +336,7 @@ class BagItProfile
     }
 
     /**
-     * @return array The list of acceptable tags for this profile.
+     * @return array<string, ProfileTags> The list of acceptable tags for this profile.
      */
     public function getBagInfoTags(): array
     {
@@ -340,7 +344,7 @@ class BagItProfile
     }
 
     /**
-     * @param array $bagInfoTags Parsed profile Bag-Info sections
+     * @param array<string, array<string, string>> $bagInfoTags Parsed profile Bag-Info sections
      * @return BagItProfile The profile object.
      */
     private function setBagInfoTags(array $bagInfoTags): BagItProfile
@@ -362,7 +366,7 @@ class BagItProfile
     }
 
     /**
-     * @return array The list of required manifest algorithms. e.g. ["sha1", "md5"].
+     * @return array<string> The list of required manifest algorithms. e.g. ["sha1", "md5"].
      */
     public function getManifestsRequired(): array
     {
@@ -370,7 +374,7 @@ class BagItProfile
     }
 
     /**
-     * @param array $manifestsRequired The list of required manifest algorithms. e.g. ["sha1", "md5"].
+     * @param array<string> $manifestsRequired The list of required manifest algorithms. e.g. ["sha1", "md5"].
      * @return BagItProfile The profile object.
      */
     private function setManifestsRequired(array $manifestsRequired): BagItProfile
@@ -380,7 +384,7 @@ class BagItProfile
     }
 
     /**
-     * @return array The list of allowed manifest algorithms. e.g. ["sha1", "md5"].
+     * @return array<string> The list of allowed manifest algorithms. e.g. ["sha1", "md5"].
      */
     public function getManifestsAllowed(): array
     {
@@ -388,7 +392,7 @@ class BagItProfile
     }
 
     /**
-     * @param array $manifestsAllowed The list of allowed manifest algorithms. e.g. ["sha1", "md5"].
+     * @param array<string> $manifestsAllowed The list of allowed manifest algorithms. e.g. ["sha1", "md5"].
      * @return BagItProfile The profile object.
      * @throws ProfileException If manifestsAllowed does not include all entries from manifestsRequired.
      */
@@ -478,7 +482,7 @@ class BagItProfile
     }
 
     /**
-     * @return array The list of MIME types acceptable as serialized formats.
+     * @return array<string> The list of MIME types acceptable as serialized formats.
      */
     public function getAcceptSerialization(): array
     {
@@ -486,7 +490,7 @@ class BagItProfile
     }
 
     /**
-     * @param array|null $acceptSerialization The list of MIME types acceptable as serialized formats.
+     * @param array<string>|null $acceptSerialization The list of MIME types acceptable as serialized formats.
      * @return BagItProfile The profile object.
      */
     private function setAcceptSerialization(?array $acceptSerialization): BagItProfile
@@ -496,7 +500,7 @@ class BagItProfile
     }
 
     /**
-     * @return array The list of BagIt version numbers that will be accepted, e.g. "1.0".
+     * @return array<string> The list of BagIt version numbers that will be accepted, e.g. "1.0".
      */
     public function getAcceptBagItVersion(): array
     {
@@ -504,7 +508,7 @@ class BagItProfile
     }
 
     /**
-     * @param array $acceptBagItVersion The list of BagIt version numbers that will be accepted, e.g. "1.0".
+     * @param array<string> $acceptBagItVersion The list of BagIt version numbers that will be accepted, e.g. "1.0".
      * @return BagItProfile The profile object.
      */
     private function setAcceptBagItVersion(array $acceptBagItVersion): BagItProfile
@@ -514,7 +518,7 @@ class BagItProfile
     }
 
     /**
-     * @return array The list of required tag manifest algorithms. e.g. ["sha1", "md5"].
+     * @return array<string> The list of required tag manifest algorithms. e.g. ["sha1", "md5"].
      */
     public function getTagManifestsRequired(): array
     {
@@ -522,7 +526,7 @@ class BagItProfile
     }
 
     /**
-     * @param array $tagManifestsRequired The list of required tag manifest algorithms. e.g. ["sha1", "md5"].
+     * @param array<string> $tagManifestsRequired The list of required tag manifest algorithms. e.g. ["sha1", "md5"].
      * @return BagItProfile The profile object.
      */
     private function setTagManifestsRequired(array $tagManifestsRequired): BagItProfile
@@ -532,7 +536,7 @@ class BagItProfile
     }
 
     /**
-     * @return array The list of allowed tag manifest algorithms. e.g. ["sha1", "md5"].
+     * @return array<string> The list of allowed tag manifest algorithms. e.g. ["sha1", "md5"].
      */
     public function getTagManifestsAllowed(): array
     {
@@ -540,7 +544,7 @@ class BagItProfile
     }
 
     /**
-     * @param array $tagManifestAllowed The list of allowed tag manifest algorithms. e.g. ["sha1", "md5"].
+     * @param array<string> $tagManifestAllowed The list of allowed tag manifest algorithms. e.g. ["sha1", "md5"].
      * @return BagItProfile The profile object.
      */
     private function setTagManifestsAllowed(array $tagManifestAllowed): BagItProfile
@@ -550,7 +554,7 @@ class BagItProfile
     }
 
     /**
-     * @return array The list of tag files that MUST be included in a conformant Bag.
+     * @return array<string> The list of tag files that MUST be included in a conformant Bag.
      */
     public function getTagFilesRequired(): array
     {
@@ -558,7 +562,7 @@ class BagItProfile
     }
 
     /**
-     * @param array $tagFilesRequired The list of tag files that MUST be included in a conformant Bag.
+     * @param array<string> $tagFilesRequired The list of tag files that MUST be included in a conformant Bag.
      * @return BagItProfile The profile object.
      */
     private function setTagFilesRequired(array $tagFilesRequired): BagItProfile
@@ -568,7 +572,7 @@ class BagItProfile
     }
 
     /**
-     * @return array The list of tag files that MAY be included in a conformant Bag.
+     * @return array<string> The list of tag files that MAY be included in a conformant Bag.
      */
     public function getTagFilesAllowed(): array
     {
@@ -576,7 +580,7 @@ class BagItProfile
     }
 
     /**
-     * @param array $tagFilesAllowed The list of tag files/paths that MAY be included in a conformant Bag.
+     * @param array<string> $tagFilesAllowed The list of tag files/paths that MAY be included in a conformant Bag.
      * @return BagItProfile The profile object.
      */
     private function setTagFilesAllowed(array $tagFilesAllowed): BagItProfile
@@ -587,8 +591,8 @@ class BagItProfile
 
     /**
      * Assert that the array of paths are covered by the array of allowed paths and glob style patterns.
-     * @param array $paths The list of paths.
-     * @param array $allowed The list of allowed paths, and glob style patterns.
+     * @param array<string> $paths The list of paths.
+     * @param array<string> $allowed The list of allowed paths, and glob style patterns.
      * @return bool True if all paths are covered by allowed paths/patterns.
      */
     private function isRequiredPathsCoveredByAllowed(array $paths, array $allowed): bool
@@ -605,9 +609,9 @@ class BagItProfile
 
     /**
      * Get the list of paths that are not covered by the allowed paths and glob style patterns.
-     * @param array $paths The list of paths.
-     * @param array $allowed The list of allowed paths and glob style patterns.
-     * @return array The list of paths not covered by allowed paths/patterns.
+     * @param array<string> $paths The list of paths.
+     * @param array<string> $allowed The list of allowed paths and glob style patterns.
+     * @return array<string> The list of paths not covered by allowed paths/patterns.
      */
     private function getPathsNotCoveredByAllowed(array $paths, array $allowed): array
     {
@@ -643,7 +647,7 @@ class BagItProfile
     }
 
     /**
-     * @return array The list of payload files that MUST be included in a conformant Bag.
+     * @return array<string> The list of payload files that MUST be included in a conformant Bag.
      */
     public function getPayloadFilesRequired(): array
     {
@@ -651,7 +655,7 @@ class BagItProfile
     }
 
     /**
-     * @param array $payloadFilesRequired The list of payload files that MUST be included in a conformant Bag.
+     * @param array<string> $payloadFilesRequired The list of payload files that MUST be included in a conformant Bag.
      * @return BagItProfile The profile object.
      */
     private function setPayloadFilesRequired(array $payloadFilesRequired): BagItProfile
@@ -661,7 +665,7 @@ class BagItProfile
     }
 
     /**
-     * @return array The list of payload files that MAY be included in a conformant Bag.
+     * @return array<string> The list of payload files that MAY be included in a conformant Bag.
      */
     public function getPayloadFilesAllowed(): array
     {
@@ -669,7 +673,8 @@ class BagItProfile
     }
 
     /**
-     * @param array $payloadFilesAllowed The list of payload files/paths that MAY be included in a conformant Bag.
+     * @param array<string> $payloadFilesAllowed The list of payload files/paths that MAY be included in a
+     *   conformant Bag.
      * @return BagItProfile The profile object.
      */
     private function setPayloadFilesAllowed(array $payloadFilesAllowed): BagItProfile
@@ -844,6 +849,7 @@ class BagItProfile
      * @param Bag $bag The bag to validate.
      * @return bool True if the bag is valid.
      * @throws ProfileException If the bag is not valid.
+     * @throws FilesystemException If cannot complete the validation.
      */
     public function validateBag(Bag $bag): bool
     {
@@ -864,9 +870,9 @@ class BagItProfile
                 $errors[] = "Profile does not allow tag ($requiredTag) to repeat, there are " .
                 count($bag->getBagInfoByTag($requiredTag)) . " values in the bag";
             }
-            if ($infoTag->getValues() !== [] && $bag->hasBagInfoTag($requiredTag)) {
+            if (!empty($infoTag->getValues()) && $bag->hasBagInfoTag($requiredTag)) {
                 $diff = array_diff($bag->getBagInfoByTag($requiredTag), $infoTag->getValues());
-                if ($diff !== []) {
+                if (!empty($diff)) {
                     $errors[] = "Profile requires tag ($requiredTag) to have value(s) (" .
                         implode(", ", $infoTag->getValues()) . ") but the bag has value(s) (" .
                         implode(", ", $diff) . ")";
@@ -881,6 +887,9 @@ class BagItProfile
         }
         if ($this->isDataEmpty()) {
             $manifests = current($bag->getPayloadManifests());
+            if ($manifests === false) {
+                throw new FilesystemException("Unable to get payload manifests");
+            }
             $hashes = $manifests->getHashes();
             if (count($hashes) > 1) {
                 $errors[] = "Profile requires /data directory to be empty or contain a single 0 byte file but it" .
@@ -888,9 +897,13 @@ class BagItProfile
             } elseif (count($hashes) == 1) {
                 $file = array_key_first($hashes);
                 $absolute = $bag->makeAbsolute($file);
-                if (stat($absolute)['size'] > 0) {
+                $file_stats = stat($absolute);
+                if ($file_stats === false) {
+                    throw new FilesystemException("Unable to stat file $absolute");
+                }
+                if ($file_stats['size'] > 0) {
                     $errors[] = "Profile requires /data directory to be empty or contain a single 0 byte file but it" .
-                        " contains a single file of size " . stat($absolute)['size'];
+                        " contains a single file of size " . $file_stats['size'];
                 }
             }
         }
@@ -924,76 +937,64 @@ class BagItProfile
         if ($this->getManifestsRequired() !== []) {
             $manifests = array_keys($bag->getPayloadManifests());
             $diff = array_diff($this->getManifestsRequired(), $manifests);
-            if ($diff !== []) {
+            if (!empty($diff)) {
                 $errors[] = "Profile requires payload manifest(s) which are missing from the bag (" .
                     implode(", ", $diff) . ")";
             }
         }
-        if ($this->getManifestsAllowed() !== []) {
+        if (!empty($this->getManifestsAllowed())) {
             $manifests = array_keys($bag->getPayloadManifests());
             $diff = array_diff($manifests, $this->getManifestsAllowed());
-            if ($diff !== []) {
+            if (!empty($diff)) {
                 $errors[] = "Profile allows payload manifest(s) (" . implode(", ", $this->getManifestsAllowed()) .
                     "), but the bag has manifest(s) (" . implode(", ", $diff) . ") which are not allowed";
             }
         }
-        if ($this->getTagManifestsRequired() !== []) {
+        if (!empty($this->getTagManifestsRequired())) {
             $manifests = array_keys($bag->getTagManifests());
             $diff = array_diff($this->getTagManifestsRequired(), $manifests);
-            if ($diff !== []) {
+            if (!empty($diff)) {
                 $errors[] = "Profile requires tag manifest(s) which are missing from the bag (" .
                     implode(", ", $diff) . ")";
             }
         }
-        if ($this->getTagManifestsAllowed() !== []) {
+        if (!empty($this->getTagManifestsAllowed())) {
             $manifests = array_keys($bag->getTagManifests());
             $diff = array_diff($manifests, $this->getTagManifestsAllowed());
-            if ($diff !== []) {
+            if (!empty($diff)) {
                 $errors[] = "Profile allows tag manifest(s) (" . implode(", ", $this->getTagManifestsAllowed()) .
                     "), but the bag has manifest(s) (" . implode(", ", $diff) . ") which are not allowed";
             }
         }
-        if ($this->getTagFilesRequired() !== []) {
-            // Grab the first tag manifest, they should all be the same
-            $manifests = $bag->getTagManifests();
-            if (count($manifests) === 0) {
-                $errors[] = "Profile requires tag files but the bag has no tag manifests";
-            } else {
-                $manifest = reset($manifests);
-                $tag_files = array_keys($manifest->getHashes());
-                $diff = array_diff($this->getTagFilesRequired(), $tag_files);
-                if ($diff !== []) {
-                    $errors[] = "Profile requires tag files(s) which are missing from the bag (" .
-                        implode(", ", $diff) . ")";
-                }
+        if (!empty($this->getTagFilesRequired())) {
+            $tag_files = self::getManifestFiles($bag->getTagManifests(), "tag");
+            $diff = array_diff($this->getTagFilesRequired(), $tag_files);
+            if ($diff != []) {
+                $errors[] = "Profile requires tag files(s) which are missing from the bag (" .
+                    implode(", ", $diff) . ")";
             }
         }
-        if ($this->getTagFilesAllowed() !== []) {
-            // Grab the first tag manifest, they should all be the same
-            $manifests = $bag->getTagManifests()[0];
-            $tag_files = array_keys($manifests->getHashes());
+        if (!empty($this->getTagFilesAllowed())) {
+            $tag_files = self::getManifestFiles($bag->getTagManifests(), "tag");
             $diff = $this->getPathsNotCoveredByAllowed($tag_files, $this->getTagFilesAllowed());
-            if ($diff !== []) {
+            if (!empty($diff)) {
                 $errors[] = "Profile allows tag files(s) (" . implode(", ", $this->getTagFilesAllowed()) .
                     "), but the bag has manifest(s) (" . implode(", ", $diff) . ") which are not allowed";
             }
         }
-        if ($this->getPayloadFilesRequired() !== []) {
-            // Grab the first tag manifest, they should all be the same
-            $manifests = $bag->getPayloadManifests()[0];
-            $payload_files = array_keys($manifests->getHashes());
+        if (!empty($this->getPayloadFilesRequired())) {
+            $payload_files = self::getManifestFiles($bag->getPayloadManifests(), "payload");
             $diff = array_diff($this->getPayloadFilesRequired(), $payload_files);
-            if ($diff !== []) {
+            if (!empty($diff)) {
                 $errors[] = "Profile requires payload file(s) which are missing from the bag (" .
                     implode(", ", $diff) . ")";
             }
         }
-        if ($this->getPayloadFilesAllowed() !== []) {
+        if (!empty($this->getPayloadFilesAllowed())) {
             // Grab the first tag manifest, they should all be the same
-            $manifests = $bag->getPayloadManifests()[0];
-            $tag_files = array_keys($manifests->getHashes());
-            $diff = $this->getPathsNotCoveredByAllowed($tag_files, $this->getPayloadFilesAllowed());
-            if ($diff !== []) {
+            $payload_files = self::getManifestFiles($bag->getPayloadManifests(), "payload");
+            $diff = $this->getPathsNotCoveredByAllowed($payload_files, $this->getPayloadFilesAllowed());
+            if (!empty($diff)) {
                 $errors[] = "Profile allows payload files(s) (" . implode(", ", $this->getPayloadFilesAllowed()) .
                     "), but the bag has file(s) (" . implode(", ", $diff) . ") which are not allowed";
             }
@@ -1005,8 +1006,30 @@ class BagItProfile
     }
 
     /**
+     * Function to pull the first manifest and return the list of files.
+     * @param array<string, AbstractManifest> $manifests The list of manifests.
+     * @param string $manifest_type The type of manifest.
+     * @return array<string> The list of file paths.
+     * @throws ProfileException If the bag has no manifests.
+     */
+    private static function getManifestFiles(array $manifests, string $manifest_type): array
+    {
+        // Grab the first tag manifest, they should all be the same
+        $manifests = reset($manifests);
+        if ($manifests === false) {
+            throw new ProfileException(
+                "Profile requires $manifest_type files but the bag has no $manifest_type manifests"
+            );
+        }
+        $files = array_keys($manifests->getHashes());
+        return array_filter($files, function ($file) {
+            return is_string($file);
+        });
+    }
+
+    /**
      * Get the list of warnings generated during the validation of the profile.
-     * @return array The list of warnings.
+     * @return array<string> The list of warnings.
      */
     public function getWarnings(): array
     {

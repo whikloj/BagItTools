@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace whikloj\BagItTools\Test\Profiles;
 
 use whikloj\BagItTools\Bag;
@@ -52,7 +54,7 @@ abstract class ProfileTestFramework extends BagItWebserverFramework
     protected BagItProfile $jsonProfile;
 
     /**
-     * @var array An array of the test values to match against the profile.
+     * @var array<string, mixed> An array of the test values to match against the profile.
      */
     protected array $profileValues = [];
 
@@ -61,6 +63,9 @@ abstract class ProfileTestFramework extends BagItWebserverFramework
         parent::setUp();
 
         $json = file_get_contents($this->getProfileFilename());
+        if ($json === false) {
+            throw new \Exception("Failed to read profile file.");
+        }
         $this->jsonProfile = BagItProfile::fromJson($json);
         $this->assertTrue($this->jsonProfile->isValid());
 
@@ -81,7 +86,7 @@ abstract class ProfileTestFramework extends BagItWebserverFramework
     abstract protected function getProfileUri(): string;
 
     /**
-     * @return array The expected values of the profile.
+     * @return array<string, mixed> The expected values of the profile.
      */
     abstract protected function getProfileValues(): array;
 
@@ -474,11 +479,9 @@ abstract class ProfileTestFramework extends BagItWebserverFramework
         );
     }
 
-
-
     /**
      * Assert the bag-info tags are as expected.
-     * @param array $expected The expected tags.
+     * @param array<string, string|bool|array<string>|mixed> $expected The expected tags.
      * @param BagItProfile $profile The profile to check.
      */
     protected function assertProfileBagInfoTags(array $expected, BagItProfile $profile): void

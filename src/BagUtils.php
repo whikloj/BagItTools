@@ -79,7 +79,7 @@ class BagUtils
      * @param string $pattern
      *   The pattern to search for.
      *
-     * @return array
+     * @return array<string>
      *   Array of matches.
      *
      * @throws FilesystemException
@@ -116,6 +116,7 @@ class BagUtils
      * @param bool $add_absolute
      *   Whether to prepend the current working directory if the path is relative.
      * @return string
+     * @throws FilesystemException If unable to get the current working directory.
      */
     public static function getAbsolute(string $path, bool $add_absolute = false): string
     {
@@ -134,6 +135,9 @@ class BagUtils
         if (!($startWithLetterDir || $startWithSeparator) && $add_absolute) {
             // This was relative to start with, prepend the current working directory.
             $current_dir = getcwd();
+            if ($current_dir === false) {
+                throw new FilesystemException("Unable to get current working directory");
+            }
             return BagUtils::getAbsolute(rtrim($current_dir, '/') . '/' .
                 ltrim($path, '/'));
         }
@@ -183,10 +187,12 @@ class BagUtils
      *
      * @param string $directory
      *   The starting full path.
-     * @param array $exclusions
+     * @param array<string> $exclusions
      *   Array with directory names to skip.
-     * @return array
+     * @return array<string>
      *   List of files with absolute path.
+     * @throws FilesystemException
+     *  If unable to scan a directory.
      */
     public static function getAllFiles(string $directory, array $exclusions = []): array
     {
@@ -194,7 +200,11 @@ class BagUtils
         $found_files = [];
 
         while ($currentPath = array_shift($paths)) {
-            $files = array_diff(scandir($currentPath), [".", ".."]);
+            $dir_files = scandir($currentPath);
+            if ($dir_files === false) {
+                throw new FilesystemException("Unable to scan directory $currentPath");
+            }
+            $files = array_diff($dir_files, [".", ".."]);
             foreach ($files as $file) {
                 $fullPath = $currentPath . '/' . $file;
                 if (is_dir($fullPath) && !in_array($file, $exclusions)) {
@@ -408,12 +418,16 @@ class BagUtils
      *
      * @param string $data
      *   The file data as a single string.
-     * @return array
+     * @return array<int, string>
      *   Array split on \r\n, \r, and \n
      */
     public static function splitFileDataOnLineEndings(string $data): array
     {
-        return preg_split("/(\r\n|\r|\n)/", $data);
+        $data = preg_split("/(\r\n|\r|\n)/", $data);
+        if ($data === false) {
+            return [];
+        }
+        return $data;
     }
 
     /**
@@ -457,7 +471,11 @@ class BagUtils
         }
         if (file_exists($path) && is_dir($path)) {
             $parent = dirname($path);
-            $files = array_diff(scandir($path), [".", ".."]);
+            $dir_files = scandir($path);
+            if ($dir_files === false) {
+                throw new FilesystemException("Unable to scan directory $parent");
+            }
+            $files = array_diff($dir_files, [".", ".."]);
             if (count($files) === 0) {
                 self::checkedRmDir($path);
             }

@@ -8,6 +8,7 @@ use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response;
 use whikloj\BagItTools\Bag;
 use whikloj\BagItTools\BagUtils;
+use whikloj\BagItTools\DownloadFile;
 use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Fetch;
 
@@ -87,6 +88,33 @@ class FetchTest extends BagItWebserverFramework
     }
 
     /**
+     * Compare two arrays of Download files.
+     * @param array<DownloadFile> $expected The expected file.
+     * @param array<DownloadFile> $file The file to compare.
+     * @return void
+     */
+    private function assertDownloadFilesEquals(array $expected, array $file): void
+    {
+        $this->assertEquals(count($expected), count($file));
+        for ($foo = 0; $foo < count($expected); $foo += 1) {
+            $this->assertDownloadFileEquals($expected[$foo], $file[$foo]);
+        }
+    }
+
+    /**
+     * Compare two DownloadFile objects.
+     * @param DownloadFile $expected The expected file.
+     * @param DownloadFile $file The file to compare.
+     * @return void
+     */
+    private function assertDownloadFileEquals(DownloadFile $expected, DownloadFile $file): void
+    {
+        $this->assertEquals($expected->getUrl(), $file->getUrl());
+        $this->assertEquals($expected->getDestination(), $file->getDestination());
+        $this->assertEquals($expected->getSize(), $file->getSize());
+    }
+
+    /**
      * Test destinations that resolve outside the data directory.
      * @group Fetch
      * @covers ::__construct
@@ -135,7 +163,8 @@ class FetchTest extends BagItWebserverFramework
      * @covers ::downloadAll
      * @covers ::downloadFiles
      * @covers ::validateData
-     * @covers ::internalValidateUrl
+     * @covers \whikloj\BagItTools\DownloadFile::validateDownload
+     * @covers \whikloj\BagItTools\DownloadFile::validateUrl
      */
     public function testNotHttpUrl(): void
     {
@@ -283,23 +312,20 @@ class FetchTest extends BagItWebserverFramework
         $file_one_dest = 'data/dir1/dir2/first_text.txt';
         $file_two_dest = 'data/dir1/dir2/second_text.txt';
         $expected_with_both = [
-            [
-                'uri' => self::$remote_urls[0],
-                'size' => '-',
-                'destination' => $file_one_dest,
-            ],
-            [
-                'uri' => self::$remote_urls[1],
-                'size' => '-',
-                'destination' => $file_two_dest,
-            ],
+            new DownloadFile(
+                self::$remote_urls[0],
+                $file_one_dest,
+            ),
+            new DownloadFile(
+                self::$remote_urls[1],
+                $file_two_dest,
+            ),
         ];
         $expected_with_one = [
-            [
-                'uri' => self::$remote_urls[1],
-                'size' => '-',
-                'destination' => $file_two_dest,
-            ],
+            new DownloadFile(
+                self::$remote_urls[1],
+                $file_two_dest,
+            ),
         ];
         $bag = Bag::create($this->tmpdir);
         $this->assertFileDoesNotExist($bag->makeAbsolute($file_one_dest));
@@ -308,13 +334,13 @@ class FetchTest extends BagItWebserverFramework
         $this->assertFileExists($bag->makeAbsolute($file_one_dest));
         $bag->addFetchFile(self::$remote_urls[1], $file_two_dest);
         $this->assertFileExists($bag->makeAbsolute($file_one_dest));
-        $this->assertEquals($expected_with_both, $bag->listFetchFiles());
+        $this->assertDownloadFilesEquals($expected_with_both, $bag->listFetchFiles());
         // Url doesn't exist, nothing happens
         $bag->removeFetchFile('http://example.org/not/real');
         // Now really remove it.
         $bag->removeFetchFile(self::$remote_urls[0]);
         $this->assertFileDoesNotExist($bag->makeAbsolute($file_one_dest));
-        $this->assertEquals($expected_with_one, $bag->listFetchFiles());
+        $this->assertDownloadFilesEquals($expected_with_one, $bag->listFetchFiles());
     }
 
     /**
@@ -335,16 +361,14 @@ class FetchTest extends BagItWebserverFramework
         $file_one_dest = 'data/dir1/dir2/first_text.txt';
         $file_two_dest = 'data/dir1/dir2/second_text.txt';
         $expected_with_both = [
-            [
-                'uri' => self::$remote_urls[0],
-                'size' => '-',
-                'destination' => $file_one_dest,
-            ],
-            [
-                'uri' => self::$remote_urls[1],
-                'size' => '-',
-                'destination' => $file_two_dest,
-            ],
+            new DownloadFile(
+                self::$remote_urls[0],
+                $file_one_dest,
+            ),
+            new DownloadFile(
+                self::$remote_urls[1],
+                $file_two_dest,
+            ),
         ];
         $bag = Bag::create($this->tmpdir);
         $this->assertFileDoesNotExist($bag->makeAbsolute($file_one_dest));
@@ -353,7 +377,7 @@ class FetchTest extends BagItWebserverFramework
         $this->assertFileExists($bag->makeAbsolute($file_one_dest));
         $bag->addFetchFile(self::$remote_urls[1], $file_two_dest);
         $this->assertFileExists($bag->makeAbsolute($file_one_dest));
-        $this->assertEquals($expected_with_both, $bag->listFetchFiles());
+        $this->assertDownloadFilesEquals($expected_with_both, $bag->listFetchFiles());
         $bag->clearFetch();
         $this->assertFileDoesNotExist($bag->makeAbsolute($file_one_dest));
         $this->assertFileDoesNotExist($bag->makeAbsolute($file_two_dest));
@@ -371,16 +395,15 @@ class FetchTest extends BagItWebserverFramework
     {
         $file_one_dest = 'data/dir1/dir2/first_text.txt';
         $expected_with_both = [
-            [
-                'uri' => self::$remote_urls[0],
-                'size' => '-',
-                'destination' => $file_one_dest,
-            ],
+            new DownloadFile(
+                self::$remote_urls[0],
+                $file_one_dest,
+            ),
         ];
         $bag = Bag::create($this->tmpdir);
         $bag->addFetchFile(self::$remote_urls[0], $file_one_dest);
         $this->assertFileExists($bag->makeAbsolute($file_one_dest));
-        $this->assertEquals($expected_with_both, $bag->listFetchFiles());
+        $this->assertDownloadFilesEquals($expected_with_both, $bag->listFetchFiles());
         $bag->update();
         $this->assertFileExists($bag->makeAbsolute("fetch.txt"));
         $bag->clearFetch();
@@ -543,7 +566,7 @@ class FetchTest extends BagItWebserverFramework
     /**
      * Test validate a URI without a scheme
      * @group Fetch
-     * @covers ::validateUrl
+     * @covers \whikloj\BagItTools\DownloadFile::validateUrl
      * @covers ::validateData
      * @throws \ReflectionException
      */
@@ -552,26 +575,27 @@ class FetchTest extends BagItWebserverFramework
         $reflection = $this->getReflectionMethod('whikloj\BagItTools\Fetch', 'validateData');
         $bag = Bag::create($this->tmpdir);
         $fetch = new Fetch($bag);
-        $good_data = [
-            'uri' => 'http://example.org',
-            'destination' => 'somewhere',
-        ];
+        $good_data = new DownloadFile(
+            'http://example.org',
+            'somewhere'
+        );
         $reflection->invokeArgs($fetch, [$good_data]);
 
         $this->expectException(BagItException::class);
         $this->expectExceptionMessage("URL somewhere.com does not seem to have a scheme or host");
 
-        $bad_data = [
-            'uri' => 'somewhere.com',
-            'destination' => 'somewhere',
-        ];
+        $bad_data = new DownloadFile(
+            'somewhere.com',
+            'somewhere',
+        );
         $reflection->invokeArgs($fetch, [$bad_data]);
     }
 
     /**
      * Test validate a URI without a host
      * @group Fetch
-     * @covers ::validateUrl
+     * @covers \whikloj\BagItTools\DownloadFile::validateUrl
+     * @covers \whikloj\BagItTools\DownloadFile::validateDownload
      * @covers ::validateData
      */
     public function testUriNoHost(): void
@@ -583,10 +607,10 @@ class FetchTest extends BagItWebserverFramework
         $this->expectException(BagItException::class);
         $this->expectExceptionMessage("URL http:// does not seem to have a scheme or host");
 
-        $data = [
-            'uri' => 'http://',
-            'destination' => 'somewhere',
-        ];
+        $data = new DownloadFile(
+            'http://',
+            'somewhere',
+        );
         $reflection->invokeArgs($fetch, [$data]);
     }
 
@@ -594,26 +618,27 @@ class FetchTest extends BagItWebserverFramework
      * Test validate a URI with a scheme we don't support.
      * @group Fetch
      * @covers ::validateData
-     * @covers ::internalValidateUrl
+     * @covers \whikloj\BagItTools\DownloadFile::validateUrl
+     * @covers \whikloj\BagItTools\DownloadFile::validateDownload
      */
     public function testUriInvalidScheme(): void
     {
         $reflection = $this->getReflectionMethod('whikloj\BagItTools\Fetch', 'validateData');
         $bag = Bag::create($this->tmpdir);
         $fetch = new Fetch($bag);
-        $good_data = [
-            'uri' => 'http://somewhere.com',
-            'destination' => 'somewhere',
-        ];
+        $good_data = new DownloadFile(
+            'http://somewhere.com',
+            'somewhere'
+        );
         $reflection->invokeArgs($fetch, [$good_data]);
 
         $this->expectException(BagItException::class);
         $this->expectExceptionMessage("This library only supports http/https URLs");
 
-        $bad_data = [
-            'uri' => 'ftp://somewhere.com',
-            'destination' => 'somewhere',
-        ];
+        $bad_data = new DownloadFile(
+            'ftp://somewhere.com',
+            'somewhere'
+        );
         $reflection->invokeArgs($fetch, [$bad_data]);
     }
 
@@ -666,7 +691,11 @@ class FetchTest extends BagItWebserverFramework
         }
         $bag->update();
         // Read the fetch.txt file from disk.
-        $fetch = explode("\n", file_get_contents($bag->getBagRoot() . "/fetch.txt"));
+        $contents = file_get_contents($bag->getBagRoot() . "/fetch.txt");
+        if ($contents === false) {
+            $this->fail("Failed to read fetch.txt file.");
+        }
+        $fetch = explode("\n", $contents);
         $fetch = array_filter($fetch);
         array_walk($fetch, function (&$o) {
             $o = trim(explode(" ", $o)[2]);

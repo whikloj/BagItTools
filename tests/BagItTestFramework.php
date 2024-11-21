@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace whikloj\BagItTools\Test;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionException;
@@ -117,11 +118,17 @@ class BagItTestFramework extends TestCase
      *
      * @param string $path
      *   The directory to delete.
+     * @throws Exception
+     *   Unable to scan directory contents.
      */
     protected static function deleteDirAndContents(string $path): void
     {
         if (is_dir($path)) {
-            $files = array_diff(scandir($path), [".", ".."]);
+            $dir_files = scandir($path);
+            if ($dir_files === false) {
+                throw new Exception("Unable to read directory contents");
+            }
+            $files = array_diff($dir_files, [".", ".."]);
             foreach ($files as $file) {
                 $currentFile = $path . '/' . $file;
                 if (is_dir($currentFile)) {
@@ -176,8 +183,8 @@ class BagItTestFramework extends TestCase
     /**
      * Compare two arrays have all the same elements, does not compare order.
      *
-     * @param array $expected The expected array.
-     * @param array $testing The array to test.
+     * @param array<int|string, int|string|array<string>> $expected The expected array.
+     * @param array<int|string, int|string|array<string>> $testing The array to test.
      */
     protected function assertArrayEquals(array $expected, array $testing): void
     {
@@ -194,10 +201,15 @@ class BagItTestFramework extends TestCase
      *
      * @param string $src The original directory.
      * @param string $dest The destination directory.
+     * @throws Exception Unable to scan directory contents.
      */
     private static function copyDir(string $src, string $dest): void
     {
-        $files = array_diff(scandir($src), [".", ".."]);
+        $dir_files = scandir($src);
+        if ($dir_files === false) {
+            throw new Exception("Unable to read directory contents");
+        }
+        $files = array_diff($dir_files, [".", ".."]);
         foreach ($files as $item) {
             if (is_dir("$src/$item")) {
                 if (!is_dir("$dest/$item")) {
@@ -213,7 +225,7 @@ class BagItTestFramework extends TestCase
     /**
      * Get a private or protected method to test it directly.
      *
-     * @param string $class
+     * @param class-string $class
      *   Class to refect.
      * @param string $method
      *   Method to get.
@@ -295,11 +307,46 @@ class BagItTestFramework extends TestCase
     protected function assertStringContainsStringWithoutNewlines(string $expected, string $original): void
     {
         $split_original = preg_split("/(\r\n|\r|\n)/", $original);
+        if ($split_original === false) {
+            $this->fail("Unable to split string into lines");
+        }
         array_walk($split_original, function (&$o) {
             $o = trim($o);
         });
         $new_original = implode(" ", $split_original);
         $final = trim($new_original);
         $this->assertStringContainsString($expected, $final);
+    }
+
+    /**
+     * Get the current working directory.
+     *
+     * @return string
+     *   The current working directory.
+     * @throws Exception
+     *   Unable to get the current working directory.
+     */
+    protected static function getCwd(): string
+    {
+        $cwd = getcwd();
+        if ($cwd === false) {
+            throw new Exception("Unable to get current working directory");
+        }
+        return $cwd;
+    }
+
+    /**
+     * @param string $path The path to the file.
+     * @param string $mode The mode to open the file in.
+     * @return resource The file pointer.
+     * @throws Exception Unable to open the file.
+     */
+    protected static function openFile(string $path, string $mode)
+    {
+        $fp = fopen($path, $mode);
+        if ($fp === false) {
+            throw new Exception("Unable to open file " . basename($path));
+        }
+        return $fp;
     }
 }

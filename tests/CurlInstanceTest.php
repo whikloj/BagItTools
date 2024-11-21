@@ -1,12 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace whikloj\BagItTools\Test;
 
 use whikloj\BagItTools\CurlInstance;
 
+/**
+ * Class CurlInstanceTest
+ * @package whikloj\BagItTools\Test
+ * @coversDefaultClass \whikloj\BagItTools\CurlInstance
+ * @since 5.0.0
+ * @author whikloj
+ */
 class CurlInstanceTest extends BagItTestFramework
 {
-    public function testCreateCurl()
+    /**
+     * @covers ::createCurl
+     * @covers ::setupCurl
+     */
+    public function testCreateCurl(): void
     {
         $mock = new class
         {
@@ -17,7 +30,25 @@ class CurlInstanceTest extends BagItTestFramework
         $this->assertInstanceOf(\CurlHandle::class, $handle);
     }
 
-    public function testCurlMulti()
+    /**
+     * @covers ::createCurl
+     * @covers ::setupCurl
+     */
+    public function testCreateSingleCurl(): void
+    {
+        $mock = new class
+        {
+            use CurlInstance;
+        }; // anonymous class
+
+        $handle = $mock->createCurl('http://example.com', true);
+        $this->assertInstanceOf(\CurlHandle::class, $handle);
+    }
+
+    /**
+     * @covers ::createMultiCurl
+     */
+    public function testCurlMulti(): void
     {
         $mock = new class
         {

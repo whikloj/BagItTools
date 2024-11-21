@@ -91,7 +91,7 @@ class BagUtilsTest extends BagItTestFramework
     public function testGetAbsoluteRelative(): void
     {
         mkdir($this->tmpdir);
-        $current = getcwd();
+        $current = self::getCwd();
         chdir($this->tmpdir);
         $bag_name = "new_bag_directory";
         $full_path = $this->tmpdir . '/' . $bag_name;

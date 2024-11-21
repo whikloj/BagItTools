@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace whikloj\BagItTools;
 
 use CurlHandle;
 use CurlMultiHandle;
+use whikloj\BagItTools\Exceptions\BagItException;
 
 trait CurlInstance
 {
@@ -17,13 +20,18 @@ trait CurlInstance
      * @param int|null $size
      *   Expected download size or null if unknown
      * @return CurlHandle
-     *   False on error, otherwise the cUl resource.
+     *   The cUrl resource.
+     * @throws BagItException
+     *   On cUrl error.
      */
     public static function createCurl(string $url, bool $single = false, ?int $size = null): CurlHandle
     {
         $ch = curl_init($url);
-        $curlVersion = curl_version()['version'];
-        $options = self::setupCurl($curlVersion);
+        if ($ch === false) {
+            throw new BagItException("Failed to initialize cUrl with URL ($url).");
+        }
+        $curlVersion = curl_version();
+        $options = is_array($curlVersion) ? self::setupCurl($curlVersion['version']) : [];
         if ($single === true) {
             // If this is set during curl_multi_exec, it swallows error messages.
             $options[CURLOPT_FAILONERROR] = true;
@@ -66,19 +74,21 @@ trait CurlInstance
      * Create a cUrl multi handler.
      *
      * @return CurlMultiHandle
-     *   False on error, otherwise the cUrl resource
+     *   The cUrl resource
      */
     public static function createMultiCurl(): CurlMultiHandle
     {
-        $curlVersion = curl_version()['version'];
+        $curlVersion = curl_version();
+        $version = is_array($curlVersion) ? $curlVersion['version'] : false;
         $mh = curl_multi_init();
         if (
-            version_compare('7.62.0', $curlVersion) > 0 &&
-            version_compare('7.43.0', $curlVersion) <= 0
+            $version &&
+            version_compare('7.62.0', $version) > 0 &&
+            version_compare('7.43.0', $version) <= 0
         ) {
             curl_multi_setopt($mh, CURLMOPT_PIPELINING, CURLPIPE_MULTIPLEX);
         }
-        if (version_compare('7.30.0', $curlVersion) <= 0) {
+        if ($version && version_compare('7.30.0', $version) <= 0) {
             // Set a limit to how many connections can be opened.
             curl_multi_setopt($mh, CURLMOPT_MAX_TOTAL_CONNECTIONS, 10);
         }
@@ -87,7 +97,7 @@ trait CurlInstance
 
     /**
      * Set general CURLOPTS based on the Curl version.
-     * @return array The options to set.
+     * @return array<int, mixed> The options to set.
      */
     private static function setupCurl(string $curlVersion): array
     {

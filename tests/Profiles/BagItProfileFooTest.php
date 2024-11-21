@@ -1,8 +1,8 @@
 <?php
 
-namespace whikloj\BagItTools\Test\Profiles;
+declare(strict_types=1);
 
-use whikloj\BagItTools\Test\Profiles\ProfileTestFramework;
+namespace whikloj\BagItTools\Test\Profiles;
 
 /**
  * Test BagItProfile against the specifications foo
@@ -11,16 +11,25 @@ use whikloj\BagItTools\Test\Profiles\ProfileTestFramework;
  */
 class BagItProfileFooTest extends ProfileTestFramework
 {
+    /**
+     * {@inheritDoc}
+     */
     protected function getProfileFilename(): string
     {
         return self::TEST_RESOURCES . '/profiles/bagProfileFoo.json';
     }
 
+    /**
+     * {@inheritDoc}
+     */
     protected function getProfileUri(): string
     {
         return self::$remote_urls[0];
     }
 
+    /**
+     * {@inheritDoc}
+     */
     protected function getProfileValues(): array
     {
         return [
