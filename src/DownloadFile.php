@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace whikloj\BagItTools;
 
 use whikloj\BagItTools\Exceptions\BagItException;
