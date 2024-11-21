@@ -22,7 +22,7 @@ class ValidateCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('validate')
             ->setDescription('Validate a BagIt bag.')
@@ -43,14 +43,19 @@ class ValidateCommand extends Command
 
         $path = BagUtils::standardizePathSeparators($input->getArgument('bag-path'));
         if (($path[0] ?? "") !== '/' && !preg_match("/^[a-z]:/i", $path)) {
-            $path = getcwd() . '/' . $path;
+            $root_path = getcwd();
+            if ($root_path === false) {
+                $io->error("Failed to get current working directory.");
+                return(1);
+            }
+            $path = "$root_path/$path";
             $realpath = realpath($path);
         }
-        if ((isset($realpath) && $realpath === false) || !file_exists($path)) {
+        if ((isset($realpath) && is_bool($realpath)) || !file_exists($path)) {
             $io->error("Path $path does not exist, cannot validate.");
         } else {
             try {
-                if (isset($realpath) && $realpath !== false) {
+                if (isset($realpath) && is_string($realpath)) {
                     $path = $realpath;
                 }
                 $bag = Bag::load($path);

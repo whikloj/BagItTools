@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace whikloj\BagItTools;
 
 use TypeError;
+use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
 
 /**
@@ -66,7 +67,7 @@ class BagUtils
      */
     public static function baseInData(string $path): string
     {
-        if (substr($path, 0, 5) !== 'data/') {
+        if (!str_starts_with($path, 'data/')) {
             $path = "data/" . ltrim($path, "/");
         }
         return $path;
@@ -78,10 +79,10 @@ class BagUtils
      * @param string $pattern
      *   The pattern to search for.
      *
-     * @return array
+     * @return array<string>
      *   Array of matches.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Error in matching pattern.
      */
     public static function findAllByPattern(string $pattern): array
@@ -115,12 +116,13 @@ class BagUtils
      * @param bool $add_absolute
      *   Whether to prepend the current working directory if the path is relative.
      * @return string
+     * @throws FilesystemException If unable to get the current working directory.
      */
     public static function getAbsolute(string $path, bool $add_absolute = false): string
     {
         $path = self::standardizePathSeparators($path);
         // Check if path start with a separator (UNIX)
-        $startWithSeparator = substr($path, 0, 1) === '/';
+        $startWithSeparator = str_starts_with($path, '/');
         // Check if start with drive letter
         preg_match('/^[a-z]:/i', $path, $matches);
         $startWithLetterDir = $matches[0] ?? false;
@@ -133,12 +135,20 @@ class BagUtils
         if (!($startWithLetterDir || $startWithSeparator) && $add_absolute) {
             // This was relative to start with, prepend the current working directory.
             $current_dir = getcwd();
+            if ($current_dir === false) {
+                throw new FilesystemException("Unable to get current working directory");
+            }
             return BagUtils::getAbsolute(rtrim($current_dir, '/') . '/' .
                 ltrim($path, '/'));
         }
 
         // Get and filter empty sub paths
-        $subPaths = array_filter(explode('/', $path), 'mb_strlen');
+        $subPaths = array_filter(
+            explode('/', $path),
+            function ($i) {
+                return mb_strlen($i) > 0;
+            }
+        );
 
         $absolutes = [];
         foreach ($subPaths as $subPath) {
@@ -177,10 +187,12 @@ class BagUtils
      *
      * @param string $directory
      *   The starting full path.
-     * @param array $exclusions
+     * @param array<string> $exclusions
      *   Array with directory names to skip.
-     * @return array
+     * @return array<string>
      *   List of files with absolute path.
+     * @throws FilesystemException
+     *  If unable to scan a directory.
      */
     public static function getAllFiles(string $directory, array $exclusions = []): array
     {
@@ -188,7 +200,11 @@ class BagUtils
         $found_files = [];
 
         while ($currentPath = array_shift($paths)) {
-            $files = array_diff(scandir($currentPath), [".", ".."]);
+            $dir_files = scandir($currentPath);
+            if ($dir_files === false) {
+                throw new FilesystemException("Unable to scan directory $currentPath");
+            }
+            $files = array_diff($dir_files, [".", ".."]);
             foreach ($files as $file) {
                 $fullPath = $currentPath . '/' . $file;
                 if (is_dir($fullPath) && !in_array($file, $exclusions)) {
@@ -208,7 +224,7 @@ class BagUtils
      *   The source path.
      * @param string $destFile
      *   The destination path.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   If the copy() call fails.
      * @see \copy()
      */
@@ -228,7 +244,7 @@ class BagUtils
      *   The permissions on the new directories.
      * @param bool $recursive
      *   Whether to create intermediate directories automatically.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   If the mkdir() call fails.
      * @see \mkdir()
      */
@@ -250,7 +266,7 @@ class BagUtils
      *   Flags to pass on to file_put_contents.
      * @return int
      *   Number of bytes written to the file.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   On any error putting the contents to the file.
      * @see \file_put_contents()
      */
@@ -268,7 +284,7 @@ class BagUtils
      *
      * @param string $path
      *   The path to remove.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   If the call to unlink() fails.
      * @see \unlink()
      */
@@ -288,7 +304,7 @@ class BagUtils
      *   The prefix to the file.
      * @return string
      *   The path to the temporary filename.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues creating the file.
      * @see \tempnam()
      */
@@ -309,7 +325,7 @@ class BagUtils
      *   The file pointer.
      * @param string $content
      *   The content to write.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problem writing to file.
      */
     public static function checkedFwrite($fp, string $content): void
@@ -320,7 +336,19 @@ class BagUtils
                 throw new FilesystemException("Error writing to file");
             }
         } catch (TypeError $e) {
-            throw new FilesystemException("Error writing to file");
+            throw new FilesystemException("Error writing to file", $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Remove a directory and check if it succeeded.
+     * @param string $path The path to remove.
+     * @throws FilesystemException If the call to rmdir() fails.
+     */
+    public static function checkedRmDir(string $path): void
+    {
+        if (!@rmdir($path)) {
+            throw new FilesystemException("Unable to remove directory $path");
         }
     }
 
@@ -390,12 +418,16 @@ class BagUtils
      *
      * @param string $data
      *   The file data as a single string.
-     * @return array
+     * @return array<int, string>
      *   Array split on \r\n, \r, and \n
      */
     public static function splitFileDataOnLineEndings(string $data): array
     {
-        return preg_split("/(\r\n|\r|\n)/", $data);
+        $data = preg_split("/(\r\n|\r|\n)/", $data);
+        if ($data === false) {
+            return [];
+        }
+        return $data;
     }
 
     /**
@@ -409,5 +441,47 @@ class BagUtils
     public static function standardizePathSeparators(string $path): string
     {
         return str_replace('\\', '/', $path);
+    }
+
+    /**
+     * Utility function to trim and lowercase a string.
+     * @param string $string The string to standardize.
+     * @return string The standardized string.
+     */
+    public static function trimLower(string $string): string
+    {
+        return strtolower(trim($string));
+    }
+
+    /**
+     * Walk up a path as far as the rootDir and delete empty directories.
+     * @param string $path The path to check.
+     * @param string $rootDir The root to not remove .
+     *
+     * @throws BagItException If the path is not within the bag root.
+     * @throws FilesystemException If we can't remove a directory
+     */
+    public static function deleteEmptyDirTree(string $path, string $rootDir): void
+    {
+        if (rtrim(strtolower($path), '/') === rtrim(strtolower($rootDir), '/')) {
+            return;
+        }
+        if (!str_starts_with($path, $rootDir)) {
+            throw new BagItException("Path is not within the root directory.");
+        }
+        if (file_exists($path) && is_dir($path)) {
+            $parent = dirname($path);
+            $dir_files = scandir($path);
+            if ($dir_files === false) {
+                throw new FilesystemException("Unable to scan directory $parent");
+            }
+            $files = array_diff($dir_files, [".", ".."]);
+            if (count($files) === 0) {
+                self::checkedRmDir($path);
+            }
+            if ($parent !== $rootDir) {
+                self::deleteEmptyDirTree($parent, $rootDir);
+            }
+        }
     }
 }

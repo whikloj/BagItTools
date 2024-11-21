@@ -8,6 +8,9 @@ use Archive_Tar;
 use Normalizer;
 use whikloj\BagItTools\Exceptions\BagItException;
 use whikloj\BagItTools\Exceptions\FilesystemException;
+use whikloj\BagItTools\Exceptions\ProfileException;
+use whikloj\BagItTools\Profiles\BagItProfile;
+use whikloj\BagItTools\Profiles\ProfileFactory;
 use ZipArchive;
 
 /**
@@ -55,26 +58,6 @@ class Bag
     ];
 
     /**
-     * Reserved element names for Bag-info fields.
-     */
-    private const BAG_INFO_RESERVED_ELEMENTS = [
-        'source-organization',
-        'organization-address',
-        'contact-name',
-        'contact-phone',
-        'contact-email',
-        'external-description',
-        'bagging-date',
-        'external-identifier',
-        'payload-oxum',
-        'bag-size',
-        'bag-group-identifier',
-        'bag-count',
-        'internal-sender-identifier',
-        'internal-sender-description',
-    ];
-
-    /**
      * Fields you can't set because we generate them on $bag->update().
      */
     private const BAG_INFO_GENERATED_ELEMENTS = [
@@ -89,7 +72,7 @@ class Bag
      *
      * @see https://tools.ietf.org/html/rfc8493#section-2.4
      *
-     * @var array
+     * @var array<string, string>
      */
     private const HASH_ALGORITHMS = array(
         'md5' => 'md5',
@@ -112,25 +95,32 @@ class Bag
         'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9',
     ];
 
-    private const WINDOWS_PATH_CHARACTERS = [
-        '<', '>', ':', '"', '/', '|', '?', '*',
-    ];
-
     /**
      * Extensions which map to a tar file.
      */
     private const TAR_EXTENSIONS = [
-        'tar',
-        'tgz',
-        'tar.gz',
-        'tar.bz2',
+        '.tar',
+        '.tgz',
+        '.tar.gz',
+        '.tar.bz2',
     ];
 
     /**
      * Extensions which map to a zip file.
      */
     private const ZIP_EXTENSIONS = [
-        'zip',
+        '.zip',
+    ];
+
+    /**
+     * All the extensions in one array.
+     */
+    private const PACKAGE_EXTENSIONS = [
+        '.tar',
+        '.tgz',
+        '.tar.gz',
+        '.tar.bz2',
+        '.zip',
     ];
 
     /**
@@ -144,53 +134,58 @@ class Bag
     private const BAGINFO_AUTOWRAP_GUESS_LENGTH = 70;
 
     /**
-     * All the extensions in one array.
-     *
-     * @var array
+     * A map of some supported extensions to their serialization MIME types.
      */
-    private $packageExtensions;
+    private const SERIALIZATION_MAPPING = [
+        '.bz' => 'application/x-bzip',
+        '.bz2' => 'application/x-bzip2',
+        '.gz' => 'application/gzip',
+        '.tgz' => 'application/gzip',
+        '.tar' => 'application/x-tar',
+        '.zip' => 'application/zip',
+    ];
 
     /**
      * Array of current bag version with keys 'major' and 'minor'.
      *
-     * @var array
+     * @var array<string, int>
      */
-    private $currentVersion = self::DEFAULT_BAGIT_VERSION;
+    private array $currentVersion = self::DEFAULT_BAGIT_VERSION;
 
     /**
      * Current bag file encoding.
      *
      * @var string
      */
-    private $currentFileEncoding = self::DEFAULT_FILE_ENCODING;
+    private string $currentFileEncoding = self::DEFAULT_FILE_ENCODING;
 
     /**
      * Array of payload manifests.
      *
-     * @var array
+     * @var array<string, PayloadManifest>
      */
-    private $payloadManifests;
+    private array $payloadManifests;
 
     /**
      * Array of tag manifests.
      *
-     * @var array
+     * @var array<string, TagManifest>
      */
-    private $tagManifests;
+    private array $tagManifests;
 
     /**
      * List of relative file paths for all files.
      *
-     * @var array
+     * @var array<string>
      */
-    private $payloadFiles;
+    private array $payloadFiles;
 
     /**
      * Reference to a Fetch file or null if not used.
      *
-     * @var \whikloj\BagItTools\Fetch
+     * @var Fetch|null
      */
-    private $fetchFile = null;
+    private ?Fetch $fetchFile = null;
 
     /**
      * The absolute path to the root of the bag, all other file paths are
@@ -199,66 +194,78 @@ class Bag
      *
      * @var string
      */
-    private $bagRoot;
+    private string $bagRoot;
 
     /**
      * Is this an extended bag?
      *
      * @var boolean
      */
-    private $isExtended = false;
+    private bool $isExtended = false;
 
     /**
      * The valid algorithms from the current version of PHP filtered to those
      * supported by the BagIt specification. Stored to avoid extraneous calls
      * to hash_algos().
      *
-     * @var array
+     * @var array<string>
      */
-    private $validHashAlgorithms;
+    private array $validHashAlgorithms;
 
     /**
      * Errors when validating a bag.
      *
-     * @var array
+     * @var array<int, array<string, string>>
      */
-    private $bagErrors;
+    private array $bagErrors;
 
     /**
      * Warnings when validating a bag.
      *
-     * @var array
+     * @var array<int, array<string, string>>
      */
-    private $bagWarnings;
+    private array $bagWarnings;
 
     /**
      * Have we changed the bag and not written it to disk?
      *
-     * @var boolean
+     * @var bool
      */
-    private $changed = false;
+    private bool $changed = false;
 
     /**
      * Bag Info data.
      *
-     * @var array
+     * @var array<int, array<string, string>>
      */
-    private $bagInfoData = [];
+    private array $bagInfoData = [];
 
     /**
      * Unique array of all Bag info tags/values. Tags are stored once in lower case with an array of all instances
      * of values. This index does not save order.
      *
-     * @var array
+     * @var array<string, array<string>>
      */
-    private $bagInfoTagIndex = [];
+    private array $bagInfoTagIndex = [];
 
     /**
-     * Did we load this from disk.
+     * Did we load this from disk?
      *
      * @var boolean
      */
-    private $loaded;
+    private bool $loaded;
+
+    /**
+     * The serialization mime-type of the bag or null if not serialized.
+     * @var string|null
+     */
+    private ?string $serialization = null;
+
+    /**
+     * Array of BagIt profiles.
+     * @var array<string, BagItProfile>
+     */
+    private array $profiles = [];
 
     /**
      * Bag constructor.
@@ -267,15 +274,16 @@ class Bag
      *   The path of the root of the new or existing bag.
      * @param boolean $new
      *   Are we making a new bag?
+     * @param string|null $extension
+     *   The extension of the bag (if it was serialized) or null if not.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems accessing a file.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Bag directory exists for new bag or various issues for loading an existing bag.
      */
-    private function __construct(string $rootPath, bool $new = true)
+    private function __construct(string $rootPath, bool $new = true, ?string $extension = null)
     {
-        $this->packageExtensions = array_merge(self::TAR_EXTENSIONS, self::ZIP_EXTENSIONS);
         // Define valid hash algorithms our PHP supports.
         $this->validHashAlgorithms = array_filter(
             hash_algos(),
@@ -292,6 +300,7 @@ class Bag
         if ($new) {
             $this->createNewBag();
         } else {
+            $this->serialization = is_null($extension) ? null : $this->determineSerializationMimetype($extension);
             $this->loadBag();
         }
     }
@@ -301,9 +310,9 @@ class Bag
      *
      * @param  string $rootPath
      *   Path to the new bag, must not exist
-     * @return \whikloj\BagItTools\Bag
+     * @return Bag
      *   The bag.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   If we can't create the directory.
      */
     public static function create(string $rootPath): Bag
@@ -316,18 +325,22 @@ class Bag
      *
      * @param  string $rootPath
      *   Path to the existing bag.
-     * @return \whikloj\BagItTools\Bag
+     * @return Bag
      *   The bag object.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   If we can't read files in the bag.
      */
     public static function load(string $rootPath): Bag
     {
         $rootPath = BagUtils::getAbsolute($rootPath, true);
-        if (is_file($rootPath) && self::isCompressed($rootPath)) {
-            $rootPath = self::uncompressBag($rootPath);
+        $extension = null;
+        if (is_file($rootPath)) {
+            $extension = self::getExtension($rootPath);
+            if (self::hasExtension($extension, array_merge(self::ZIP_EXTENSIONS, self::TAR_EXTENSIONS))) {
+                $rootPath = self::uncompressBag($rootPath, $extension);
+            }
         }
-        return new Bag($rootPath, false);
+        return new Bag($rootPath, false, $extension);
     }
 
     /**
@@ -335,7 +348,7 @@ class Bag
      *
      * @return boolean
      *   True if the bag is valid
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Problems writing to disk.
      */
     public function isValid(): bool
@@ -346,12 +359,12 @@ class Bag
         }
         // Reload the bag from disk.
         $this->loadBag();
-        if (isset($this->fetchFile)) {
+        if ($this->hasFetchFile()) {
             $this->fetchFile->downloadAll();
             $this->mergeErrors($this->fetchFile->getErrors());
         }
         $manifests = array_values($this->payloadManifests);
-        if (is_array($this->tagManifests) && count($this->tagManifests) > 0) {
+        if (count($this->tagManifests) > 0) {
             // merge in the tag manifests so we can do them all at once.
             $manifests = array_merge($manifests, array_values($this->tagManifests));
         }
@@ -360,29 +373,23 @@ class Bag
             $this->mergeErrors($manifest->getErrors());
             $this->mergeWarnings($manifest->getWarnings());
         }
+        foreach ($this->profiles as $profile) {
+            try {
+                $profile->validateBag($this);
+            } catch (ProfileException $e) {
+                $this->addBagError(
+                    $profile->getProfileIdentifier(),
+                    $e->getMessage()
+                );
+            }
+        }
         return (count($this->bagErrors) == 0);
-    }
-
-    /**
-     * Validate the bag as it appears on disk.
-     *
-     * @return bool
-     *   True if bag is valid.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
-     *   If problems updating the bag.
-     * @deprecated 4.1.0 Name change of same function to better signify the boolean response
-     * @see \whikloj\BagItTools\Bag::isValid()
-     * @codeCoverageIgnore
-     */
-    public function validate(): bool
-    {
-        return $this->isValid();
     }
 
     /**
      * Write the updated BagIt files to disk.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Errors with writing files to disk.
      */
     public function update(): void
@@ -407,14 +414,14 @@ class Bag
     /**
      * This does cleanup functions related to packaging, for example deleting downloaded files referenced in fetch.txt
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues deleting files from filesystem.
      */
     public function finalize(): void
     {
         // Update files to ensure they are correct.
         $this->update();
-        if (isset($this->fetchFile)) {
+        if ($this->hasFetchFile()) {
             // Clean up fetch files downloaded to generate checksums.
             $this->fetchFile->cleanup();
         }
@@ -425,18 +432,21 @@ class Bag
      *
      * @param  string $filepath
      *   The full path to create the archive at.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
-     *   Problems creating the archive.
+     * @throws BagItException
+     *   Problems creating the archive or if Bag is not valid.
      */
     public function package(string $filepath): void
     {
-        if (!self::hasExtension($filepath, $this->packageExtensions)) {
+        if (!self::hasExtension(self::getExtension($filepath), self::PACKAGE_EXTENSIONS)) {
             throw new BagItException(
-                "Unknown archive type, the file extension must be one of (" .
-                implode(", ", $this->packageExtensions) . ")"
+                "Unknown archive type ($filepath), the file extension must be one of (" .
+                implode(", ", self::PACKAGE_EXTENSIONS) . ")"
             );
         }
         $this->finalize();
+        if (!$this->isValid()) {
+            throw new BagItException("Bag is not valid, cannot package.");
+        }
         $this->makePackage($filepath);
     }
 
@@ -448,9 +458,9 @@ class Bag
      * @param string $dest
      *   Relative path for the destination.
      *
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Source file does not exist or the destination is outside the data directory.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues writing to the filesystem.
      */
     public function addFile(string $source, string $dest): void
@@ -473,8 +483,8 @@ class Bag
             throw new BagItException("File $dest already exists in the bag.");
         }
         $dirname = dirname($fullDest);
-        if (substr($this->makeRelative($dirname), 0, 5) == "data/") {
-            // Create any missing missing directories inside data.
+        if (str_starts_with($this->makeRelative($dirname), "data/")) {
+            // Create any missing directories inside data.
             if (!file_exists($dirname)) {
                 BagUtils::checkedMkdir($dirname, 0777, true);
             }
@@ -488,8 +498,9 @@ class Bag
      *
      * @param string $dest
      *   The relative path of the file.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues deleting the file.
+     * @throws BagItException If the destination is outside the data directory.
      */
     public function removeFile(string $dest): void
     {
@@ -513,9 +524,9 @@ class Bag
      *   The contents of the file.
      * @param  string $dest
      *   The name of the file in the bag.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Generated source file does not exist or the destination is outside the data directory. Should not occur.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues creating/deleting temporary file.
      */
     public function createFile(string $string, string $dest): void
@@ -549,7 +560,7 @@ class Bag
         $components = array_filter(explode("/", $path));
         $rootComponents = array_filter(explode("/", $this->bagRoot));
         $components = array_merge($rootComponents, $components);
-        $prefix = (preg_match('/^[a-z]:/i', $rootComponents[0] ?? '', $matches) ? '' : '/');
+        $prefix = (preg_match('/^[a-z]:/i', $rootComponents[0] ?? '') ? '' : '/');
         return $prefix . implode('/', $components);
     }
 
@@ -575,7 +586,7 @@ class Bag
     /**
      * Return raw bag info data.
      *
-     * @return array
+     * @return array<int, array<string, string>>
      *   Bag Info data.
      */
     public function getBagInfoData(): array
@@ -593,7 +604,7 @@ class Bag
      */
     public function hasBagInfoTag(string $tag): bool
     {
-        $tag = self::trimLower($tag);
+        $tag = BagUtils::trimLower($tag);
         return $this->bagInfoTagExists($tag);
     }
 
@@ -602,12 +613,12 @@ class Bag
      *
      * @param  string $tag
      *   Bag info tag to locate
-     * @return array
+     * @return array<string>
      *   Array of values for the tag.
      */
     public function getBagInfoByTag(string $tag): array
     {
-        $tag = self::trimLower($tag);
+        $tag = BagUtils::trimLower($tag);
         return $this->bagInfoTagExists($tag) ? $this->bagInfoTagIndex[$tag] : [];
     }
 
@@ -619,7 +630,7 @@ class Bag
      */
     public function removeBagInfoTag(string $tag): void
     {
-        $tag = self::trimLower($tag);
+        $tag = BagUtils::trimLower($tag);
         if (!$this->bagInfoTagExists($tag)) {
             return;
         }
@@ -646,7 +657,7 @@ class Bag
         if ($index < 0) {
             return;
         }
-        $tag = self::trimLower($tag);
+        $tag = BagUtils::trimLower($tag);
         if (!$this->bagInfoTagExists($tag)) {
             return;
         }
@@ -657,7 +668,7 @@ class Bag
         $newInfo = [];
         $tagCount = 0;
         foreach ($this->bagInfoData as $row) {
-            $rowTag = self::trimLower($row['tag']);
+            $rowTag = BagUtils::trimLower($row['tag']);
             if ($rowTag !== $tag || $tagCount !== $index) {
                 $newInfo[] = $row;
             }
@@ -685,7 +696,7 @@ class Bag
         if (empty($tag) || empty($value)) {
             return;
         }
-        $tag = self::trimLower($tag);
+        $tag = BagUtils::trimLower($tag);
         if (!$this->hasBagInfoTag($tag)) {
             return;
         }
@@ -705,15 +716,13 @@ class Bag
      *   The tag to add.
      * @param  string $value
      *   The value to add.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   When you try to set an auto-generated tag value.
      */
     public function addBagInfoTag(string $tag, string $value): void
     {
-        if (!$this->isExtended) {
-            throw new BagItException("This bag is not extended, you need '\$bag->setExtended(true);'");
-        }
-        $internal_tag = self::trimLower($tag);
+        $this->setExtended(true);
+        $internal_tag = BagUtils::trimLower($tag);
         if (in_array($internal_tag, self::BAG_INFO_GENERATED_ELEMENTS)) {
             throw new BagItException("Field $tag is auto-generated and cannot be manually set.");
         }
@@ -723,18 +732,16 @@ class Bag
     /**
      * Add multiple bag info tags from an array.
      *
-     * @param array $tags
+     * @param array<string, string|array<string>> $tags
      *   Associative array of tag => value
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   When you try to set an auto-generated tag value.
      */
     public function addBagInfoTags(array $tags): void
     {
-        if (!$this->isExtended) {
-            throw new BagItException("This bag is not extended, you need '\$bag->setExtended(true);'");
-        }
+        $this->setExtended(true);
         $normalized_keys = array_keys($tags);
-        $normalized_keys = array_map('self::trimLower', $normalized_keys);
+        $normalized_keys = array_map('whikloj\BagItTools\BagUtils::trimLower', $normalized_keys);
         $overlap = array_intersect($normalized_keys, self::BAG_INFO_GENERATED_ELEMENTS);
         if (count($overlap) !== 0) {
             throw new BagItException(
@@ -747,13 +754,13 @@ class Bag
     /**
      * Internal function adding the values to the various tag arrays.
      *
-     * @param array $tags
+     * @param array<string, string|array<string>> $tags
      *   Associative array of tag => value
      */
     private function addBagInfoTagsInternal(array $tags): void
     {
         foreach ($tags as $key => $value) {
-            $internal_key = self::trimLower($key);
+            $internal_key = BagUtils::trimLower($key);
             if (!$this->bagInfoTagExists($internal_key)) {
                 $this->bagInfoTagIndex[$internal_key] = [];
             }
@@ -777,12 +784,12 @@ class Bag
      *
      * @param  string $encoding
      *   The MIME name of the character set to encode with.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   If we don't support the requested character set.
      */
     public function setFileEncoding(string $encoding): void
     {
-        $encoding = self::trimLower($encoding);
+        $encoding = BagUtils::trimLower($encoding);
         $charset = BagUtils::getValidCharset($encoding);
         if (is_null($charset)) {
             throw new BagItException("Character set $encoding is not supported.");
@@ -807,7 +814,7 @@ class Bag
     /**
      * Get the currently active payload (and tag) manifests.
      *
-     * @return array
+     * @return array<string>
      *   Internal hash names for current manifests.
      */
     public function getAlgorithms(): array
@@ -821,7 +828,7 @@ class Bag
      * @param string $hashAlgorithm
      *   The requested hash algorithms.
      *
-     * @return boolean Do we already have this payload manifest.
+     * @return bool Do we already have this payload manifest.
      */
     public function hasAlgorithm(string $hashAlgorithm): bool
     {
@@ -834,7 +841,7 @@ class Bag
      *
      * @param  string $algorithm
      *   The requested hash algorithm
-     * @return boolean
+     * @return bool
      *   Whether it is supported by our PHP.
      */
     public function algorithmIsSupported(string $algorithm): bool
@@ -848,7 +855,7 @@ class Bag
      *
      * @param  string $algorithm
      *   Algorithm to add.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Asking for an unsupported algorithm.
      */
     public function addAlgorithm(string $algorithm): void
@@ -874,7 +881,7 @@ class Bag
      *
      * @param  string $algorithm
      *   Algorithm to remove
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Trying to remove the last algorithm or asking for an unsupported algorithm.
      */
     public function removeAlgorithm(string $algorithm): void
@@ -906,9 +913,9 @@ class Bag
      *
      * @param  string $algorithm
      *   Algorithm to use.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems removing/reading/
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Asking for an unsupported algorithm.
      */
     public function setAlgorithm(string $algorithm): void
@@ -923,19 +930,19 @@ class Bag
     /**
      * Replaces any existing hash algorithms with the ones requested.
      *
-     * @param array $algorithms
+     * @param array<string> $algorithms
      *   Array of algorithms to use.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems removing/reading/creating the new payload/tag manifest files.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   If an unsupported algorithm is provided.
      */
     public function setAlgorithms(array $algorithms): void
     {
-        $internal_names = array_map('self::getHashName', $algorithms);
+        $internal_names = array_map(self::class . '::getHashName', $algorithms);
         $valid_algorithms = array_filter($internal_names, [$this, 'hashIsSupported']);
         if (count($valid_algorithms) !== count($algorithms)) {
-            throw new BagItException("One or more of the algorithms provided are supported.");
+            throw new BagItException("One or more of the algorithms provided are NOT supported.");
         }
         $this->setAlgorithmsInternal($valid_algorithms);
     }
@@ -943,9 +950,9 @@ class Bag
     /**
      * Internal utility to remove all algorithms not specified and add any missing.
      *
-     * @param array $algorithms
+     * @param array<string> $algorithms
      *   Array of algorithms using their internal names.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Errors
      */
     private function setAlgorithmsInternal(array $algorithms): void
@@ -977,37 +984,38 @@ class Bag
      *   The destination path in the bag.
      * @param  null|int $size
      *   Size of the file to be stored in the fetch file, if desired.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   On errors adding the file.
      */
-    public function addFetchFile(string $url, string $destination, int $size = null)
+    public function addFetchFile(string $url, string $destination, ?int $size = null): void
     {
-        if (!isset($this->fetchFile)) {
+        if (!$this->hasFetchFile()) {
             $this->fetchFile = new Fetch($this, false);
         }
         $this->fetchFile->addFile($url, $destination, $size);
+        $this->setExtended(true);
         $this->changed = true;
     }
 
     /**
-     * Return the fetch file data, an array of arrays with keys 'url', 'destination' and (optionally) 'size'.
+     * Return the fetch file data, an array of DownloadFile objects.
      *
-     * @return array
+     * @return array<int, DownloadFile>
      */
     public function listFetchFiles(): array
     {
-        return (!isset($this->fetchFile) ? [] : $this->fetchFile->getData());
+        return (!$this->hasFetchFile() ? [] : $this->fetchFile->getData());
     }
 
     /**
      * Wipe the fetch file data
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues deleting files/directories from the filesystem.
      */
     public function clearFetch(): void
     {
-        if (isset($this->fetchFile)) {
+        if ($this->hasFetchFile()) {
             $this->fetchFile->clearData();
             unset($this->fetchFile);
             $this->changed = true;
@@ -1019,21 +1027,29 @@ class Bag
      *
      * @param string $url
      *   The url to delete.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems deleting the file.
      */
     public function removeFetchFile(string $url): void
     {
-        if (isset($this->fetchFile)) {
+        if ($this->hasFetchFile()) {
             $this->fetchFile->removeFile($url);
             $this->changed = true;
         }
     }
 
     /**
+     * @return bool Does the bag have a fetch file?
+     */
+    public function hasFetchFile(): bool
+    {
+        return isset($this->fetchFile);
+    }
+
+    /**
      * Get the current version array or default if not specified.
      *
-     * @return array
+     * @return array<string, int>
      *   Current version.
      */
     public function getVersion(): array
@@ -1078,7 +1094,7 @@ class Bag
     /**
      * Check the bag's extended status.
      *
-     * @return boolean
+     * @return bool
      *   Does the bag use extended features?
      */
     public function isExtended(): bool
@@ -1089,7 +1105,7 @@ class Bag
     /**
      * Turn extended bag features on or off.
      *
-     * @param boolean $extBag
+     * @param bool $extBag
      *   Whether the bag should be extended or not.
      */
     public function setExtended(bool $extBag): void
@@ -1103,7 +1119,7 @@ class Bag
     /**
      * Get errors on the bag.
      *
-     * @return array
+     * @return array<array<string, string>>
      *   The errors.
      */
     public function getErrors(): array
@@ -1114,7 +1130,7 @@ class Bag
     /**
      * Get any warnings related to the bag.
      *
-     * @return array
+     * @return array<array<string, string>>
      *   The warnings.
      */
     public function getWarnings(): array
@@ -1125,7 +1141,7 @@ class Bag
     /**
      * Get the payload manifests as an associative array with hash algorithm as key.
      *
-     * @return array
+     * @return array<string, PayloadManifest>
      *   hash algorithm => Payload manifests
      */
     public function getPayloadManifests(): array
@@ -1136,12 +1152,12 @@ class Bag
     /**
      * Get the tag manifests as an associative array with hash algorithm as key.
      *
-     * @return array|null
+     * @return array<string, TagManifest>|null
      *   hash algorithm => Tag manifests or null if not an extended bag.
      */
     public function getTagManifests(): ?array
     {
-        return ($this->tagManifests ?? null);
+        return $this->tagManifests ?? null;
     }
 
     /**
@@ -1182,7 +1198,7 @@ class Bag
     {
         $external = $this->makeAbsolute($filepath);
         $relative = $this->makeRelative($external);
-        return ($relative !== "" && substr($relative, 0, 5) === "data/");
+        return $relative !== "" && str_starts_with($relative, "data/");
     }
 
 
@@ -1192,25 +1208,23 @@ class Bag
      *
      * @param string $path
      *   The file just deleted.
+     * @throws FilesystemException If we can't delete the directory.
+     * @throws BagItException If the directory is outside the data directory.
      */
     public function checkForEmptyDir(string $path): void
     {
         $parentPath = dirname($path);
-        if (substr($this->makeRelative($parentPath), 0, 5) == "data/") {
-            $files = scandir($parentPath);
-            $payload = array_diff($files, [".", ".."]);
-            if (count($payload) == 0) {
-                rmdir($parentPath);
-            }
+        if (str_starts_with($this->makeRelative($parentPath), "data/")) {
+            BagUtils::deleteEmptyDirTree($parentPath, $this->getDataDirectory());
         }
     }
 
     /**
      * Upgrade an older bag to comply with the 1.0 specification.
      *
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   If the bag cannot be upgraded for some reason.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues writing files to the filesystem.
      */
     public function upgrade(): void
@@ -1233,14 +1247,160 @@ class Bag
         $this->update();
     }
 
+    /**
+     * Add a special tag file to the bag.
+     * @param string $source Full path to the tag file.
+     * @param string $dest Relative path for the destination.
+     *
+     * @throws BagItException Various errors related to the source and destination locations and access.
+     * @throws FilesystemException Issues reading from or writing to the filesystem.
+     */
+    public function addTagFile(string $source, string $dest): void
+    {
+        if (!file_exists($source) || !is_file($source) || !is_readable($source)) {
+            throw new BagItException("$source does not exist, is not a file or is not readable.");
+        }
+        $this->checkTagFileConstraints($dest);
+        $external = $this->makeAbsolute($dest);
+        if (file_exists($external)) {
+            throw new BagItException("Tag file ($dest) already exists in the bag.");
+        }
+        $this->setExtended(true);
+        $parentDirs = dirname($external);
+        if ($parentDirs !== $this->getBagRoot() && !file_exists($parentDirs)) {
+            // Create any missing tag file directories.
+            BagUtils::checkedMkdir($parentDirs, 0777, true);
+        }
+        BagUtils::checkedCopy($source, $external);
+        $this->changed = true;
+    }
+
+    /**
+     * Remove a tag file and any empty directories it leaves behind.
+     * @param string $dest The relative path to the tag file.
+     * @return void
+     * @throws BagItException If the file does not exist, is not inside the bag root or is a reserved file.
+     * @throws FilesystemException If there are issues deleting the file or directories.
+     */
+    public function removeTagFile(string $dest): void
+    {
+        $this->checkTagFileConstraints($dest);
+        $external = $this->makeAbsolute($dest);
+        if (!file_exists($external)) {
+            throw new BagItException("Tag file ($dest) does not exist in the bag.");
+        }
+        BagUtils::checkedUnlink($external);
+        BagUtils::deleteEmptyDirTree(dirname($external), $this->getBagRoot());
+        $this->changed = true;
+    }
+
+    /**
+     * @return string|null The serialization format if the bag was loaded from a serialized format or null.
+     */
+    public function getSerializationMimeType(): ?string
+    {
+        return $this->serialization;
+    }
+
+    /**
+     * @return array<string, BagItProfile> The profiles that have been added to the bag.
+     */
+    public function getBagProfiles(): array
+    {
+        return $this->profiles;
+    }
+
+    /**
+     * Add a profile to the bag.
+     * @param string $url The URL to the profile.
+     * @throws Exceptions\ProfileException If the profile cannot be loaded or parsed.
+     */
+    public function addBagProfileByURL(string $url): void
+    {
+        $this->addBagProfileInternal(ProfileFactory::generateProfileFromUri($url));
+    }
+
+    /**
+     * Add a profile to the bag.
+     * @param string $json The JSON representation of the profile.
+     * @throws Exceptions\ProfileException If the profile cannot be parsed.
+     */
+    public function addBagProfileByJson(string $json): void
+    {
+        $this->addBagProfileInternal(BagItProfile::fromJson($json));
+    }
+
+    /**
+     * Remove a profile from the bag.
+     * @param string $profileId The identifier of the profile to remove.
+     */
+    public function removeBagProfile(string $profileId): void
+    {
+        if (array_key_exists($profileId, $this->profiles)) {
+            unset($this->profiles[$profileId]);
+            $this->changed = true;
+        }
+    }
+
+    /**
+     * Clear all profiles from the bag.
+     */
+    public function clearAllProfiles(): void
+    {
+        if (count($this->profiles) > 0) {
+            $this->profiles = [];
+            $this->changed = true;
+        }
+    }
+
     /*
      *  XXX: Private functions
      */
 
     /**
+     * Add a profile to the bag if it doesn't already exist.
+     * @param BagItProfile $profile The profile to add.
+     */
+    private function addBagProfileInternal(BagItProfile $profile): void
+    {
+        if (!array_key_exists($profile->getProfileIdentifier(), $this->profiles)) {
+            $this->setExtended(true);
+            $this->profiles[$profile->getProfileIdentifier()] = $profile;
+            $this->changed = true;
+        }
+    }
+
+    /**
+     * Common checks for interactions with custom tag files.
+     * @param string $tagFilePath The relative path to the tag file.
+     * @return void
+     * @throws BagItException If the tag file is not in the bag root, is in the data directory, or is a reserved file.
+     */
+    private function checkTagFileConstraints(string $tagFilePath): void
+    {
+        $external = $this->makeAbsolute($tagFilePath);
+        $relativePath = $this->makeRelative($external);
+        if ($relativePath === "") {
+            throw new BagItException("Tag files must be inside the bag root.");
+        }
+        if (str_starts_with(strtolower($relativePath), "data/")) {
+            throw new BagItException("Tag files must be in the bag root or a tag file directory, " .
+                "use ->addFile() to add data files.");
+        }
+        if (in_array(strtolower($relativePath), ['bagit.txt', 'bag-info.txt', 'fetch.txt'])) {
+            throw new BagItException("You cannot alter reserved file ($tagFilePath) file with your own tag file.");
+        } elseif (
+            str_starts_with(strtolower($relativePath), 'tagmanifest-') ||
+            str_starts_with(strtolower($relativePath), 'manifest-')
+        ) {
+            throw new BagItException("You cannot alter a manifest or tag manifest file with your own tag file.");
+        }
+    }
+
+    /**
      * Load a bag from disk.
      *
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   If a file cannot be read.
      */
     private function loadBag(): void
@@ -1265,9 +1425,9 @@ class Bag
     /**
      * Create a new bag and output the default parts.
      *
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   If the bag root directory already exists.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems writing to the filesystem.
      */
     private function createNewBag(): void
@@ -1296,7 +1456,7 @@ class Bag
     /**
      * Update a fetch.txt if it exists.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      */
     private function updateFetch(): void
     {
@@ -1314,8 +1474,9 @@ class Bag
      * @return bool
      *   Does bag-info.txt exists.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Unable to read bag-info.txt
+     * @throws ProfileException Unable to load or parse the BagIt profile.
      */
     private function loadBagInfo(): bool
     {
@@ -1338,17 +1499,20 @@ class Bag
             }
             $line = $this->decodeText($line) . PHP_EOL;
             $lineLength = strlen($line);
-            if (substr($line, 0, 2) === "  " || $line[0] == "\t") {
+            if (str_starts_with($line, "  ") || str_starts_with($line, "\t")) {
                 // Continuation of a line
                 if (count($bagData) > 0) {
                     $previousValue = $bagData[count($bagData) - 1]['value'];
                     // Add a space only if the previous character was not a line break.
-                    $lastChar = substr($previousValue, -1);
+                    $lastCharIsNewline = str_ends_with($previousValue, "\n") ||
+                        str_ends_with($previousValue, "\r");
                     if ($lineLength >= Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
                         // Line is max length or longer, should be autowrapped
                         $previousValue = rtrim($previousValue, "\r\n");
                     }
-                    $previousValue .= ($lastChar != "\r" && $lastChar != "\n" ? " " : "");
+                    // If the line was too long but had no spaces, it would end up with a previous value of nothing.
+                    // That would cause a space to be added to the beginning of the next line.
+                    $previousValue .= ($lastCharIsNewline || $previousValue == "") ? "" : " ";
                     $previousValue .= Bag::trimSpacesOnly($line);
                     $bagData[count($bagData) - 1]['value'] = $previousValue;
                 } else {
@@ -1378,7 +1542,7 @@ class Bag
                     );
                 }
                 $value = $matches[4];
-                if ($lineLength < Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH) {
+                if ($lineLength < Bag::BAGINFO_AUTOWRAP_GUESS_LENGTH && $value !== "") {
                     // Shorter line, re-add the newline removed by the preg_match.
                     $value .= PHP_EOL;
                 }
@@ -1397,20 +1561,12 @@ class Bag
         $this->bagInfoData = $bagData;
 
         $this->updateBagInfoIndex();
+        if ($this->hasBagInfoTag(BagItProfile::BAGIT_PROFILE_IDENTIFIER)) {
+            foreach ($this->getBagInfoByTag(BagItProfile::BAGIT_PROFILE_IDENTIFIER) as $profile) {
+                $this->addBagProfileByURL($profile);
+            }
+        }
         return true;
-    }
-
-    /**
-     * Return a trimmed and lowercase version of text.
-     *
-     * @param  string $text
-     *   The original text.
-     * @return string
-     *   The lowercase trimmed text.
-     */
-    private static function trimLower(string $text): string
-    {
-        return trim(strtolower($text));
     }
 
     /**
@@ -1432,7 +1588,7 @@ class Bag
     {
         $tags = [];
         foreach ($this->bagInfoData as $row) {
-            $tagName = self::trimLower($row['tag']);
+            $tagName = BagUtils::trimLower($row['tag']);
             if (!array_key_exists($tagName, $tags)) {
                 $tags[$tagName] = [];
             }
@@ -1442,7 +1598,7 @@ class Bag
     }
 
     /**
-     * Internal case insensitive search of bag info.
+     * Internal case-insensitive search of bag info.
      *
      * @param  string $internal_tag
      *   Trimmed and lowercase tag.
@@ -1457,7 +1613,7 @@ class Bag
     /**
      * Write the contents of the bag-info array to disk.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues writing the file to disk.
      */
     private function updateBagInfo(): void
@@ -1490,7 +1646,7 @@ class Bag
     {
         $newInfo = [];
         foreach ($this->bagInfoData as $row) {
-            if (in_array(self::trimLower($row['tag']), self::BAG_INFO_GENERATED_ELEMENTS)) {
+            if (in_array(BagUtils::trimLower($row['tag']), self::BAG_INFO_GENERATED_ELEMENTS)) {
                 continue;
             }
             $newInfo[] = $row;
@@ -1536,7 +1692,7 @@ class Bag
     /**
      * Remove the bag-info.txt file and data.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Unable to delete the bag-info.txt file.
      */
     private function removeBagInfo(): void
@@ -1551,7 +1707,7 @@ class Bag
     /**
      * Calculate the total file size and amount of files of all payload files.
      *
-     * @return array|null
+     * @return array<string, int>|null
      *   The total file size and amount of all files or
      *   null if we couldn't read all the file sizes.
      */
@@ -1563,10 +1719,10 @@ class Bag
             $fullPath = $this->makeAbsolute($file);
             if (file_exists($fullPath) && is_file($fullPath)) {
                 $info = stat($fullPath);
-                if (!isset($info[7])) {
+                if (!isset($info["size"])) {
                     return null;
                 }
-                $total_size += (int) $info[7];
+                $total_size += (int) $info["size"];
                 $total_files += 1;
             }
         }
@@ -1581,7 +1737,7 @@ class Bag
      *
      * @param  string $text
      *   The whole tag and value as one.
-     * @return array
+     * @return array<string>
      *   The text as an array.
      */
     private static function wrapBagInfoText(string $text): array
@@ -1617,7 +1773,7 @@ class Bag
      *   The text to wrap.
      * @param  int    $length
      *   The length to wrap at.
-     * @return array
+     * @return array<string>
      *   Rows of text.
      */
     private static function wrapAtLength(string $text, int $length): array
@@ -1630,10 +1786,10 @@ class Bag
     /**
      * Load all tag manifests (if any).
      *
-     * @return boolean
+     * @return bool
      *   Are there any tag manifest files.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems with glob() pattern or loading manifest.
      */
     private function loadTagManifests(): bool
@@ -1673,7 +1829,7 @@ class Bag
     /**
      * Run update against the tag manifests.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues deleting the tag manifest files.
      */
     private function updateTagManifests(): void
@@ -1683,8 +1839,7 @@ class Bag
         }
         $this->clearTagManifests();
         $this->ensureTagManifests();
-        $hashes = (is_array($this->payloadManifests) ? $this->payloadManifests :
-            [self::DEFAULT_HASH_ALGORITHM => ""]);
+        $hashes = $this->payloadManifests ?? [self::DEFAULT_HASH_ALGORITHM => ""];
         $hashes = array_diff_key($hashes, $this->tagManifests);
         foreach (array_keys($hashes) as $hash) {
             $this->tagManifests[$hash] = new TagManifest($this, $hash);
@@ -1697,7 +1852,7 @@ class Bag
     /**
      * Remove all tagmanifest files.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *    Errors with glob() pattern or deleting files from filesystem.
      */
     private function clearTagManifests(): void
@@ -1710,9 +1865,9 @@ class Bag
     /**
      * Remove tag manifests.
      *
-     * @param array $exclusions
+     * @param array<string> $exclusions
      *   Hash algorithm names of manifests to preserve.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues deleting files from the filesystem.
      */
     private function removeAllTagManifests(array $exclusions = []): void
@@ -1732,7 +1887,7 @@ class Bag
      *
      * @param string $internal_name
      *   The hash name to remove.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems deleting the tag manifest file.
      */
     private function removeTagManifest(string $internal_name): void
@@ -1748,9 +1903,9 @@ class Bag
     /**
      * Load all payload manifests found on disk.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems with glob() pattern
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Invalid algorithm detected.
      */
     private function loadPayloadManifests(): void
@@ -1789,7 +1944,7 @@ class Bag
     /**
      * Run update against the payload manifests.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues deleting payload manifest files.
      */
     private function updatePayloadManifests(): void
@@ -1811,7 +1966,7 @@ class Bag
     /**
      * Remove all manifest files.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *    Errors with glob() pattern.
      */
     private function clearPayloadManifests(): void
@@ -1823,9 +1978,9 @@ class Bag
     /**
      * Remove payload manifests.
      *
-     * @param array $exclusions
+     * @param array<string> $exclusions
      *   Hash algorithm names of manifests to preserve.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues deleting a file.
      */
     private function removeAllPayloadManifests(array $exclusions = []): void
@@ -1842,7 +1997,7 @@ class Bag
      *
      * @param string $internal_name
      *   The hash name to remove.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues deleting the payload manifest file.
      */
     private function removePayloadManifest(string $internal_name): void
@@ -1858,7 +2013,7 @@ class Bag
     /**
      * Load the bagit.txt on disk.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Can't read the file on disk.
      */
     private function loadBagIt(): void
@@ -1896,7 +2051,7 @@ class Bag
         }
         if (
             !preg_match(
-                "~^BagIt\-Version: (\d+)\.(\d+)$~",
+                "~^BagIt-Version: (\d+)\.(\d+)$~",
                 $lines[0],
                 $match
             )
@@ -1907,13 +2062,13 @@ class Bag
             );
         } else {
             $this->currentVersion = [
-                'major' => $match[1],
-                'minor' => $match[2],
+                'major' => (int)$match[1],
+                'minor' => (int)$match[2],
             ];
         }
         if (
             !preg_match(
-                "~^Tag\-File\-Character\-Encoding: (.*)$~",
+                "~^Tag-File-Character-Encoding: (.*)$~",
                 $lines[1],
                 $match
             )
@@ -1931,7 +2086,7 @@ class Bag
     /**
      * Update the bagit.txt on disk.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues putting contents to the file.
      */
     private function updateBagIt(): void
@@ -1958,7 +2113,7 @@ class Bag
     /**
      * Load a fetch.txt if it exists.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Unable to read fetch.txt for existing bag.
      */
     private function loadFetch(): void
@@ -1975,16 +2130,17 @@ class Bag
      *
      * @param  string $filename
      *   The archive filename.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems creating the archive.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Unable to determine archive format.
      */
     private function makePackage(string $filename): void
     {
-        if (self::hasExtension($filename, self::ZIP_EXTENSIONS)) {
+        $extension = self::getExtension($filename);
+        if (self::hasExtension($extension, self::ZIP_EXTENSIONS)) {
             $this->makeZip($filename);
-        } elseif (self::hasExtension($filename, self::TAR_EXTENSIONS)) {
+        } elseif (self::hasExtension($extension, self::TAR_EXTENSIONS)) {
             $this->makeTar($filename);
         } else {
             throw new BagItException("Unable to determine archive format.");
@@ -1996,7 +2152,7 @@ class Bag
      *
      * @param  string $filename
      *   The archive filename.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems creating the archive.
      */
     private function makeZip(string $filename): void
@@ -2020,16 +2176,13 @@ class Bag
      *
      * @param  string $filename
      *   The archive filename.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems creating the archive.
      */
     private function makeTar(string $filename): void
     {
         $compression = self::extensionTarCompression($filename);
         $tar = new Archive_Tar($filename, $compression);
-        if ($tar === false) {
-            throw new FilesystemException("Error creating Tar file.");
-        }
         $parent = $this->getParentDir();
         $files = BagUtils::getAllFiles($this->bagRoot);
         if (!$tar->createModify($files, "", $parent)) {
@@ -2051,23 +2204,25 @@ class Bag
     /**
      * Uncompress a BagIt archive file.
      *
-     * @param  string $filepath
+     * @param string $filepath
      *   The full path to the archive file.
+     * @param string $extension
+     *   The extension to the archive file.
      * @return string
      *   The full path to extracted bag.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems accessing and/or uncompressing files on filesystem.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Unable to determine correct archive format or file does not exist.
      */
-    private static function uncompressBag(string $filepath): string
+    private static function uncompressBag(string $filepath, string $extension): string
     {
         if (!file_exists($filepath)) {
             throw new BagItException("File $filepath does not exist.");
         }
-        if (self::hasExtension($filepath, self::ZIP_EXTENSIONS)) {
+        if (self::hasExtension($extension, self::ZIP_EXTENSIONS)) {
             $directory = self::unzipBag($filepath);
-        } elseif (self::hasExtension($filepath, self::TAR_EXTENSIONS)) {
+        } elseif (self::hasExtension($extension, self::TAR_EXTENSIONS)) {
             $directory = self::untarBag($filepath);
         } else {
             throw new BagItException("Unable to determine archive format.");
@@ -2083,14 +2238,14 @@ class Bag
      *   The full path to the zip file.
      * @return string
      *   The path the archive file was extracted to.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems extracting the zip file.
      */
     private static function unzipBag(string $filename): string
     {
         $zip = new ZipArchive();
         $res = $zip->open($filename);
-        if ($res === false) {
+        if ($res !== true) {
             throw new FilesystemException("Unable to unzip $filename");
         }
         $directory = self::extractDir();
@@ -2106,7 +2261,7 @@ class Bag
      *   The fullpath to the tar file.
      * @return string
      *   The path the archive file was extracted to.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems extracting the zip file.
      */
     private static function untarBag(string $filename): string
@@ -2116,7 +2271,12 @@ class Bag
         $tar = new Archive_Tar($filename, $compression);
         $res = $tar->extract($directory);
         if ($res === false) {
-            throw new FilesystemException("Unable to untar $filename");
+            $error = $tar->error_object;
+            $mesg = "Unable to untar $filename";
+            if (is_object($error) && get_class($error) === 'PEAR_Error') {
+                $mesg .= " : " . $error->getMessage();
+            }
+            throw new FilesystemException($mesg);
         }
         return $directory;
     }
@@ -2132,8 +2292,12 @@ class Bag
     private static function extensionTarCompression(string $filename): ?string
     {
         $filename = strtolower(basename($filename));
-        return (substr($filename, -3) == 'bz2' ? 'bz2' : (substr($filename, -2) == 'gz' ? 'gz' :
-            null));
+        if (str_ends_with($filename, '.bz2')) {
+            return 'bz2';
+        } elseif (str_ends_with($filename, '.gz') || str_ends_with($filename, '.tgz')) {
+            return 'gz';
+        }
+        return null;
     }
 
     /**
@@ -2141,7 +2305,7 @@ class Bag
      *
      * @return string
      *   The path to a new temporary directory.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Issues creating/deleting files on filesystem.
      */
     private static function extractDir(): string
@@ -2153,44 +2317,52 @@ class Bag
     }
 
     /**
-     * Test a filepath to see if we think it is compressed.
+     * Determine whether the given file extensions ends with an accepted extensions
      *
-     * @param  string $filepath
-     *   The full path
-     * @return bool
-     *   True if compressed file (we support).
-     */
-    private static function isCompressed(string $filepath): bool
-    {
-        return self::hasExtension(
-            $filepath,
-            array_merge(
-                self::ZIP_EXTENSIONS,
-                self::TAR_EXTENSIONS
-            )
-        );
-    }
-
-    /**
-     * Retrieve whether the given filepath has one of the extensions
-     *
-     * @param  string $filepath
-     *   The full file path.
-     * @param  array $extensions
+     * @param  string|null $file_extension
+     *   The file extensions.
+     * @param  array<string> $extensions
      *   The list of extensions to check.
      * @return bool
      *   The list of extensions or an empty array.
      */
-    private static function hasExtension(string $filepath, array $extensions): bool
+    private static function hasExtension(?string $file_extension, array $extensions): bool
     {
-        $filename = strtolower(basename($filepath));
+        if (is_null($file_extension)) {
+            return false;
+        }
         foreach ($extensions as $extension) {
-            $extension = ".$extension";
-            if (substr($filename, -strlen($extension)) === $extension) {
+            // Need to loop and check each to avoid failing on foo.tmp.tar.gz or bar.old.zip
+            if (str_ends_with($file_extension, $extension)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Retrieve all the extensions of the given filepath.
+     *
+     * @param  string $filepath
+     *   The full file path.
+     * @return string|null
+     *   The extension or null if not found.
+     */
+    private static function getExtension(string $filepath): ?string
+    {
+        $filename = strtolower(basename($filepath));
+        $pathinfo = pathinfo($filename);
+        $extensions = [];
+        $extensions[] = $pathinfo['extension'] ?? null;
+        while (strpos($pathinfo['filename'], ".") > -1) {
+            $pathinfo = pathinfo($pathinfo['filename']);
+            $extensions[] = $pathinfo['extension'] ?? null;
+        }
+        $extensions = array_filter($extensions);
+        if (count($extensions) > 0) {
+            return "." . ltrim(implode(".", array_reverse($extensions)), ".\ \n\r\t\v\0");
+        }
+        return null;
     }
 
     /**
@@ -2200,12 +2372,16 @@ class Bag
      *   The temporary directory.
      * @return string
      *   The bag directory.
-     * @throws \whikloj\BagItTools\Exceptions\BagItException
+     * @throws BagItException
      *   Find more or less than one directory (not including . and ..)
      */
     private static function getDirectory(string $filepath): string
     {
-        $files = array_diff(scandir($filepath), [".", ".."]);
+        $dir_files = scandir($filepath);
+        if ($dir_files === false) {
+            throw new BagItException("Unable to read directory $filepath");
+        }
+        $files = array_diff($dir_files, [".", ".."]);
         $dirs = [];
         if (count($files) > 0) {
             foreach ($files as $file) {
@@ -2226,7 +2402,7 @@ class Bag
      *
      * @param  string $filePattern
      *   The file pattern.
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Problems matching or deleting files.
      */
     private function clearFilesOfPattern(string $filePattern): void
@@ -2309,7 +2485,7 @@ class Bag
      */
     public static function getHashName(string $algorithm): string
     {
-        $algorithm = Bag::trimLower($algorithm);
+        $algorithm = BagUtils::trimLower($algorithm);
         $algorithm = preg_replace("/[^a-z0-9]/", "", $algorithm);
         return in_array($algorithm, array_keys(Bag::HASH_ALGORITHMS)) ? $algorithm : "";
     }
@@ -2334,7 +2510,7 @@ class Bag
      *   Output of getHashName
      * @return boolean
      *   Do we support the algorithm
-     * @see \whikloj\BagItTools\Bag::getHashName()
+     * @see Bag::getHashName
      */
     private function hashIsSupported(string $internal_name): bool
     {
@@ -2345,11 +2521,11 @@ class Bag
      * Case-insensitive version of array_key_exists
      *
      * @param  string     $search The key to look for.
-     * @param  string|int $key    The associative or numeric key to look in.
-     * @param  array      $map    The associative array to search.
-     * @return boolean True if the key exists regardless of case.
+     * @param int|string $key    The associative or numeric key to look in.
+     * @param  array<int, array<string, string>>  $map    The associative array to search.
+     * @return bool True if the key exists regardless of case.
      */
-    private static function arrayKeyExistsNoCase(string $search, $key, array $map): bool
+    private static function arrayKeyExistsNoCase(string $search, int|string $key, array $map): bool
     {
         $keys = array_column($map, $key);
         array_walk(
@@ -2365,9 +2541,9 @@ class Bag
      * Check that the key is not non-repeatable and already in the bagInfo.
      *
      * @param string $key The key being added.
-     * @param array $bagData The current bag data.
+     * @param array<int, array<string, string>> $bagData The current bag data.
      *
-     * @return boolean
+     * @return bool
      *   True if the key is non-repeatable and already in the
      */
     private static function mustNotRepeatBagInfoExists(string $key, array $bagData): bool
@@ -2380,9 +2556,9 @@ class Bag
      * Check that the key is not non-repeatable and already in the bagInfo.
      *
      * @param string $key The key being added.
-     * @param array $bagData The current bag data.
+     * @param array<int, array<string, string>> $bagData The current bag data.
      *
-     * @return boolean
+     * @return bool
      *   True if the key is non-repeatable and already in the
      */
     private static function shouldNotRepeatBagInfoExists(string $key, array $bagData): bool
@@ -2401,7 +2577,7 @@ class Bag
     private static function determineHashFromFilename(string $filepath): ?string
     {
         $filename = basename($filepath);
-        return preg_match('~\-([a-z0-9]+)\.txt$~', $filename, $matches) ? $matches[1] : null;
+        return preg_match('~-([a-z0-9]+)\.txt$~', $filename, $matches) ? $matches[1] : null;
     }
 
 
@@ -2435,7 +2611,7 @@ class Bag
     /**
      * Utility to merge manifest and fetch errors into the bag errors.
      *
-     * @param array $newErrors
+     * @param array<array<string, string>> $newErrors
      *   The new errors to be added.
      */
     private function mergeErrors(array $newErrors): void
@@ -2446,11 +2622,27 @@ class Bag
     /**
      * Utility to merge manifest and fetch warnings into the bag warnings.
      *
-     * @param array $newWarnings
+     * @param array<array<string, string>> $newWarnings
      *   The new warnings to be added.
      */
     private function mergeWarnings(array $newWarnings): void
     {
         $this->bagWarnings = array_merge($this->bagWarnings, $newWarnings);
+    }
+
+    /**
+     * Determine the serialization mimetype from the extension.
+     * @param string $fileExtension The extension.
+     * @return string The serialization mimetype.
+     * @throws BagItException If the serialization mimetype cannot be determined.
+     */
+    private function determineSerializationMimetype(string $fileExtension): string
+    {
+        foreach (self::SERIALIZATION_MAPPING as $extension => $mimetype) {
+            if (str_ends_with($fileExtension, $extension)) {
+                return $mimetype;
+            }
+        }
+        throw new BagItException("Unable to determine serialization mimetype for extension ($fileExtension).");
     }
 }

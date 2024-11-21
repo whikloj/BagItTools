@@ -57,7 +57,7 @@ class BagTest extends BagItTestFramework
         mkdir($this->tmpdir);
         $newDir = $this->tmpdir . "/some-new-dir";
         $this->assertDirectoryDoesNotExist($newDir);
-        $curr = getcwd();
+        $curr = self::getCwd();
         chdir($this->tmpdir);
         $bag = Bag::create("some-new-dir");
         $this->assertTrue($bag->isValid());
@@ -75,7 +75,7 @@ class BagTest extends BagItTestFramework
         mkdir($this->tmpdir);
         $newDir = $this->tmpdir . "/some-new-dir";
         $this->assertDirectoryDoesNotExist($newDir);
-        $curr = getcwd();
+        $curr = self::getCwd();
         chdir($this->tmpdir);
         $bag = Bag::create("./some-new-dir");
         $this->assertTrue($bag->isValid());
@@ -583,7 +583,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::create($this->tmpdir);
         $this->assertArrayEquals(['sha512'], $bag->getAlgorithms());
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("One or more of the algorithms provided are supported.");
+        $this->expectExceptionMessage("One or more of the algorithms provided are NOT supported.");
         $bag->setAlgorithms(['sha1', 'SHA-224', "bad-algorithm"]);
     }
 
@@ -627,7 +627,7 @@ class BagTest extends BagItTestFramework
      * @group Bag
      * @covers ::load
      * @covers ::hasExtension
-     * @covers ::isCompressed
+     * @covers ::getExtension
      */
     public function testNonExistantCompressed(): void
     {
@@ -644,7 +644,7 @@ class BagTest extends BagItTestFramework
      * Test opening a tar gzip
      * @group Bag
      * @covers ::load
-     * @covers ::isCompressed
+     * @covers ::getExtension
      * @covers ::uncompressBag
      * @covers ::hasExtension
      * @covers ::untarBag
@@ -668,7 +668,7 @@ class BagTest extends BagItTestFramework
      * Test opening a tar bzip2.
      * @group Bag
      * @covers ::load
-     * @covers ::isCompressed
+     * @covers ::getExtension
      * @covers ::uncompressBag
      * @covers ::hasExtension
      * @covers ::untarBag
@@ -691,7 +691,7 @@ class BagTest extends BagItTestFramework
     /**
      * Test opening a zip file.
      * @group Bag
-     * @covers ::isCompressed
+     * @covers ::getExtension
      * @covers ::uncompressBag
      * @covers ::hasExtension
      * @covers ::unzipBag
@@ -708,6 +708,30 @@ class BagTest extends BagItTestFramework
         $this->assertNotEquals(
             self::TEST_RESOURCES . '/testzip.zip',
             $bag->getBagRoot()
+        );
+    }
+
+    /**
+     * Test a valid archive with an invalid extension included
+     *
+     * @group Bag
+     * @covers ::getExtension
+     * @covers ::hasExtension
+     */
+    public function testInvalidExtension(): void
+    {
+        $this->tmpdir = $this->prepareBasicTestBag();
+        $bag = Bag::load($this->tmpdir);
+        $archivefile = $this->getTempName();
+        $archivefile .= ".tmp.zip";
+        $this->assertFileDoesNotExist($archivefile);
+        $bag->package($archivefile);
+        $this->assertFileExists($archivefile);
+        $newbag = Bag::load($archivefile);
+        $this->assertTrue($newbag->isValid());
+        $this->assertEquals(
+            $bag->getPayloadManifests()['sha256']->getHashes(),
+            $newbag->getPayloadManifests()['sha256']->getHashes()
         );
     }
 
@@ -729,10 +753,8 @@ class BagTest extends BagItTestFramework
         $this->assertFileDoesNotExist($archivefile);
         $bag->package($archivefile);
         $this->assertFileExists($archivefile);
-
         $newbag = Bag::load($archivefile);
         $this->assertTrue($newbag->isValid());
-
         $this->assertEquals(
             $bag->getPayloadManifests()['sha256']->getHashes(),
             $newbag->getPayloadManifests()['sha256']->getHashes()
@@ -754,6 +776,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $archivefile = $this->getTempName();
         $archivefile .= ".tar";
+        $this->assertTrue($bag->isValid());
         $this->assertFileDoesNotExist($archivefile);
         $bag->package($archivefile);
         $this->assertFileExists($archivefile);
@@ -837,8 +860,8 @@ class BagTest extends BagItTestFramework
         $this->assertFileDoesNotExist($archivefile);
 
         $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("Unknown archive type, the file extension must be one of (tar, tgz, tar.gz, " .
-            "tar.bz2, zip)");
+        $this->expectExceptionMessage("Unknown archive type ($archivefile), the file extension must be one of (.tar, " .
+            ".tgz, .tar.gz, .tar.bz2, .zip)");
 
         $bag->package($archivefile);
     }
@@ -860,7 +883,7 @@ class BagTest extends BagItTestFramework
         $bag = Bag::load($this->tmpdir);
         $this->assertEquals('0.97', $bag->getVersionString());
         $this->assertTrue($bag->isValid());
-        $fp = fopen($bag->getBagRoot() . '/bag-info.txt', 'r');
+        $fp = self::openFile($bag->getBagRoot() . '/bag-info.txt', 'r');
         while (!feof($fp)) {
             $line = (string) fgets($fp);
             $line = trim($line);
@@ -874,7 +897,7 @@ class BagTest extends BagItTestFramework
         $bag->upgrade();
         $this->assertEquals('1.0', $bag->getVersionString());
         $this->assertTrue($bag->isValid());
-        $fp = fopen($bag->getBagRoot() . '/bag-info.txt', 'r');
+        $fp = self::openFile($bag->getBagRoot() . '/bag-info.txt', 'r');
         while (!feof($fp)) {
             $line = (string) fgets($fp);
             $line = trim($line);
@@ -959,7 +982,7 @@ class BagTest extends BagItTestFramework
     public function testBagItTooManyLines(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . '/bagit.txt', 'a');
+        $fp = self::openFile($this->tmpdir . '/bagit.txt', 'a');
         fwrite($fp, "This is more stuff\n");
         fclose($fp);
         $bag = Bag::load($this->tmpdir);
@@ -974,7 +997,7 @@ class BagTest extends BagItTestFramework
     public function testBagItVersionLineInvalid(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . '/bagit.txt', 'w');
+        $fp = self::openFile($this->tmpdir . '/bagit.txt', 'w');
         fwrite($fp, "BagIt-Version: M.N\nTag-File-Character-Encoding: UTF-8\n");
         fclose($fp);
         $bag = Bag::load($this->tmpdir);
@@ -989,7 +1012,7 @@ class BagTest extends BagItTestFramework
     public function testBagItEncodingLineError(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . '/bagit.txt', 'w');
+        $fp = self::openFile($this->tmpdir . '/bagit.txt', 'w');
         fwrite($fp, "BagIt-Version: 1.0\nTag-File-Encoding: UTF-8\n");
         fclose($fp);
         $bag = Bag::load($this->tmpdir);
@@ -1004,7 +1027,7 @@ class BagTest extends BagItTestFramework
     public function testFailOnEncodedBagIt(): void
     {
         $this->tmpdir = $this->prepareBasicTestBag();
-        $fp = fopen($this->tmpdir . '/bagit.txt', 'w');
+        $fp = self::openFile($this->tmpdir . '/bagit.txt', 'w');
         $encoded_string = mb_convert_encoding("BagIt-Version: 1.0\nTag-File-Encoding: UTF-8\n", "byte4le");
         fwrite($fp, $encoded_string);
         fclose($fp);
@@ -1013,17 +1036,17 @@ class BagTest extends BagItTestFramework
     }
 
     /**
-     * Test that for a non-extended bag, trying to add bag-info tags throws an error.
+     * Test that for a non-extended bag, trying to add bag-info tags no longer throws an error.
      * @group Bag
      * @covers ::addBagInfoTag
      */
     public function testAddBagInfoWhenNotExtended(): void
     {
-        $this->expectException(BagItException::class);
-        $this->expectExceptionMessage("This bag is not extended, you need '\$bag->setExtended(true);'");
-
         $bag = Bag::create($this->tmpdir);
-        $bag->addBagInfoTag("Contact-Name", "Jared Whiklo");
+        $this->assertFalse($bag->isExtended());
+        $bag->addBagInfoTag("Contact-Name", "Bob Smith");
+        $this->assertTrue($bag->isExtended());
+        $this->assertArrayEquals(["Bob Smith"], $bag->getBagInfoByTag("Contact-Name"));
     }
 
     /**
@@ -1042,7 +1065,7 @@ class BagTest extends BagItTestFramework
         $this->expectException(BagItException::class);
         $this->expectExceptionMessage("New bag directory $fullpath exists");
 
-        $curr = getcwd();
+        $curr = self::getCwd();
         chdir($this->tmpdir);
         try {
             Bag::create("existing_bag");
@@ -1061,7 +1084,7 @@ class BagTest extends BagItTestFramework
     {
         // Make the directory
         mkdir($this->tmpdir);
-        $curr = getcwd();
+        $curr = self::getCwd();
         $full_path = $this->tmpdir . "/existing_bag";
         chdir($this->tmpdir);
         $bag = Bag::create("existing_bag");

@@ -19,67 +19,67 @@ abstract class AbstractManifest
     /**
      * The bag this manifest is part of.
      *
-     * @var \whikloj\BagItTools\Bag
+     * @var Bag
      */
-    protected $bag;
+    protected Bag $bag;
 
     /**
      * The hash algorithm for this manifest.
      *
      * @var string
      */
-    protected $algorithm;
+    protected string $algorithm;
 
     /**
      * Associative array where paths are keys and hashes are values.
      *
-     * @var array
+     * @var array<string, string>
      */
-    protected $hashes = [];
+    protected array $hashes = [];
 
     /**
      * Array of the same paths as in $hashes but normalized for case and characters to check for duplication.
      *
-     * @var array
+     * @var array<string>
      */
-    protected $normalizedPaths = [];
+    protected array $normalizedPaths = [];
 
     /**
      * The filename for this manifest.
      *
      * @var string
      */
-    protected $filename;
+    protected string $filename;
 
     /**
      * Errors while validating this manifest.
      *
-     * @var array
+     * @var array<array<string, string>>
      */
-    protected $manifestErrors = [];
+    protected array $manifestErrors = [];
 
     /**
      * Warnings generated while validating this manifest.
      *
-     * @var array
+     * @var array<array<string, string>>
      */
-    protected $manifestWarnings = [];
+    protected array $manifestWarnings = [];
 
     /**
      * Errors/Warnings generated while loading.
      * Because of the path key in the hash array if there are multiple entries for a path we need to track it during
      * load but present it at validate().
      *
-     * @var array
+     * @var array<string, array<array<string, string>>>
      *   Array of arrays with keys 'error' and 'warning'
-     * @see \whikloj\BagItTools\AbstractManifest::resetLoadIssues()
+     * @see AbstractManifest::resetLoadIssues
      */
-    protected $loadIssues;
+    protected array $loadIssues;
 
     /**
      * Manifest constructor.
      *
-     * @param \whikloj\BagItTools\Bag $bag
+     * @param Bag $bag
      *   The bag this manifest is part of.
      * @param string $algorithm
      *   The BagIt name of the hash algorithm.
@@ -87,7 +87,7 @@ abstract class AbstractManifest
      *   The manifest filename.
      * @param boolean $load
      *   Whether we are loading an existing file
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Unable to read manifest file.
      */
     protected function __construct(Bag $bag, string $algorithm, string $filename, bool $load = false)
@@ -125,7 +125,7 @@ abstract class AbstractManifest
     /**
      * Return the array of errors.
      *
-     * @return array
+     * @return array<array<string, string>>
      */
     public function getErrors(): array
     {
@@ -135,7 +135,7 @@ abstract class AbstractManifest
     /**
      * Return the array of warnings.
      *
-     * @return array
+     * @return array<array<string, string>>
      */
     public function getWarnings(): array
     {
@@ -145,7 +145,7 @@ abstract class AbstractManifest
     /**
      * Update the hashes for each path.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Error writing the manifest file to disk.
      */
     public function update(): void
@@ -186,7 +186,7 @@ abstract class AbstractManifest
     /**
      * Return the payload and hashes as an associative array.
      *
-     * @return array
+     * @return array<string, string>
      *   Array of paths => hashes
      */
     public function getHashes(): array
@@ -201,7 +201,7 @@ abstract class AbstractManifest
     /**
      * Load the paths and hashes from the file on disk, does not validate.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   Unable to read manifest file.
      */
     protected function loadFile(): void
@@ -254,7 +254,7 @@ abstract class AbstractManifest
     /**
      * Utility to recreate the manifest file using the currently stored hashes.
      *
-     * @throws \whikloj\BagItTools\Exceptions\FilesystemException
+     * @throws FilesystemException
      *   If we can't write the manifest files.
      */
     protected function writeToDisk(): void
@@ -286,7 +286,7 @@ abstract class AbstractManifest
      */
     private function checkIncomingFilePath(string $filepath, int $lineCount): void
     {
-        if (substr($filepath, 0, 2) == "./") {
+        if (str_starts_with($filepath, "./")) {
             $this->addLoadWarning("Line $lineCount : Paths SHOULD not be relative");
         }
         if (BagUtils::checkUnencodedFilepath($filepath)) {
