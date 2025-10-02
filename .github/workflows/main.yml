@@ -9,6 +9,7 @@ on:
       - "main"
   schedule:
     - cron: '0 0 1 */6 *' # Run at midnight on the first day every 6 months.
+  workflow_dispatch:
 
 jobs:
   build:
@@ -17,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ["8.0", "8.1", "8.2", "8.3"]
+        php-versions: ${{ fromJSON(vars.PHP_VERSIONS) }}
         host-os: ["ubuntu-latest", "windows-latest"]
         experimental: [false]
 
