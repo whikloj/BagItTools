@@ -10,6 +10,7 @@ on:
       - "main"
   schedule:
     - cron: '0 0 1 */6 *' # Run at midnight on the first day every 6 months.
+  workflow_dispatch:
 
 jobs:
   build:
