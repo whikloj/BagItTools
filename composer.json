@@ -19,7 +19,7 @@
     "ext-zip": "*",
     "ext-mbstring": "*",
     "ext-intl": "*",
-    "symfony/console": "^5.4"
+    "symfony/console": ">5.4"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.6",
