@@ -4,6 +4,14 @@ The purpose of this document is to provide a list of changes included in a relea
 may have an impact on the user. This is not a comprehensive list of all changes, but hopefully catches most and 
 provides a reasoning for the changes.
 
+## v6.0.0
+
+### Removed
+
+#### Support for PHP 8.0 and 8.1
+
+In an effort to keep up with supported versions of PHP this library now requires PHP 8.2 or higher.
+
 ## v5.0.0
 
 ### Added
