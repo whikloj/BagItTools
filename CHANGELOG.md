@@ -10,7 +10,7 @@ provides a reasoning for the changes.
 
 #### Support for PHP 8.0 and 8.1
 
-In an effort to keep up with supported versions of PHP this library now requires PHP 8.2 or higher.
+In an effort to keep up with supported versions of PHP this library now requires PHP 8.2 or higher. 
 
 ## v5.0.0
 
