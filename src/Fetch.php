@@ -404,7 +404,6 @@ class Fetch
                     $this->saveFileData($content, $destinations[$x]);
                 }
                 curl_multi_remove_handle($mh, $curl_handles[$x]);
-                curl_close($curl_handles[$x]);
             }
             curl_multi_close($mh);
         }
