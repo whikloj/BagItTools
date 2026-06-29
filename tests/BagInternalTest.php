@@ -279,9 +279,7 @@ class BagInternalTest extends BagItTestFramework
         $payload = $bag->getPayloadManifests()['sha512'];
         $class = new ReflectionClass('whikloj\BagItTools\PayloadManifest');
         $methodCall = $class->getMethod('checkIncomingFilePath');
-        $methodCall->setAccessible(true);
         $loadIssues = $class->getProperty('loadIssues');
-        $loadIssues->setAccessible(true);
         // Initially no errors
         $this->assertCount(0, $loadIssues->getValue($payload)['error']);
         // unencoded % symbol
@@ -310,7 +308,6 @@ class BagInternalTest extends BagItTestFramework
         $bag = Bag::create($this->tmpdir);
         $class = new ReflectionClass('whikloj\BagItTools\Bag');
         $methodCall = $class->getMethod('hasExtension');
-        $methodCall->setAccessible(true);
 
         $this->assertTrue($methodCall->invokeArgs($bag, ['file.txt', ['.txt', '.jpg']]));
         $this->assertTrue($methodCall->invokeArgs($bag, ['file.old.txt', ['.txt', '.jpg']]));
@@ -330,7 +327,6 @@ class BagInternalTest extends BagItTestFramework
         $bag = Bag::create($this->tmpdir);
         $class = new ReflectionClass('whikloj\BagItTools\Bag');
         $methodCall = $class->getMethod('getExtension');
-        $methodCall->setAccessible(true);
 
         $this->assertEquals('.txt', $methodCall->invokeArgs($bag, ['file.txt']));
         $this->assertEquals('.old.txt', $methodCall->invokeArgs($bag, ['file.old.txt']));

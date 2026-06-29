@@ -180,7 +180,6 @@ class Fetch
         $ch = $this->createCurl($uri, true, $size);
         $output = curl_exec($ch);
         $error = curl_error($ch);
-        curl_close($ch);
         if (!empty($error) || $output === false) {
             throw new BagItException("Error with download of $uri : $error");
         }
