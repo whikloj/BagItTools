@@ -78,5 +78,5 @@ jobs:
         with:
           files: "./clover.xml"
           disable_search: true
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
