@@ -239,7 +239,6 @@ class BagItTestFramework extends TestCase
     {
         $class = new ReflectionClass($class);
         $methodCall = $class->getMethod($method);
-        $methodCall->setAccessible(true);
         return $methodCall;
     }
 
@@ -278,8 +277,8 @@ class BagItTestFramework extends TestCase
      */
     protected function assertBagItVersionEncoding(
         Bag $bag,
-        string $version_string = null,
-        string $encoding = null
+        ?string $version_string = null,
+        ?string $encoding = null
     ): void {
         $default_version = "1.0";
         $default_encoding = "UTF-8";
