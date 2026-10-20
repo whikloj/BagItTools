@@ -80,3 +80,9 @@ jobs:
           disable_search: true
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Install without development dependencies
+        run: composer install --no-dev --prefer-dist --no-progress
+
+      - name: Test directory and ZIP operations without PEAR
+        run: php tests/fixtures/without-tar.php vendor/autoload.php

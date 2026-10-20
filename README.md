@@ -46,7 +46,17 @@ composer install --no-dev
 
 ## Dependencies
 
-All dependencies are installed or identified by composer. 
+Required dependencies are installed or identified by Composer. Directory bags and ZIP
+archives do not require PEAR. For tar, tar.gz, tgz and tar.bz2 operations, install
+the optional archive dependency explicitly:
+
+```sh
+composer require pear/archive_tar
+```
+
+Without it, attempting to create or load a tar archive throws `BagItException`
+with installation instructions. Tar support remains installed for development
+and the archive test suite through `require-dev`.
 
 Some PHP extensions are required and this library will not install if they cannot be found in the default PHP installation (the one used by composer).
 

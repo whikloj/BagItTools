@@ -443,6 +443,9 @@ class Bag
                 implode(", ", self::PACKAGE_EXTENSIONS) . ")"
             );
         }
+        if (self::hasExtension(self::getExtension($filepath), self::TAR_EXTENSIONS)) {
+            self::requireTarSupport();
+        }
         $this->finalize();
         if (!$this->isValid()) {
             throw new BagItException("Bag is not valid, cannot package.");
@@ -2266,6 +2269,7 @@ class Bag
      */
     private static function untarBag(string $filename): string
     {
+        self::requireTarSupport();
         $compression = self::extensionTarCompression($filename);
         $directory = self::extractDir();
         $tar = new Archive_Tar($filename, $compression);
@@ -2279,6 +2283,21 @@ class Bag
             throw new FilesystemException($mesg);
         }
         return $directory;
+    }
+
+    /**
+     * Require the optional tar dependency before any archive side effects.
+     *
+     * @throws BagItException
+     *   The optional tar dependency is not installed.
+     */
+    private static function requireTarSupport(): void
+    {
+        if (!class_exists(Archive_Tar::class)) {
+            throw new BagItException(
+                "Tar archive support requires pear/archive_tar. Install it with: composer require pear/archive_tar"
+            );
+        }
     }
 
     /**
