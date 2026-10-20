@@ -447,6 +447,10 @@ class Bag
         if (!$this->isValid()) {
             throw new BagItException("Bag is not valid, cannot package.");
         }
+        $parent = dirname($filepath);
+        if (!is_dir($parent)) {
+            BagUtils::checkedMkdir($parent, 0777, true);
+        }
         $this->makePackage($filepath);
     }
 

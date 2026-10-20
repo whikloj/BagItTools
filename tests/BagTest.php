@@ -762,6 +762,39 @@ class BagTest extends BagItTestFramework
     }
 
     /**
+     * Archive destinations may include directories that do not exist yet.
+     *
+     * @dataProvider nestedArchiveFormats
+     * @covers ::package
+     */
+    public function testPackageCreatesParentDirectory(string $extension): void
+    {
+        mkdir($this->tmpdir);
+        $bag = Bag::create($this->tmpdir . "/bag");
+        $bag->addFile(self::TEST_IMAGE['filename'], "data/image.jpg");
+        $archive = $this->tmpdir . "/new/nested/archive." . $extension;
+        $this->assertDirectoryDoesNotExist(dirname($archive));
+        $bag->package($archive);
+        $this->assertFileExists($archive);
+        $restored = Bag::load($archive);
+        try {
+            $this->assertTrue($restored->isValid());
+            $this->assertSame(
+                $bag->getPayloadManifests()['sha512']->getHashes(),
+                $restored->getPayloadManifests()['sha512']->getHashes()
+            );
+        } finally {
+            self::deleteDirAndContents(dirname($restored->getBagRoot()));
+        }
+    }
+
+    /** @return array<array<string>> */
+    public static function nestedArchiveFormats(): array
+    {
+        return [['tar'], ['tar.gz'], ['tgz'], ['tar.bz2'], ['zip']];
+    }
+
+    /**
      * Test generating a tar.
      *
      * TODO: Re-extract and compare against source bag.
