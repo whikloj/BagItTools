@@ -15,10 +15,12 @@ jobs:
   build:
     runs-on: ${{ matrix.host-os }}
     continue-on-error: ${{ matrix.experimental }}
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ${{ fromJSON(vars.PHP_VERSIONS) }}
+        php-versions: ["8.2", "8.3", "8.4", "8.5"]
         host-os: ["ubuntu-latest", "windows-latest"]
         experimental: [false]
 
@@ -75,8 +77,9 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v6
+        if: env.CODECOV_TOKEN != ''
         with:
           files: "./clover.xml"
           disable_search: true
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          token: ${{ env.CODECOV_TOKEN }}
